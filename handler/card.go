@@ -56,7 +56,7 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 	cardInfo := session.GetCard(req.CardMasterID)
 	cardInfo.IsAwakeningImage = req.IsAwakeningImage
 	session.UpdateCard(cardInfo)
-	
+
 	session.Finalize("user_model_diff")
 
 	userCardInfo := []any{}

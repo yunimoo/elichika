@@ -3,8 +3,8 @@ package serverdb
 import (
 	"elichika/model"
 
-	"fmt"
 	"encoding/json"
+	"fmt"
 
 	"github.com/tidwall/gjson"
 )
@@ -51,7 +51,7 @@ func (session *Session) GetCard(cardMasterId int) model.CardInfo {
 }
 
 func (session *Session) GetAllCards() []model.CardInfo {
-	var cards[] model.CardInfo
+	var cards []model.CardInfo
 	err := Engine.Table("s_user_card").Where("user_id = ?", session.UserInfo.UserId).Find(&cards)
 	if err != nil {
 		panic(err)

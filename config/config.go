@@ -14,7 +14,7 @@ var (
 
 	SessionKey = "12345678123456781234567812345678"
 
-	MainDb  = "assets/main.db"
+	MainDb         = "assets/main.db"
 	MasterdataDbGl = "assets/db/masterdata_gl.db"
 	MasterdataDbJp = "assets/db/masterdata_jp.db"
 	ServerdataDb   = "assets/db/serverdata.db"

@@ -7,7 +7,6 @@ import (
 
 	"encoding/json"
 	"fmt"
-
 	// "github.com/tidwall/gjson"
 	// "github.com/tidwall/sjson"
 )
@@ -33,8 +32,8 @@ func DbGetUserData(fileName string) string {
 // so 1 session per request
 // A session fetch the data needs to be modified.
 type Session struct {
-	UserInfo            model.UserInfo
-	CardDiffs           map[int]model.CardInfo
+	UserInfo  model.UserInfo
+	CardDiffs map[int]model.CardInfo
 	// MemberDiffs         map[int]dbmodel.DbUserMember
 	// CardGradeUpTriggers []any
 }

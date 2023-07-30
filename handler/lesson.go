@@ -119,7 +119,6 @@ func SkillEditResult(ctx *gin.Context) {
 	// 	return true
 	// })
 
-
 	session := serverdb.GetSession(UserID)
 	skillList := req.Get("selected_skill_ids")
 	skillList.ForEach(func(key, cardId gjson.Result) bool {

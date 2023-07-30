@@ -3,17 +3,17 @@ package handler
 import (
 	"elichika/config"
 	"elichika/encrypt"
-	"elichika/utils"
 	"elichika/model"
 	"elichika/serverdb"
+	"elichika/utils"
 
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"net/http"
-	"strings"
-	"strconv"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -149,7 +149,7 @@ func Login(ctx *gin.Context) {
 		})
 		session.InsertCards(cards)
 	}
-	
+
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_card_by_card_id", userCards)
 
 	// user accessory
