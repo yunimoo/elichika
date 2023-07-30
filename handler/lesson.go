@@ -141,7 +141,7 @@ func SkillEditResult(ctx *gin.Context) {
 		}
 		return true
 	})
-	session.Finalize("user_model")
+	session.Finalize(GetUserData("userModel.json"), "user_model")
 
 	signBody := GetData("skillEditResult.json")
 	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())

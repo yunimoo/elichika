@@ -60,6 +60,7 @@ func Router(r *gin.Engine) {
 		api.POST("/subscription/fetchSubscriptionPass", handler.FetchSubscriptionPass)
 		api.POST("/terms/agreement", handler.Agreement)
 		api.POST("/trainingTree/fetchTrainingTree", handler.FetchTrainingTree)
+		api.POST("/trainingTree/levelUpCard", handler.LevelUpCard)
 		api.POST("/userProfile/fetchProfile", handler.FetchProfile)
 		api.POST("/userProfile/setProfile", handler.SetProfile)
 		api.POST("/userProfile/setRecommendCard", handler.SetRecommendCard)

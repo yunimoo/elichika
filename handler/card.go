@@ -57,7 +57,7 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 	cardInfo.IsAwakeningImage = req.IsAwakeningImage
 	session.UpdateCard(cardInfo)
 
-	session.Finalize("user_model_diff")
+	session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 
 	userCardInfo := []any{}
 	userCardInfo = append(userCardInfo, cardInfo.CardMasterID)
@@ -112,7 +112,7 @@ func ChangeFavorite(ctx *gin.Context) {
 	cardInfo := session.GetCard(req.CardMasterID)
 	cardInfo.IsFavorite = req.IsFavorite
 	session.UpdateCard(cardInfo)
-	session.Finalize("user_model_diff")
+	session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 
 	userCardInfo := []any{}
 	userCardInfo = append(userCardInfo, cardInfo.CardMasterID)
@@ -167,14 +167,6 @@ func GetOtherUserCard(ctx *gin.Context) {
 	userCardResp, _ = sjson.Set(userCardResp, "other_user_card", newUserCardInfo)
 	resp := SignResp(ctx.GetString("ep"), userCardResp, config.SessionKey)
 	// fmt.Println(resp)
-
-	ctx.Header("Content-Type", "application/json")
-	ctx.String(http.StatusOK, resp)
-}
-
-func FetchTrainingTree(ctx *gin.Context) {
-	signBody := GetData("fetchTrainingTree.json")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

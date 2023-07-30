@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	// "github.com/tidwall/gjson"
-	// "github.com/tidwall/sjson"
+	"github.com/tidwall/sjson"
 )
 
 func DbGetUserData(fileName string) string {
@@ -38,33 +38,17 @@ type Session struct {
 	// CardGradeUpTriggers []any
 }
 
-// Update the diff into the Db, and return the delta patch
-// the delta patch is sometime called "user_model", sometime called "user_model_diff"
-// that is the mainKey here
-// they all have the same structure
-func (session *Session) Finalize(mainKey string) string {
+// Push update into the db and create the diff
+// The actual response depend on the API, but they often contain the diff somewhere
+// The mainKey is the key to the diff
+func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	session.FinalizeCardDiffs()
-	return mainKey
-	// modelDiff := DbGetUserData("userModelDiff.json")
-	// if mainKey == "user_model" {
-	// 	modelDiff = DbGetUserData("userModel.json")
-	// }
-	// modelDiff, _ = sjson.Set(modelDiff, mainKey+".user_status", session.UserInfo)
+	// jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.UserInfo)
 	// modelDiff, _ = sjson.Set(modelDiff, mainKey+".user_status.gdpr_version", 4)
-	// // modelDiff, _ = sjson.Set(modelDiff, mainKey + ".user_member_by_member_id", session.FinalizeMemberDiffs())
-	// modelDiff, _ = sjson.Set(modelDiff, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs())
+	// modelDiff, _ = sjson.Set(modelDiff, mainKey + ".user_member_by_member_id", session.FinalizeMemberDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs())
 	// modelDiff, _ = sjson.Set(modelDiff, mainKey+".user_info_trigger_card_grade_up_by_trigger_id", session.FinalizeCardGradeUpTrigger())
-	// return modelDiff
-	// for memberMasterId, member := range session.MemberDiffs {
-	// 	affected, err := Engine.Table("s_user_card").
-	// 		Where("user_id = ? AND card_master_id = ?", session.UserInfo.UserId, cardMasterId).Upddate(&card)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	if affected != 1 {
-	// 		panic()
-	// 	}
-	// }
+	return jsonBody
 }
 
 // fetch the user, this is always sent back to client
