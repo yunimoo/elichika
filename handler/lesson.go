@@ -3,9 +3,12 @@ package handler
 import (
 	"elichika/config"
 	"elichika/model"
+	"elichika/serverdb"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -83,37 +86,63 @@ func SkillEditResult(ctx *gin.Context) {
 	req := gjson.Parse(reqBody).Array()[0]
 
 	var cardList []any
-	index := 1
-	cardData := GetUserData("userCard.json")
-	cardInfo := gjson.Parse(cardData).Get("user_card_by_card_id")
-	cardInfo.ForEach(func(key, value gjson.Result) bool {
-		if value.IsObject() {
-			if index > 9 {
-				return false
-			}
-			// fmt.Println("cardInfo:", value.String())
 
-			skillList := req.Get("selected_skill_ids")
-			skillList.ForEach(func(kk, vv gjson.Result) bool {
-				if kk.Int()%2 == 0 && vv.Int() == value.Get("card_master_id").Int() {
-					skill := skillList.Get(fmt.Sprintf("%d", kk.Int()+1))
-					skill.ForEach(func(kkk, vvv gjson.Result) bool {
-						skillIdKey := fmt.Sprintf("user_card_by_card_id.%s.additional_passive_skill_%d_id", key.String(), kkk.Int()+1)
-						cardData = SetUserData("userCard.json", skillIdKey, vvv.Int())
-						return true
-					})
+	// index := 1
+	// cardData := GetUserData("userCard.json")
+	// cardInfo := gjson.Parse(cardData).Get("user_card_by_card_id")
+	// cardInfo.ForEach(func(key, value gjson.Result) bool {
+	// 	if value.IsObject() {
+	// 		if index > 9 {
+	// 			return false
+	// 		}
+	// 		// fmt.Println("cardInfo:", value.String())
 
-					card := gjson.Parse(cardData).Get("user_card_by_card_id." + key.String())
-					cardList = append(cardList, card.Get("card_master_id").Int())
-					cardList = append(cardList, card.Value())
+	// 		skillList := req.Get("selected_skill_ids")
+	// 		skillList.ForEach(func(kk, vv gjson.Result) bool {
+	// 			if kk.Int()%2 == 0 && vv.Int() == value.Get("card_master_id").Int() {
+	// 				skill := skillList.Get(fmt.Sprintf("%d", kk.Int()+1))
+	// 				skill.ForEach(func(kkk, vvv gjson.Result) bool {
+	// 					skillIdKey := fmt.Sprintf("user_card_by_card_id.%s.additional_passive_skill_%d_id", key.String(), kkk.Int()+1)
+	// 					cardData = SetUserData("userCard.json", skillIdKey, vvv.Int())
+	// 					return true
+	// 				})
 
-					index++
-				}
+	// 				card := gjson.Parse(cardData).Get("user_card_by_card_id." + key.String())
+	// 				cardList = append(cardList, card.Get("card_master_id").Int())
+	// 				cardList = append(cardList, card.Value())
+
+	// 				index++
+	// 			}
+	// 			return true
+	// 		})
+	// 	}
+	// 	return true
+	// })
+
+
+	session := serverdb.GetSession(UserID)
+	skillList := req.Get("selected_skill_ids")
+	skillList.ForEach(func(key, cardId gjson.Result) bool {
+		if key.Int()%2 == 0 {
+			cardInfo := session.GetCard(int(cardId.Int()))
+			skills := skillList.Get(fmt.Sprintf("%d", key.Int()+1))
+			cardJsonBytes, _ := json.Marshal(cardInfo)
+			cardJson := string(cardJsonBytes)
+			skills.ForEach(func(kk, vv gjson.Result) bool {
+				skillIdKey := fmt.Sprintf("additional_passive_skill_%d_id", kk.Int()+1)
+				cardJson, _ = sjson.Set(cardJson, skillIdKey, vv.Int())
 				return true
 			})
+			if err := json.Unmarshal([]byte(cardJson), &cardInfo); err != nil {
+				panic(err)
+			}
+			session.UpdateCard(cardInfo)
+			cardList = append(cardList, cardInfo.CardMasterID)
+			cardList = append(cardList, cardInfo)
 		}
 		return true
 	})
+	session.Finalize("user_model")
 
 	signBody := GetData("skillEditResult.json")
 	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())

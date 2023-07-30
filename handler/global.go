@@ -26,6 +26,8 @@ var (
 
 	presetDataPath = "assets/preset/"
 	userDataPath   = "assets/userdata/"
+
+	UserID int
 )
 
 func init() {

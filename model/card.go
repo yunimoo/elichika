@@ -8,7 +8,8 @@ type CardAwakeningReq struct {
 
 // CardInfo ...
 type CardInfo struct {
-	CardMasterID               int   `json:"card_master_id"`
+	UserId                     int   `xorm:"pk" json:"-"`
+	CardMasterID               int   `xorm:"pk 'card_master_id'" json:"card_master_id"`
 	Level                      int   `json:"level"`
 	Exp                        int   `json:"exp"`
 	LovePoint                  int   `json:"love_point"`
@@ -26,10 +27,10 @@ type CardInfo struct {
 	PassiveSkillALevel         int   `json:"passive_skill_a_level"`
 	PassiveSkillBLevel         int   `json:"passive_skill_b_level"`
 	PassiveSkillCLevel         int   `json:"passive_skill_c_level"`
-	AdditionalPassiveSkill1ID  int   `json:"additional_passive_skill_1_id"`
-	AdditionalPassiveSkill2ID  int   `json:"additional_passive_skill_2_id"`
-	AdditionalPassiveSkill3ID  int   `json:"additional_passive_skill_3_id"`
-	AdditionalPassiveSkill4ID  int   `json:"additional_passive_skill_4_id"`
+	AdditionalPassiveSkill1ID  int   `xorm:"'additional_passive_skill_1_id'" json:"additional_passive_skill_1_id"`
+	AdditionalPassiveSkill2ID  int   `xorm:"'additional_passive_skill_2_id'" json:"additional_passive_skill_2_id"`
+	AdditionalPassiveSkill3ID  int   `xorm:"'additional_passive_skill_3_id'" json:"additional_passive_skill_3_id"`
+	AdditionalPassiveSkill4ID  int   `xorm:"'additional_passive_skill_4_id'" json:"additional_passive_skill_4_id"`
 	AcquiredAt                 int64 `json:"acquired_at"`
 	IsNew                      bool  `json:"is_new"`
 }

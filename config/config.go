@@ -15,9 +15,18 @@ var (
 	SessionKey = "12345678123456781234567812345678"
 
 	MainDb  = "assets/main.db"
-	MainEng *xorm.Engine
+	MasterdataDbGl = "assets/db/masterdata_gl.db"
+	MasterdataDbJp = "assets/db/masterdata_jp.db"
+	ServerdataDb   = "assets/db/serverdata.db"
+
+	MainEng         *xorm.Engine
+	MasterdataEngGl *xorm.Engine
+	MasterdataEngJp *xorm.Engine
 
 	Conf = &AppConfigs{}
+
+	PresetDataPath = "assets/preset/"
+	UserDataPath   = "assets/userdata/"
 )
 
 func init() {

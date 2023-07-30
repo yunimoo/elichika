@@ -4,11 +4,16 @@ import (
 	"elichika/config"
 	"elichika/encrypt"
 	"elichika/utils"
+	"elichika/model"
+	"elichika/serverdb"
+
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"strings"
+	"strconv"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -113,8 +118,39 @@ func Login(ctx *gin.Context) {
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_lesson_deck_by_id", lessonData.Get("user_lesson_deck_by_id").Value())
 
 	// user cards
-	cardData := gjson.Parse(GetUserData("userCard.json"))
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_card_by_card_id", cardData.Get("user_card_by_card_id").Value())
+	uid, _ := strconv.Atoi(ctx.Query("u"))
+	fmt.Println("User logins: ", uid)
+	session := serverdb.GetSession(uid)
+	var userCards []any
+	dbCards := session.GetAllCards()
+
+	for _, cardInfo := range dbCards {
+		userCards = append(userCards, cardInfo.CardMasterID)
+		userCards = append(userCards, cardInfo)
+	}
+
+	if len(dbCards) == 0 {
+		fmt.Println("importing json card data to db")
+		// first time, parse the json and insert to db
+		cardData := gjson.Parse(GetUserData("userCard.json"))
+		cardInfo := model.CardInfo{}
+		var cards []model.CardInfo
+		cardData.Get("user_card_by_card_id").ForEach(func(key, value gjson.Result) bool {
+			if value.IsObject() {
+				if err := json.Unmarshal([]byte(value.String()), &cardInfo); err != nil {
+					panic(err)
+				}
+				cardInfo.UserId = uid
+				userCards = append(userCards, cardInfo.CardMasterID)
+				userCards = append(userCards, cardInfo)
+				cards = append(cards, cardInfo)
+			}
+			return true
+		})
+		session.InsertCards(cards)
+	}
+	
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_card_by_card_id", userCards)
 
 	// user accessory
 	var UserAccessory []any
