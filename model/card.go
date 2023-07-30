@@ -8,7 +8,7 @@ type CardAwakeningReq struct {
 
 // CardInfo ...
 type CardInfo struct {
-	UserId                     int   `xorm:"pk" json:"-"`
+	UserID                     int   `xorm:"pk 'user_id'" json:"-"`
 	CardMasterID               int   `xorm:"pk 'card_master_id'" json:"card_master_id"`
 	Level                      int   `json:"level"`
 	Exp                        int   `json:"exp"`

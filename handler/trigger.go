@@ -1,39 +1,37 @@
 package handler
 
-// import (
-// 	"elichika/config"
-// 	"elichika/serverdb"
+import (
+	"elichika/config"
+	"elichika/serverdb"
 
-// 	"encoding/json"
-// 	"fmt"
-// 	"net/http"
-// 	"strconv"
+	"encoding/json"
+	"net/http"
 
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/tidwall/gjson"
-// 	// "github.com/tidwall/sjson"
-// 	// "xorm.io/xorm"
-// )
+	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
+	// "xorm.io/xorm"
+)
 
-// func ReadCardGradeUp(ctx *gin.Context) {
-// 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+func ReadCardGradeUp(ctx *gin.Context) {
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 
-// 	type ReadCardGradeUpReq struct {
-// 		TriggerID int64 `json:"trigger_id"`
-// 	}
+	type ReadCardGradeUpReq struct {
+		TriggerID int64 `json:"trigger_id"`
+	}
 
-// 	uid, _ := strconv.Atoi(ctx.Query("u"))
-// 	session := serverdb.GetSession(uid)
+	session := serverdb.GetSession(UserID)
 
-// 	triggerReq := ReadCardGradeUpReq{}
+	triggerReq := ReadCardGradeUpReq{}
 
-// 	if err := json.Unmarshal([]byte(reqBody.String()), &triggerReq); err != nil {
-// 		panic(err)
-// 	}
+	if err := json.Unmarshal([]byte(reqBody.String()), &triggerReq); err != nil {
+		panic(err)
+	}
 
-// 	session.AddCardGradeUpTrigger(triggerReq.TriggerID, nil)
-// 	resp := SignResp(ctx.GetString("ep"), session.Finalize("user_model_diff"), config.SessionKey)
-// 	ctx.Header("Content-Type", "application/json")
-// 	ctx.String(http.StatusOK, resp)
-// 	fmt.Println(resp)
-// }
+	session.AddCardGradeUpTrigger(triggerReq.TriggerID, nil)
+	resp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
+	resp, _ = sjson.Set(resp, "user_model_diff.user_status", GetUserStatus())
+	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
+	ctx.Header("Content-Type", "application/json")
+	ctx.String(http.StatusOK, resp)
+}

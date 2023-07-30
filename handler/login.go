@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -118,9 +117,8 @@ func Login(ctx *gin.Context) {
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_lesson_deck_by_id", lessonData.Get("user_lesson_deck_by_id").Value())
 
 	// user cards
-	uid, _ := strconv.Atoi(ctx.Query("u"))
-	fmt.Println("User logins: ", uid)
-	session := serverdb.GetSession(uid)
+	fmt.Println("User logins: ", UserID)
+	session := serverdb.GetSession(UserID)
 	var userCards []any
 	dbCards := session.GetAllCards()
 
@@ -140,7 +138,7 @@ func Login(ctx *gin.Context) {
 				if err := json.Unmarshal([]byte(value.String()), &cardInfo); err != nil {
 					panic(err)
 				}
-				cardInfo.UserId = uid
+				cardInfo.UserID = UserID
 				userCards = append(userCards, cardInfo.CardMasterID)
 				userCards = append(userCards, cardInfo)
 				cards = append(cards, cardInfo)

@@ -45,28 +45,20 @@ func init() {
 	MainEng.SetMaxIdleConns(10)
 
 	
-	eng, err = xorm.NewEngine("sqlite", MasterdataDbGl)
+	eng1, err := xorm.NewEngine("sqlite", MasterdataDbGl)
 	if err != nil {
 		panic(err)
 	}
-	err = eng.Ping()
-	if err != nil {
-		panic(err)
-	}
-	MasterdataEngGl = eng
+	MasterdataEngGl = eng1
 	MasterdataEngGl.SetMaxOpenConns(50)
 	MasterdataEngGl.SetMaxIdleConns(10)
 
 	
-	eng, err = xorm.NewEngine("sqlite", MasterdataDbJp)
+	eng2, err := xorm.NewEngine("sqlite", MasterdataDbJp)
 	if err != nil {
 		panic(err)
 	}
-	err = eng.Ping()
-	if err != nil {
-		panic(err)
-	}
-	MasterdataEngJp = eng
+	MasterdataEngJp = eng2
 	MasterdataEngJp.SetMaxOpenConns(50)
 	MasterdataEngJp.SetMaxIdleConns(10)
 }

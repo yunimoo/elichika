@@ -34,7 +34,7 @@ func InitTables() {
 	InitTable("s_user_info", model.UserInfo{})
 	InitTable("s_user_card", model.CardInfo{})
 	// InitTable("s_user_member", dbmodel.DbUserMember{})
-	// InitTable("s_user_training_tree_cell", dbmodel.DbTrainingTreeCell{})
+	InitTable("s_user_training_tree_cell", model.TrainingTreeCell{})
 }
 
 func init() {
