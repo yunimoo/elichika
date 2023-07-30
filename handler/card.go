@@ -31,37 +31,10 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 		panic(err)
 	}
 
-	// loginData := GetUserData("userCard.json")
-	// cardInfo := model.CardInfo{}
-	// gjson.Parse(loginData).Get("user_card_by_card_id").
-	// 	ForEach(func(key, value gjson.Result) bool {
-	// 		if value.IsObject() {
-	// 			if err := json.Unmarshal([]byte(value.String()), &cardInfo); err != nil {
-	// 				panic(err)
-	// 			}
-
-	// 			if cardInfo.CardMasterID == req.CardMasterID {
-	// 				cardInfo.IsAwakeningImage = req.IsAwakeningImage
-
-	// 				k := "user_card_by_card_id." + key.String() + ".is_awakening_image"
-	// 				SetUserData("userCard.json", k, req.IsAwakeningImage)
-
-	// 				return false
-	// 			}
-	// 		}
-	// 		return true
-	// 	})
-
 	session := serverdb.GetSession(UserID)
 	cardInfo := session.GetCard(req.CardMasterID)
 	cardInfo.IsAwakeningImage = req.IsAwakeningImage
 	session.UpdateCard(cardInfo)
-
-	session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
-
-	userCardInfo := []any{}
-	userCardInfo = append(userCardInfo, cardInfo.CardMasterID)
-	userCardInfo = append(userCardInfo, cardInfo)
 
 	// Update user profile
 	cardMasterId := gjson.Parse(GetUserData("fetchProfile.json")).Get("profile_info.basic_info.recommend_card_master_id").Int()
@@ -69,9 +42,8 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 		SetUserData("fetchProfile.json", "profile_info.basic_info.is_recommend_card_image_awaken", req.IsAwakeningImage)
 	}
 
-	cardResp := GetData("changeIsAwakeningImage.json")
+	cardResp := session.Finalize(GetData("changeIsAwakeningImage.json"), "user_model_diff")
 	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_status", GetUserStatus())
-	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_card_by_card_id", userCardInfo)
 	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -87,40 +59,13 @@ func ChangeFavorite(ctx *gin.Context) {
 		panic(err)
 	}
 
-	// cardData := GetUserData("userCard.json")
-	// cardInfo := model.CardInfo{}
-	// gjson.Parse(cardData).Get("user_card_by_card_id").
-	// 	ForEach(func(key, value gjson.Result) bool {
-	// 		if value.IsObject() {
-	// 			if err := json.Unmarshal([]byte(value.String()), &cardInfo); err != nil {
-	// 				panic(err)
-	// 			}
-
-	// 			if cardInfo.CardMasterID == req.CardMasterID {
-	// 				cardInfo.IsFavorite = req.IsFavorite
-
-	// 				k := "user_card_by_card_id." + key.String() + ".is_favorite"
-	// 				SetUserData("userCard.json", k, req.IsFavorite)
-
-	// 				return false
-	// 			}
-	// 		}
-	// 		return true
-	// 	})
-
 	session := serverdb.GetSession(UserID)
 	cardInfo := session.GetCard(req.CardMasterID)
 	cardInfo.IsFavorite = req.IsFavorite
 	session.UpdateCard(cardInfo)
-	session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 
-	userCardInfo := []any{}
-	userCardInfo = append(userCardInfo, cardInfo.CardMasterID)
-	userCardInfo = append(userCardInfo, cardInfo)
-
-	cardResp := GetData("changeFavorite.json")
+	cardResp := session.Finalize(GetData("changeFavorite.json"), "user_model_diff")
 	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_status", GetUserStatus())
-	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_card_by_card_id", userCardInfo)
 	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
