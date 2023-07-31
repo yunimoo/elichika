@@ -6,11 +6,11 @@ import (
 
 	"encoding/json"
 	"net/http"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	// "xorm.io/xorm"
 )
 
 func ReadCardGradeUp(ctx *gin.Context) {
@@ -34,4 +34,5 @@ func ReadCardGradeUp(ctx *gin.Context) {
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
+	fmt.Println(resp)
 }

@@ -97,6 +97,9 @@ func Login(ctx *gin.Context) {
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_status", GetUserStatus())
 
 	/* ======== UserData ======== */
+	fmt.Println("User logins: ", UserID)
+	session := serverdb.GetSession(UserID)
+
 	// live decks
 	liveDeckData := gjson.Parse(GetLiveDeckData())
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_live_deck_by_id", liveDeckData.Get("user_live_deck_by_id").Value())
@@ -109,16 +112,39 @@ func Login(ctx *gin.Context) {
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_live_party_by_id", liveParty)
 
 	// member settings
-	memberData := gjson.Parse(GetUserData("memberSettings.json"))
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_member_by_member_id", memberData.Get("user_member_by_member_id").Value())
+	var userMembers []any
+	dbMembers := session.GetAllMembers()
+
+	for _, memberInfo := range dbMembers {
+		userMembers = append(userMembers, memberInfo.MemberMasterID)
+		userMembers = append(userMembers, memberInfo)
+	}
+	if len(userMembers) == 0 {
+		// insert from json
+		userMemberInfo := model.UserMemberInfo{}
+		memberData := gjson.Parse(GetUserData("memberSettings.json"))
+		var members []model.UserMemberInfo
+		memberData.Get("user_member_by_member_id").ForEach(func (key, value gjson.Result) bool {
+			if value.IsObject() {
+				if err := json.Unmarshal([]byte(value.String()), &userMemberInfo); err != nil {
+					panic(err)
+				}
+				userMemberInfo.UserID = UserID
+				userMembers = append(userMembers, userMemberInfo.MemberMasterID)
+				userMembers = append(userMembers, userMemberInfo)
+				members = append(members, userMemberInfo)
+			}
+			return true
+		})
+		session.InsertMembers(members)
+	}
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_member_by_member_id", userMembers)
 
 	// lesson decks
 	lessonData := gjson.Parse(GetUserData("lessonDeck.json"))
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_lesson_deck_by_id", lessonData.Get("user_lesson_deck_by_id").Value())
 
 	// user cards
-	fmt.Println("User logins: ", UserID)
-	session := serverdb.GetSession(UserID)
 	var userCards []any
 	dbCards := session.GetAllCards()
 

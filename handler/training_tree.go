@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 
 	"fmt"
-	"math/rand"
+	// "math/rand"
 	"net/http"
 	"strconv"
 
@@ -89,6 +89,41 @@ func LevelUpCard(ctx *gin.Context) {
 	// SendCardInfoDiff(ctx, &cardInfo)
 }
 
+func BondRequired(l int) int {
+	res := 30 * l
+	if l > 2 {
+		res += 10 * (l - 2)
+	}
+	if (l > 6) {
+		res += 10 * (l - 6)
+	}
+	if (l > 20) {
+		res += 10 * (l - 20)
+	}
+	if (l > 59) {
+		res += 10 * (l - 59)
+	}
+	return res
+}
+
+func BondRequiredTotal(l int) int {
+	res := 0;
+	for i := 2; i <= l; i++ {
+		res += BondRequired(i)
+	}
+	return res
+}
+
+func GetBondLevel(maxBond int) int {
+	res := 0
+	for i := 2; ;i++ {
+		res += BondRequired(i)
+		if (res >= maxBond) {
+			return i
+		}
+	}
+}
+
 func GradeUpCard(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	type GradeUpCardReq struct {
@@ -103,8 +138,13 @@ func GradeUpCard(ctx *gin.Context) {
 	session := serverdb.GetSession(UserID)
 
 	cardInfo := session.GetCard(req.CardMasterID)
+	memberInfo := session.GetMember(GetMemberMasterIdByCardMasterId(req.CardMasterID))
 	cardInfo.Grade += 1
+	currentBondLevel := GetBondLevel(memberInfo.LovePointLimit)
+	currentBondLevel += 3
+	memberInfo.LovePointLimit = BondRequiredTotal(currentBondLevel)
 	session.UpdateCard(cardInfo)
+	session.UpdateMember(memberInfo)
 
 	// we need to set user_info_trigger_card_grade_up_by_trigger_id
 	// for the pop up after limit breaking
@@ -122,10 +162,15 @@ func GradeUpCard(ctx *gin.Context) {
 	// TODO: we load the card again, the animation will be played again
 	// this has something to do with the state of the game, as restarting fix this
 
-	trigger.TriggerId = rand.Int63()
+	currentTime, _ := strconv.ParseInt(ctx.Query("t"), 10, 64) // ms resolution time stamp
+	
+	// the first 10 digit is certainly the time stamp in unix second
+	// after that there's 9 digit, but it's unclear what they actually mean.
+	// could be that it's just a time stamp is unix nanosecond, and something else control how the pop-up behave
+	trigger.TriggerId = currentTime * 1000000
 	trigger.CardMasterId = cardInfo.CardMasterID
-	trigger.BeforeLoveLevelLimit = 500
-	trigger.AfterLoveLevelLimit = 503
+	trigger.BeforeLoveLevelLimit = currentBondLevel - 3
+	trigger.AfterLoveLevelLimit = currentBondLevel
 
 	session.AddCardGradeUpTrigger(trigger.TriggerId, trigger)
 	
@@ -244,6 +289,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
 	unlockedCells := []model.TrainingTreeCell{}
 	t, _ := strconv.ParseInt(ctx.Query("t"), 10, 64)
+	t /= 1000
 	for _, cellID := range req.CellMasterIDs {
 		cell := model.TrainingTreeCell{}
 		cell.UserID = UserID
