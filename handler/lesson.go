@@ -16,43 +16,41 @@ import (
 )
 
 func ExecuteLesson(ctx *gin.Context) {
-	reqBody := ctx.GetString("reqBody")
-	// fmt.Println(reqBody)
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	type ExecuteLessonReq struct {
+		ExecuteLessonIDs []int `json:"execute_lesson_ids"`
+		ConsumedContentIDs []int `json:"consumed_content_ids"`
+		SelectedDeckID int `json:"selected_deck_id"`
+		IsThreeTimes bool `json:"is_three_times"`
+	}
+	req := ExecuteLessonReq{}
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
+		panic(err)
+	}
 
-	req := gjson.Parse(reqBody).Array()[0]
-	deckId := req.Get("selected_deck_id").Int()
-
-	var deckInfo string
+	session := serverdb.GetSession(UserID)
+	deckBytes, _ := json.Marshal(session.GetLessonDeck(req.SelectedDeckID))
+	deckInfo := string(deckBytes)
 	var actionList []model.LessonMenuAction
-	gjson.Parse(GetUserData("lessonDeck.json")).Get("user_lesson_deck_by_id").ForEach(func(key, value gjson.Result) bool {
-		if value.IsObject() && value.Get("user_lesson_deck_id").Int() == deckId {
-			deckInfo = value.String()
-			// fmt.Println("Deck Info:", deckInfo)
 
-			gjson.Parse(deckInfo).ForEach(func(kk, vv gjson.Result) bool {
-				// fmt.Printf("kk: %s, vv: %s\n", kk.String(), vv.String())
-				if strings.Contains(kk.String(), "card_master_id") {
-					actionList = append(actionList, model.LessonMenuAction{
-						CardMasterID:                  vv.Int(),
-						Position:                      0,
-						IsAddedPassiveSkill:           true,
-						IsAddedSpecialPassiveSkill:    true,
-						IsRankupedPassiveSkill:        true,
-						IsRankupedSpecialPassiveSkill: true,
-						IsPromotedSkill:               true,
-						MaxRarity:                     4,
-						UpCount:                       1,
-					})
-				}
-				return true
+	gjson.Parse(deckInfo).ForEach(func(key, value gjson.Result) bool {
+		if strings.Contains(key.String(), "card_master_id") {
+			actionList = append(actionList, model.LessonMenuAction{
+				CardMasterID:                  value.Int(),
+				Position:                      0,
+				IsAddedPassiveSkill:           true,
+				IsAddedSpecialPassiveSkill:    true,
+				IsRankupedPassiveSkill:        true,
+				IsRankupedSpecialPassiveSkill: true,
+				IsPromotedSkill:               true,
+				MaxRarity:                     4,
+				UpCount:                       1,
 			})
-			return false
 		}
 		return true
 	})
-	// fmt.Println(actionList)
 
-	SetUserData("userStatus.json", "main_lesson_deck_id", deckId)
+	SetUserData("userStatus.json", "main_lesson_deck_id", req.SelectedDeckID)
 
 	signBody := GetData("executeLesson.json")
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.1", actionList)
@@ -61,7 +59,6 @@ func ExecuteLesson(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.7", actionList)
 	signBody, _ = sjson.Set(signBody, "user_model_diff.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
