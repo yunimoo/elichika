@@ -6,8 +6,7 @@ import (
 	"elichika/serverdb"
 	"encoding/json"
 
-	"fmt"
-	// "math/rand"
+	// "fmt"
 	"net/http"
 	"strconv"
 
@@ -16,20 +15,6 @@ import (
 	"github.com/tidwall/sjson"
 	// "xorm.io/xorm"
 )
-
-func SendCardInfoDiff(ctx *gin.Context, cardInfo *model.CardInfo) {
-	userCardInfo := []any{}
-	userCardInfo = append(userCardInfo, cardInfo.CardMasterID)
-	userCardInfo = append(userCardInfo, *cardInfo)
-
-	cardResp := GetUserData("userModelDiff.json")
-	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_status", GetUserStatus())
-	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_card_by_card_id", userCardInfo)
-	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
-	ctx.Header("Content-Type", "application/json")
-	ctx.String(http.StatusOK, resp)
-	fmt.Println(resp)
-}
 
 func FetchTrainingTree(ctx *gin.Context) {
 	// signBody := GetData("fetchTrainingTree.json")
@@ -76,7 +61,7 @@ func LevelUpCard(ctx *gin.Context) {
 	signBody := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "user_model_diff.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	fmt.Println(resp)
+	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -179,7 +164,7 @@ func GradeUpCard(ctx *gin.Context) {
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
-	fmt.Println(resp)
+	// fmt.Println(resp)
 }
 
 func ActivateTrainingTreeCell(ctx *gin.Context) {
@@ -212,8 +197,6 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	if (err != nil) || (!exists) {
 		panic(err)
 	}
-
-	fmt.Println(treeMapping)
 
 	type TrainingTreeCellContent struct {
 		// Id int // tree id
@@ -306,6 +289,4 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	resp := SignResp(ctx.GetString("ep"), jsonResp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
-	fmt.Println(resp)
-
 }

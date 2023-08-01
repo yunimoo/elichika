@@ -112,68 +112,83 @@ func Login(ctx *gin.Context) {
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_live_party_by_id", liveParty)
 
 	// member settings
-	var userMembers []any
 	dbMembers := session.GetAllMembers()
-
-	for _, memberInfo := range dbMembers {
-		userMembers = append(userMembers, memberInfo.MemberMasterID)
-		userMembers = append(userMembers, memberInfo)
-	}
-	if len(userMembers) == 0 {
+	if len(dbMembers) == 0 {
 		// insert from json
+		fmt.Println("importing member data to db")
 		userMemberInfo := model.UserMemberInfo{}
 		memberData := gjson.Parse(GetUserData("memberSettings.json"))
-		var members []model.UserMemberInfo
 		memberData.Get("user_member_by_member_id").ForEach(func (key, value gjson.Result) bool {
 			if value.IsObject() {
 				if err := json.Unmarshal([]byte(value.String()), &userMemberInfo); err != nil {
 					panic(err)
 				}
 				userMemberInfo.UserID = UserID
-				userMembers = append(userMembers, userMemberInfo.MemberMasterID)
-				userMembers = append(userMembers, userMemberInfo)
-				members = append(members, userMemberInfo)
+				dbMembers = append(dbMembers, userMemberInfo)
 			}
 			return true
 		})
-		session.InsertMembers(members)
+		session.InsertMembers(dbMembers)
+	}
+	var userMembers []any
+	for _, memberInfo := range dbMembers {
+		userMembers = append(userMembers, memberInfo.MemberMasterID)
+		userMembers = append(userMembers, memberInfo)
 	}
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_member_by_member_id", userMembers)
 
 	// lesson decks
-	lessonData := gjson.Parse(GetUserData("lessonDeck.json"))
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_lesson_deck_by_id", lessonData.Get("user_lesson_deck_by_id").Value())
-
-	// user cards
-	var userCards []any
-	dbCards := session.GetAllCards()
-
-	for _, cardInfo := range dbCards {
-		userCards = append(userCards, cardInfo.CardMasterID)
-		userCards = append(userCards, cardInfo)
+	dbLessonDecks := session.GetAllLessonDecks()
+	if len(dbLessonDecks) == 0 {
+		// insert from json
+		fmt.Println("importing lesson deck data to db")
+		lessonData := gjson.Parse(GetUserData("lessonDeck.json"))
+		userLessonDeck := model.UserLessonDeck{}
+		lessonData.Get("user_lesson_deck_by_id").ForEach(func (key, value gjson.Result) bool {
+			if (value.IsObject()) {
+				if err := json.Unmarshal([]byte(value.String()), &userLessonDeck); err != nil {
+					panic(err)
+				}
+				userLessonDeck.UserID = UserID
+				dbLessonDecks = append(dbLessonDecks, userLessonDeck)
+			}
+			return true
+		})
+		session.InsertLessonDecks(dbLessonDecks)
 	}
 
+	userLessonDecks := []any{}
+	for _, userLessonDeck := range dbLessonDecks {
+		userLessonDecks = append(userLessonDecks, userLessonDeck.UserLessonDeckID)
+		userLessonDecks = append(userLessonDecks, userLessonDeck)
+	}
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_lesson_deck_by_id", userLessonDecks)
+
+	// user cards
+	dbCards := session.GetAllCards()
 	if len(dbCards) == 0 {
-		fmt.Println("importing json card data to db")
 		// first time, parse the json and insert to db
+		fmt.Println("importing json card data to db")
 		cardData := gjson.Parse(GetUserData("userCard.json"))
 		cardInfo := model.CardInfo{}
-		var cards []model.CardInfo
 		cardData.Get("user_card_by_card_id").ForEach(func(key, value gjson.Result) bool {
 			if value.IsObject() {
 				if err := json.Unmarshal([]byte(value.String()), &cardInfo); err != nil {
 					panic(err)
 				}
 				cardInfo.UserID = UserID
-				userCards = append(userCards, cardInfo.CardMasterID)
-				userCards = append(userCards, cardInfo)
-				cards = append(cards, cardInfo)
+				dbCards = append(dbCards, cardInfo)
 			}
 			return true
 		})
-		session.InsertCards(cards)
+		session.InsertCards(dbCards)
 	}
 
+	userCards := []any{}
+	for _, cardInfo := range dbCards {
+		userCards = append(userCards, cardInfo.CardMasterID)
+		userCards = append(userCards, cardInfo)
+	}
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_card_by_card_id", userCards)
 
 	// user accessory

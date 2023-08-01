@@ -30,7 +30,7 @@ func (session* Session) GetAllMembers() []model.UserMemberInfo {
 }
 
 func (session* Session) UpdateMember(member model.UserMemberInfo) {
-	session.MemberDiffs[member.MemberMasterID] = member
+	session.UserMemberDiffs[member.MemberMasterID] = member
 }
 
 func (session* Session) InsertMembers(members []model.UserMemberInfo) {
@@ -41,9 +41,9 @@ func (session* Session) InsertMembers(members []model.UserMemberInfo) {
 	fmt.Println("Inserted ", affected, " members")
 }
 
-func (session* Session) FinalizeMemberDiffs() []any {
+func (session* Session) FinalizeUserMemberDiffs() []any {
 	userMemberByMemberID := []any{}
-	for memberMasterID, member := range session.MemberDiffs {
+	for memberMasterID, member := range session.UserMemberDiffs {
 		userMemberByMemberID = append(userMemberByMemberID, memberMasterID)
 		userMemberByMemberID = append(userMemberByMemberID, member)
 		affected, err := Engine.Table("s_user_member").

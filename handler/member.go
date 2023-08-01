@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"fmt"
+	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -106,7 +106,7 @@ func FinishUserStoryMember(ctx *gin.Context) {
 
 func SetTheme(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
-	fmt.Println(reqBody)
+	// fmt.Println(reqBody)
 
 	session := serverdb.GetSession(UserID)
 

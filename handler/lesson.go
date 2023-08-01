@@ -115,47 +115,30 @@ func SkillEditResult(ctx *gin.Context) {
 }
 
 func SaveDeckLesson(ctx *gin.Context) {
-	reqBody := ctx.GetString("reqBody")
-	// fmt.Println(reqBody)
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	fmt.Println(reqBody)
+	type SaveDeckReq struct {
+		DeckID int `json:"deck_id"`
+		CardMasterIDs []int `json:"card_master_ids"`
+	}
+	req := SaveDeckReq{}
+	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+		panic(err)
+	}
 
-	req := gjson.Parse(reqBody).Array()[0]
-	deckId := req.Get("deck_id").Int()
-	lessonDeck := GetUserData("lessonDeck.json")
-
-	var deckInfo string
-	var deckIndex string
-	gjson.Parse(lessonDeck).Get("user_lesson_deck_by_id").ForEach(func(key, value gjson.Result) bool {
-		if value.IsObject() && value.Get("user_lesson_deck_id").Int() == deckId {
-			deckInfo = value.String()
-			deckIndex = key.String()
-			// fmt.Println("Lesson Deck:", deckInfo)
-			return false
-		}
-		return true
-	})
-
-	cardList := req.Get("card_master_ids")
-	cardList.ForEach(func(key, value gjson.Result) bool {
-		if key.Int()%2 == 0 {
-			position := value.String()
-			// fmt.Println("Position:", position)
-
-			cardMasterId := cardList.Get(fmt.Sprintf("%d", key.Int()+1)).Int()
-			// fmt.Println("Card:", cardMasterId)
-
-			deckInfo, _ = sjson.Set(deckInfo, "card_master_id_"+position, cardMasterId)
-			// fmt.Println("New Lesson Deck:", deckInfo)
-
-			SetUserData("lessonDeck.json", "user_lesson_deck_by_id."+deckIndex, gjson.Parse(deckInfo).Value())
-			// lessonDeck, _ = sjson.Set(lessonDeck, "user_lesson_deck_by_id."+deckIndex, gjson.Parse(deckInfo).Value())
-		}
-		return true
-	})
-
-	signBody := GetData("saveDeckLesson.json")
+	session := serverdb.GetSession(UserID)
+	userLessonDeck := session.GetLessonDeck(req.DeckID)
+	deckByte, _ := json.Marshal(userLessonDeck)
+	deckInfo := string(deckByte)
+	for i := 0; i < len(req.CardMasterIDs); i+=2 {
+		deckInfo, _ = sjson.Set(deckInfo, fmt.Sprintf("card_master_id_%d", req.CardMasterIDs[i]), req.CardMasterIDs[i+1])
+	}
+	if err := json.Unmarshal([]byte(deckInfo), &userLessonDeck); err != nil {
+		panic(err)
+	}
+	session.UpdateLessonDeck(userLessonDeck)
+	signBody := session.Finalize(GetUserData("userModel.json"), "user_model")
 	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())
-	signBody, _ = sjson.Set(signBody, "user_model.user_lesson_deck_by_id.0", deckId)
-	signBody, _ = sjson.Set(signBody, "user_model.user_lesson_deck_by_id.1", gjson.Parse(deckInfo).Value())
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 

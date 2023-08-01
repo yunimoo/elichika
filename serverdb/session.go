@@ -34,7 +34,8 @@ func DbGetUserData(fileName string) string {
 type Session struct {
 	UserInfo  			model.UserInfo
 	CardDiffs 			map[int]model.CardInfo
-	MemberDiffs         map[int]model.UserMemberInfo
+	UserMemberDiffs         map[int]model.UserMemberInfo
+	UserLessonDeckDiffs	map[int]model.UserLessonDeck
 	CardGradeUpTriggers []any
 }
 
@@ -44,9 +45,10 @@ type Session struct {
 func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	// jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.UserInfo)
 	// modelDiff, _ = sjson.Set(modelDiff, mainKey+".user_status.gdpr_version", 4)
-	jsonBody, _ = sjson.Set(jsonBody, mainKey + ".user_member_by_member_id", session.FinalizeMemberDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey + ".user_member_by_member_id", session.FinalizeUserMemberDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_card_grade_up_by_trigger_id", session.FinalizeCardGradeUpTrigger())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_lesson_deck_by_id", session.FinalizeUserLessonDeckDiffs())
 	return jsonBody
 }
 
@@ -75,7 +77,8 @@ func (session *Session) InitUser(userID int) {
 func GetSession(userId int) Session {
 	s := Session{}
 	s.CardDiffs = make(map[int]model.CardInfo)
-	s.MemberDiffs = make(map[int]model.UserMemberInfo)
+	s.UserMemberDiffs = make(map[int]model.UserMemberInfo)
+	s.UserLessonDeckDiffs = make(map[int]model.UserLessonDeck)
 	s.CardGradeUpTriggers = make([]any, 0)
 	s.InitUser(userId)
 	return s
