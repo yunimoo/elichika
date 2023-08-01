@@ -24,7 +24,7 @@ func FetchCommunicationMemberDetail(ctx *gin.Context) {
 		}
 		return true
 	})
-	
+
 	session := serverdb.GetSession(UserID)
 	lovePanelCellIds := session.GetLovePanelCellIDs(memberId)
 
@@ -116,7 +116,7 @@ func SetTheme(ctx *gin.Context) {
 			memberMasterID = int(value.Get("member_master_id").Int())
 			suitMasterID = int(value.Get("suit_master_id").Int())
 			backgroundMasterID = int(value.Get("custom_background_master_id").Int())
-			
+
 			member := session.GetMember(memberMasterID)
 			member.SuitMasterID = suitMasterID
 			member.CustomBackgroundMasterID = backgroundMasterID
@@ -132,7 +132,6 @@ func SetTheme(ctx *gin.Context) {
 		SuitMasterID: int(suitMasterID),
 		IsNew:        false,
 	})
-
 
 	signBody := session.Finalize(GetData("setTheme.json"), "user_model")
 	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())

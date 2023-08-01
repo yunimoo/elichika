@@ -1,4 +1,5 @@
 package serverdb
+
 import (
 	"elichika/model"
 
@@ -12,12 +13,12 @@ func (session *Session) GetLessonDeck(userLessonDeckId int) model.UserLessonDeck
 	}
 	deck = model.UserLessonDeck{}
 	exists, err := Engine.Table("s_user_lesson_deck").
-	Where("user_id = ? AND user_lesson_deck_id = ?", session.UserInfo.UserID, userLessonDeckId).
-	Get(&deck)
+		Where("user_id = ? AND user_lesson_deck_id = ?", session.UserInfo.UserID, userLessonDeckId).
+		Get(&deck)
 	if err != nil {
 		panic(err)
 	}
-	if (!exists) {
+	if !exists {
 		panic("deck not found")
 	}
 	return deck
@@ -27,7 +28,7 @@ func (session *Session) UpdateLessonDeck(userLessonDeck model.UserLessonDeck) {
 	session.UserLessonDeckDiffs[userLessonDeck.UserLessonDeckID] = userLessonDeck
 }
 
-func (session* Session) FinalizeUserLessonDeckDiffs() []any {
+func (session *Session) FinalizeUserLessonDeckDiffs() []any {
 	userLessonDeckByID := []any{}
 	for userLessonDeckId, userLessonDeck := range session.UserLessonDeckDiffs {
 		userLessonDeckByID = append(userLessonDeckByID, userLessonDeckId)

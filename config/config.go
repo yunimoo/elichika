@@ -44,7 +44,6 @@ func init() {
 	MainEng.SetMaxOpenConns(50)
 	MainEng.SetMaxIdleConns(10)
 
-	
 	eng1, err := xorm.NewEngine("sqlite", MasterdataDbGl)
 	if err != nil {
 		panic(err)
@@ -53,7 +52,6 @@ func init() {
 	MasterdataEngGl.SetMaxOpenConns(50)
 	MasterdataEngGl.SetMaxIdleConns(10)
 
-	
 	eng2, err := xorm.NewEngine("sqlite", MasterdataDbJp)
 	if err != nil {
 		panic(err)

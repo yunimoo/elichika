@@ -17,7 +17,7 @@ func (session *Session) GetCard(cardMasterID int) model.CardInfo {
 	}
 	card = model.CardInfo{}
 	exists, err := Engine.Table("s_user_card").
-	Where("user_id = ? AND card_master_id = ?", session.UserInfo.UserID, cardMasterID).Get(&card)
+		Where("user_id = ? AND card_master_id = ?", session.UserInfo.UserID, cardMasterID).Get(&card)
 	if err != nil {
 		panic(err)
 	}

@@ -118,7 +118,7 @@ func Login(ctx *gin.Context) {
 		fmt.Println("importing member data to db")
 		userMemberInfo := model.UserMemberInfo{}
 		memberData := gjson.Parse(GetUserData("memberSettings.json"))
-		memberData.Get("user_member_by_member_id").ForEach(func (key, value gjson.Result) bool {
+		memberData.Get("user_member_by_member_id").ForEach(func(key, value gjson.Result) bool {
 			if value.IsObject() {
 				if err := json.Unmarshal([]byte(value.String()), &userMemberInfo); err != nil {
 					panic(err)
@@ -144,8 +144,8 @@ func Login(ctx *gin.Context) {
 		fmt.Println("importing lesson deck data to db")
 		lessonData := gjson.Parse(GetUserData("lessonDeck.json"))
 		userLessonDeck := model.UserLessonDeck{}
-		lessonData.Get("user_lesson_deck_by_id").ForEach(func (key, value gjson.Result) bool {
-			if (value.IsObject()) {
+		lessonData.Get("user_lesson_deck_by_id").ForEach(func(key, value gjson.Result) bool {
+			if value.IsObject() {
 				if err := json.Unmarshal([]byte(value.String()), &userLessonDeck); err != nil {
 					panic(err)
 				}

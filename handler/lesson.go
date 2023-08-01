@@ -118,7 +118,7 @@ func SaveDeckLesson(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	fmt.Println(reqBody)
 	type SaveDeckReq struct {
-		DeckID int `json:"deck_id"`
+		DeckID        int   `json:"deck_id"`
 		CardMasterIDs []int `json:"card_master_ids"`
 	}
 	req := SaveDeckReq{}
@@ -130,7 +130,7 @@ func SaveDeckLesson(ctx *gin.Context) {
 	userLessonDeck := session.GetLessonDeck(req.DeckID)
 	deckByte, _ := json.Marshal(userLessonDeck)
 	deckInfo := string(deckByte)
-	for i := 0; i < len(req.CardMasterIDs); i+=2 {
+	for i := 0; i < len(req.CardMasterIDs); i += 2 {
 		deckInfo, _ = sjson.Set(deckInfo, fmt.Sprintf("card_master_id_%d", req.CardMasterIDs[i]), req.CardMasterIDs[i+1])
 	}
 	if err := json.Unmarshal([]byte(deckInfo), &userLessonDeck); err != nil {

@@ -23,7 +23,6 @@ func FetchTrainingTree(ctx *gin.Context) {
 	// ctx.Header("Content-Type", "application/json")
 	// ctx.String(http.StatusOK, resp)
 
-
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	type FetchTrainingTreeReq struct {
 		CardMasterID int `json:"card_master_id"`
@@ -46,7 +45,7 @@ func LevelUpCard(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 
 	type LevelUpCardReq struct {
-		CardMasterId int `json:"card_master_id"`
+		CardMasterId    int `json:"card_master_id"`
 		AdditionalLevel int `json:"additional_level"`
 	}
 
@@ -65,7 +64,7 @@ func LevelUpCard(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
-	
+
 	// TODO: Handle things like exp and gold cost
 
 	// SendCardInfoDiff(ctx, &cardInfo)
@@ -79,20 +78,20 @@ func BondRequired(l int) int {
 	if l > 2 {
 		res += 10 * (l - 2)
 	}
-	if (l > 6) {
+	if l > 6 {
 		res += 10 * (l - 6)
 	}
-	if (l > 20) {
+	if l > 20 {
 		res += 10 * (l - 20)
 	}
-	if (l > 59) {
+	if l > 59 {
 		res += 10 * (l - 59)
 	}
 	return res
 }
 
 func BondRequiredTotal(l int) int {
-	res := 0;
+	res := 0
 	for i := 2; i <= l; i++ {
 		res += BondRequired(i)
 	}
@@ -101,9 +100,9 @@ func BondRequiredTotal(l int) int {
 
 func GetBondLevel(maxBond int) int {
 	res := 0
-	for i := 2; ;i++ {
+	for i := 2; ; i++ {
 		res += BondRequired(i)
-		if (res >= maxBond) {
+		if res >= maxBond {
 			return i
 		}
 	}
@@ -148,7 +147,7 @@ func GradeUpCard(ctx *gin.Context) {
 	// this has something to do with the state of the game, as restarting fix this
 
 	currentTime, _ := strconv.ParseInt(ctx.Query("t"), 10, 64) // ms resolution time stamp
-	
+
 	// the first 10 digit is certainly the time stamp in unix second
 	// after that there's 9 digit, but it's unclear what they actually mean.
 	// could be that it's just a time stamp is unix nanosecond, and something else control how the pop-up behave
@@ -158,7 +157,7 @@ func GradeUpCard(ctx *gin.Context) {
 	trigger.AfterLoveLevelLimit = currentBondLevel
 
 	session.AddCardGradeUpTrigger(trigger.TriggerId, trigger)
-	
+
 	resp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 	resp, _ = sjson.Set(resp, "user_model_diff.user_status", GetUserStatus())
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
@@ -185,9 +184,9 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	type TrainingTreeMapping struct {
 		// ID int  // card master id
-		TrainingTreeMappingMID                  int `xorm:"'training_tree_mapping_m_id'"`// the training tree
+		TrainingTreeMappingMID int `xorm:"'training_tree_mapping_m_id'"` // the training tree
 		// TrainingTreeCardParamMID int  // same as card master id
-		TrainingTreeCardPassiveSkillIncreaseMID int `xorm:"'training_tree_card_passive_skill_increase_m_id'"`// 1 to 2
+		TrainingTreeCardPassiveSkillIncreaseMID int `xorm:"'training_tree_card_passive_skill_increase_m_id'"` // 1 to 2
 	}
 
 	db.ShowSQL(true)
@@ -200,11 +199,11 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	type TrainingTreeCellContent struct {
 		// Id int // tree id
-		CellID               int `xorm:"'cell_id'"`// cell id
+		CellID               int `xorm:"'cell_id'"` // cell id
 		TrainingTreeCellType int // type of the cell
 		TrainingContentNo    int // the content of the cell
 		// RequiredGrade int // the limit break required, no need to read this here
-		TrainingTreeCellItemSetMID int `xorm:"'training_tree_cell_item_set_m_id'"`// the set of items used to unlock this cell
+		TrainingTreeCellItemSetMID int `xorm:"'training_tree_cell_item_set_m_id'"` // the set of items used to unlock this cell
 		// SnsCoin int // always 1, maybe we could earn gem by unlocking cell?
 	}
 
@@ -213,7 +212,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		Cols("cell_id", "training_tree_cell_type", "training_content_no", "training_tree_cell_item_set_m_id").
 		OrderBy("cell_id").Find(&cellContents)
 
-	if (err != nil) {
+	if err != nil {
 		panic(err)
 	}
 
@@ -232,9 +231,9 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	for _, cellID := range req.CellMasterIDs {
 		switch cellContents[cellID].TrainingTreeCellType {
 		case 2:
-			// param cells, reference the 
-			paramCell := &cellParams[cellContents[cellID].TrainingContentNo - 1]
-			increasedStats[paramCell.TrainingContentType] +=  paramCell.Value
+			// param cells, reference the
+			paramCell := &cellParams[cellContents[cellID].TrainingContentNo-1]
+			increasedStats[paramCell.TrainingContentType] += paramCell.Value
 		case 3:
 			// voice
 			// TODO: Unlock voice
@@ -263,10 +262,10 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	card.TrainingDexterity += increasedStats[4]
 	card.TrainingActivatedCellCount += len(req.CellMasterIDs)
 
-	if card.TrainingActivatedCellCount + 1 == len(cellContents) {
+	if card.TrainingActivatedCellCount+1 == len(cellContents) {
 		card.IsAllTrainingActivated = true
 	}
-	
+
 	session.UpdateCard(card)
 
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
@@ -281,7 +280,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		cell.ActivatedAt = t
 		unlockedCells = append(unlockedCells, cell)
 	}
-	
+
 	session.InsertTrainingCells(&unlockedCells)
 	jsonResp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 	jsonResp, _ = sjson.Set(jsonResp, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
