@@ -18,10 +18,10 @@ import (
 func ExecuteLesson(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	type ExecuteLessonReq struct {
-		ExecuteLessonIDs []int `json:"execute_lesson_ids"`
+		ExecuteLessonIDs   []int `json:"execute_lesson_ids"`
 		ConsumedContentIDs []int `json:"consumed_content_ids"`
-		SelectedDeckID int `json:"selected_deck_id"`
-		IsThreeTimes bool `json:"is_three_times"`
+		SelectedDeckID     int   `json:"selected_deck_id"`
+		IsThreeTimes       bool  `json:"is_three_times"`
 	}
 	req := ExecuteLessonReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
@@ -113,7 +113,7 @@ func SkillEditResult(ctx *gin.Context) {
 
 func SaveDeckLesson(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	fmt.Println(reqBody)
+	// fmt.Println(reqBody)
 	type SaveDeckReq struct {
 		DeckID        int   `json:"deck_id"`
 		CardMasterIDs []int `json:"card_master_ids"`

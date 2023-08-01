@@ -35,6 +35,8 @@ func InitTables() {
 	InitTable("s_user_member", model.UserMemberInfo{})
 	InitTable("s_user_member_love_panel", model.UserMemberLovePanel{})
 	InitTable("s_user_lesson_deck", model.UserLessonDeck{})
+	InitTable("s_user_live_deck", model.UserLiveDeck{})
+	InitTable("s_user_live_party", model.UserLiveParty{})
 }
 
 func init() {

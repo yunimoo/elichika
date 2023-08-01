@@ -101,15 +101,54 @@ func Login(ctx *gin.Context) {
 	session := serverdb.GetSession(UserID)
 
 	// live decks
-	liveDeckData := gjson.Parse(GetLiveDeckData())
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_live_deck_by_id", liveDeckData.Get("user_live_deck_by_id").Value())
+	dbLiveDecks := session.GetAllLiveDecks()
+	if len(dbLiveDecks) == 0 {
+		fmt.Println("importing live deck data to db")
+		liveDeckInfo := model.UserLiveDeck{}
+		liveDeckData := gjson.Parse(GetLiveDeckData())
+		liveDeckData.Get("user_live_deck_by_id").ForEach(func(key, value gjson.Result) bool {
+			if value.IsObject() {
+				if err := json.Unmarshal([]byte(value.String()), &liveDeckInfo); err != nil {
+					panic(err)
+				}
+				liveDeckInfo.UserID = UserID
+				dbLiveDecks = append(dbLiveDecks, liveDeckInfo)
+			}
+			return true
+		})
+		session.InsertLiveDecks(dbLiveDecks)
+	}
+	userLiveDecks := []any{}
+	for _, liveDeckInfo := range dbLiveDecks {
+		userLiveDecks = append(userLiveDecks, liveDeckInfo.UserLiveDeckID)
+		userLiveDecks = append(userLiveDecks, liveDeckInfo)
+	}
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_live_deck_by_id", userLiveDecks)
 
-	var liveParty []any
-	decoder := json.NewDecoder(strings.NewReader(liveDeckData.Get("user_live_party_by_id").String()))
-	decoder.UseNumber()
-	err = decoder.Decode(&liveParty)
-	CheckErr(err)
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_live_party_by_id", liveParty)
+	dbLiveParties := session.GetAllLiveParties()
+	if len(dbLiveParties) == 0 {
+		fmt.Println("importing live party data to db")
+		livePartyInfo := model.UserLiveParty{}
+		liveDeckData := gjson.Parse(GetLiveDeckData())
+		var livePartyData []json.RawMessage
+		decoder := json.NewDecoder(strings.NewReader(liveDeckData.Get("user_live_party_by_id").String()))
+		decoder.UseNumber()
+		err = decoder.Decode(&livePartyData)
+		CheckErr(err)
+		for i := 1; i < len(livePartyData); i += 2 {
+			err := json.Unmarshal(livePartyData[i], &livePartyInfo)
+			CheckErr(err)
+			livePartyInfo.UserID = UserID
+			dbLiveParties = append(dbLiveParties, livePartyInfo)
+		}
+		session.InsertLiveParties(dbLiveParties)
+	}
+	userLiveParties := []any{}
+	for _, livePartyInfo := range dbLiveParties {
+		userLiveParties = append(userLiveParties, livePartyInfo.PartyID)
+		userLiveParties = append(userLiveParties, livePartyInfo)
+	}
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_live_party_by_id", userLiveParties)
 
 	// member settings
 	dbMembers := session.GetAllMembers()
@@ -193,7 +232,7 @@ func Login(ctx *gin.Context) {
 
 	// user accessory
 	var UserAccessory []any
-	decoder = json.NewDecoder(strings.NewReader(
+	decoder := json.NewDecoder(strings.NewReader(
 		gjson.Parse(GetUserAccessoryData()).Get("user_accessory_by_user_accessory_id").String()))
 	decoder.UseNumber()
 	err = decoder.Decode(&UserAccessory)

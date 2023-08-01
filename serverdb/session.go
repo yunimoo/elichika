@@ -36,6 +36,8 @@ type Session struct {
 	CardDiffs           map[int]model.CardInfo
 	UserMemberDiffs     map[int]model.UserMemberInfo
 	UserLessonDeckDiffs map[int]model.UserLessonDeck
+	UserLiveDeckDiffs   map[int]model.UserLiveDeck
+	UserLivePartyDiffs  map[int]model.UserLiveParty
 	CardGradeUpTriggers []any
 }
 
@@ -49,6 +51,8 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_card_grade_up_by_trigger_id", session.FinalizeCardGradeUpTrigger())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_lesson_deck_by_id", session.FinalizeUserLessonDeckDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_deck_by_id", session.FinalizeUserLiveDeckDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs())
 	return jsonBody
 }
 
@@ -79,6 +83,8 @@ func GetSession(userId int) Session {
 	s.CardDiffs = make(map[int]model.CardInfo)
 	s.UserMemberDiffs = make(map[int]model.UserMemberInfo)
 	s.UserLessonDeckDiffs = make(map[int]model.UserLessonDeck)
+	s.UserLiveDeckDiffs = make(map[int]model.UserLiveDeck)
+	s.UserLivePartyDiffs = make(map[int]model.UserLiveParty)
 	s.CardGradeUpTriggers = make([]any, 0)
 	s.InitUser(userId)
 	return s
