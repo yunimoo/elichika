@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
 
 func ReadCardGradeUp(ctx *gin.Context) {
@@ -30,7 +29,6 @@ func ReadCardGradeUp(ctx *gin.Context) {
 
 	session.AddCardGradeUpTrigger(triggerReq.TriggerID, nil)
 	resp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
-	resp, _ = sjson.Set(resp, "user_model_diff.user_status", GetUserStatus())
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

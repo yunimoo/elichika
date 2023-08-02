@@ -29,6 +29,8 @@ func Common(ctx *gin.Context) {
 	}
 
 	handler.UserID, _ = strconv.Atoi(ctx.Query("u"))
+	handler.ClientTimeStamp, _ = strconv.ParseInt(ctx.Query("t"), 10, 64)
+	handler.ClientTimeStamp /= 1000
 
 	ctx.Set("ep", ctx.Request.URL.String())
 

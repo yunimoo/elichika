@@ -91,14 +91,16 @@ func Login(ctx *gin.Context) {
 	newKey = utils.Xor(newKey, jaKey)
 	newKey64 := base64.StdEncoding.EncodeToString(newKey)
 	// fmt.Println("Session Key:", newKey64)
+	session := serverdb.GetSession(UserID)
+	session.UserInfo.LastLoginAt = ClientTimeStamp
 
 	loginBody := GetData("login.json")
 	loginBody, _ = sjson.Set(loginBody, "session_key", newKey64)
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_status", GetUserStatus())
+
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_status", session.UserInfo)
 
 	/* ======== UserData ======== */
 	fmt.Println("User logins: ", UserID)
-	session := serverdb.GetSession(UserID)
 
 	// live decks
 	dbLiveDecks := session.GetAllLiveDecks()
@@ -239,7 +241,7 @@ func Login(ctx *gin.Context) {
 	CheckErr(err)
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", UserAccessory)
 	/* ======== UserData ======== */
-
+	session.Finalize("{}", "")
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")

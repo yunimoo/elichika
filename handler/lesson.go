@@ -50,14 +50,13 @@ func ExecuteLesson(ctx *gin.Context) {
 		return true
 	})
 
-	SetUserData("userStatus.json", "main_lesson_deck_id", req.SelectedDeckID)
-
-	signBody := GetData("executeLesson.json")
+	session.UserInfo.MainLessonDeckID = req.SelectedDeckID
+	signBody := session.Finalize(GetData("executeLesson.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.1", actionList)
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.3", actionList)
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.5", actionList)
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.7", actionList)
-	signBody, _ = sjson.Set(signBody, "user_model_diff.user_status", GetUserStatus())
+	
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -65,10 +64,9 @@ func ExecuteLesson(ctx *gin.Context) {
 }
 
 func ResultLesson(ctx *gin.Context) {
-	userData := GetUserStatus()
-	signBody, _ := sjson.Set(GetData("resultLesson.json"),
-		"user_model_diff.user_status", userData)
-	signBody, _ = sjson.Set(signBody, "selected_deck_id", userData["main_lesson_deck_id"])
+	session := serverdb.GetSession(UserID)
+	signBody := session.Finalize(GetData("resultLesson.json"), "user_model_diff")
+	signBody, _ = sjson.Set(signBody, "selected_deck_id", session.UserInfo.MainLessonDeckID)
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 
@@ -103,7 +101,6 @@ func SkillEditResult(ctx *gin.Context) {
 		return true
 	})
 	signBody := session.Finalize(GetData("skillEditResult.json"), "user_model")
-	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 
@@ -135,7 +132,6 @@ func SaveDeckLesson(ctx *gin.Context) {
 	}
 	session.UpdateLessonDeck(userLessonDeck)
 	signBody := session.Finalize(GetUserData("userModel.json"), "user_model")
-	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 

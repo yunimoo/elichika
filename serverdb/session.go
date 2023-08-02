@@ -45,8 +45,7 @@ type Session struct {
 // The actual response depend on the API, but they often contain the diff somewhere
 // The mainKey is the key to the diff
 func (session *Session) Finalize(jsonBody string, mainKey string) string {
-	// jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.UserInfo)
-	// modelDiff, _ = sjson.Set(modelDiff, mainKey+".user_status.gdpr_version", 4)
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.FinalizeUserInfo())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_member_by_member_id", session.FinalizeUserMemberDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_card_grade_up_by_trigger_id", session.FinalizeCardGradeUpTrigger())
@@ -57,7 +56,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 }
 
 // fetch the user, this is always sent back to client
-func (session *Session) InitUser(userID int) {
+func (session *Session) InitUser(userID int, ) {
 	session.UserInfo.UserID = userID
 	exists, err := Engine.Table("s_user_info").Where("user_id = ?", userID).Get(&session.UserInfo)
 	if err != nil {
@@ -76,6 +75,14 @@ func (session *Session) InitUser(userID int) {
 			panic(err)
 		}
 	}
+}
+
+func (session* Session) FinalizeUserInfo() model.UserInfo {
+	_, err := Engine.Table("s_user_info").Where("user_id = ?", session.UserInfo.UserID).Update(&session.UserInfo)
+	if err != nil {
+		panic(err)
+	}
+	return session.UserInfo
 }
 
 func GetSession(userId int) Session {

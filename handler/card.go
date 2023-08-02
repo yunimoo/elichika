@@ -14,10 +14,10 @@ import (
 )
 
 func UpdateCardNewFlag(ctx *gin.Context) {
-	signBody, _ := sjson.Set(GetData("updateCardNewFlag.json"),
-		"user_model_diff.user_status", GetUserStatus())
+	session := serverdb.GetSession(UserID)
+	
+	signBody := session.Finalize(GetData("updateCardNewFlag.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -43,7 +43,6 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 	}
 
 	cardResp := session.Finalize(GetData("changeIsAwakeningImage.json"), "user_model_diff")
-	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -65,7 +64,6 @@ func ChangeFavorite(ctx *gin.Context) {
 	session.UpdateCard(cardInfo)
 
 	cardResp := session.Finalize(GetData("changeFavorite.json"), "user_model_diff")
-	cardResp, _ = sjson.Set(cardResp, "user_model_diff.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")

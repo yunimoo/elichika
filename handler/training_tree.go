@@ -8,7 +8,6 @@ import (
 
 	// "fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -58,7 +57,6 @@ func LevelUpCard(ctx *gin.Context) {
 	cardInfo.Level += req.AdditionalLevel
 	session.UpdateCard(cardInfo)
 	signBody := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
-	signBody, _ = sjson.Set(signBody, "user_model_diff.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 
@@ -69,7 +67,6 @@ func LevelUpCard(ctx *gin.Context) {
 
 	// SendCardInfoDiff(ctx, &cardInfo)
 
-	// SetUserData("userCard.json", "user_card_by_card_id." + key.String(), cardInfo)
 	// SendCardInfoDiff(ctx, &cardInfo)
 }
 
@@ -145,13 +142,10 @@ func GradeUpCard(ctx *gin.Context) {
 
 	// TODO: we load the card again, the animation will be played again
 	// this has something to do with the state of the game, as restarting fix this
-
-	currentTime, _ := strconv.ParseInt(ctx.Query("t"), 10, 64) // ms resolution time stamp
-
 	// the first 10 digit is certainly the time stamp in unix second
 	// after that there's 9 digit, but it's unclear what they actually mean.
 	// could be that it's just a time stamp is unix nanosecond, and something else control how the pop-up behave
-	trigger.TriggerId = currentTime * 1000000
+	trigger.TriggerId = ClientTimeStamp * 1000000
 	trigger.CardMasterId = cardInfo.CardMasterID
 	trigger.BeforeLoveLevelLimit = currentBondLevel - 3
 	trigger.AfterLoveLevelLimit = currentBondLevel
@@ -159,7 +153,6 @@ func GradeUpCard(ctx *gin.Context) {
 	session.AddCardGradeUpTrigger(trigger.TriggerId, trigger)
 
 	resp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
-	resp, _ = sjson.Set(resp, "user_model_diff.user_status", GetUserStatus())
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -189,7 +182,6 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		TrainingTreeCardPassiveSkillIncreaseMID int `xorm:"'training_tree_card_passive_skill_increase_m_id'"` // 1 to 2
 	}
 
-	db.ShowSQL(true)
 	treeMapping := TrainingTreeMapping{}
 	exists, err := db.Table("m_training_tree").Where("id = ?", req.CardMasterID).
 		Cols("training_tree_mapping_m_id", "training_tree_card_passive_skill_increase_m_id").Get(&treeMapping)
@@ -270,21 +262,18 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
 	unlockedCells := []model.TrainingTreeCell{}
-	t, _ := strconv.ParseInt(ctx.Query("t"), 10, 64)
-	t /= 1000
 	for _, cellID := range req.CellMasterIDs {
 		cell := model.TrainingTreeCell{}
 		cell.UserID = UserID
 		cell.CardMasterID = req.CardMasterID
 		cell.CellID = cellID
-		cell.ActivatedAt = t
+		cell.ActivatedAt = ClientTimeStamp
 		unlockedCells = append(unlockedCells, cell)
 	}
 
 	session.InsertTrainingCells(&unlockedCells)
 	jsonResp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 	jsonResp, _ = sjson.Set(jsonResp, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
-	jsonResp, _ = sjson.Set(jsonResp, "user_model_diff.user_status", GetUserStatus())
 	resp := SignResp(ctx.GetString("ep"), jsonResp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

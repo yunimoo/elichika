@@ -28,6 +28,7 @@ var (
 	userDataPath   = "assets/userdata/"
 
 	UserID int
+	ClientTimeStamp int64
 )
 
 func init() {
@@ -51,17 +52,17 @@ func SignResp(ep, body, key string) (resp string) {
 	return
 }
 
-func GetUserStatus() map[string]any {
-	userData := GetUserData("userStatus.json")
-	var r map[string]any
-	if err := json.Unmarshal([]byte(userData), &r); err != nil {
-		panic(err)
-	}
-	if IsGlobal {
-		r["gdpr_version"] = 4
-	}
-	return r
-}
+// func GetUserStatus() map[string]any {
+// 	userData := GetUserData("userStatus.json")
+// 	var r map[string]any
+// 	if err := json.Unmarshal([]byte(userData), &r); err != nil {
+// 		panic(err)
+// 	}
+// 	if IsGlobal {
+// 		r["gdpr_version"] = 4
+// 	}
+// 	return r
+// }
 
 func GetData(fileName string) string {
 	presetDataFile := presetDataPath + fileName

@@ -67,5 +67,6 @@ func Router(r *gin.Engine) {
 		api.POST("/userProfile/fetchProfile", handler.FetchProfile)
 		api.POST("/userProfile/setProfile", handler.SetProfile)
 		api.POST("/userProfile/setRecommendCard", handler.SetRecommendCard)
+		api.POST("/gdpr/updateConsentState", handler.UpdateConsentState)
 	}
 }

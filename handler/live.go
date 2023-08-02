@@ -33,11 +33,6 @@ func SaveDeckAll(ctx *gin.Context) {
 	session := serverdb.GetSession(UserID)
 	deckInfo := session.GetUserLiveDeck(req.DeckID)
 
-	// keyDeckName := fmt.Sprintf("user_live_deck_by_id.%d.name.dot_under_text", req.DeckID*2-1)
-	// fmt.Println(keyDeckName)
-	// deckName := gjson.Parse(liveDeckInfo).Get(keyDeckName).String()
-	// fmt.Println("deckName:", deckName)
-
 	for i := 0; i < 9; i++ {
 		if req.CardWithSuit[i*2+1] == 0 {
 			req.CardWithSuit[i*2+1] = GetMemberDefaultSuitByCardMasterId(req.CardWithSuit[i*2])
@@ -101,9 +96,6 @@ func SaveDeckAll(ctx *gin.Context) {
 	}
 
 	respBody := session.Finalize(GetData("saveDeckAll.json"), "user_model")
-	respBody, _ = sjson.Set(respBody, "user_model.user_status", GetUserStatus())
-	// respBody, _ = sjson.Set(respBody, "user_model.user_live_deck_by_id", deckInfoRes)
-	// respBody, _ = sjson.Set(respBody, "user_model.user_live_party_by_id", partyInfoRes)
 	resp := SignResp(ctx.GetString("ep"), respBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -132,7 +124,8 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "weekday_state.weekday", weekday)
 	signBody, _ = sjson.Set(signBody, "weekday_state.next_weekday_at", tomorrow)
 	signBody, _ = sjson.Set(signBody, "live_daily_list", liveDailyList)
-	signBody, _ = sjson.Set(signBody, "user_model_diff.user_status", GetUserStatus())
+	session := serverdb.GetSession(UserID)
+	signBody = session.Finalize(signBody, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -225,7 +218,8 @@ func LiveStart(ctx *gin.Context) {
 	liveStartResp, _ = sjson.Set(liveStartResp, "live.deck_id", liveStartReq.DeckID)
 	liveStartResp, _ = sjson.Set(liveStartResp, "live.live_stage", liveNotesRes)
 	liveStartResp, _ = sjson.Set(liveStartResp, "live.live_partner_card", partnerInfo)
-	liveStartResp, _ = sjson.Set(liveStartResp, "user_model_diff.user_status", GetUserStatus())
+	session := serverdb.GetSession(UserID)
+	liveStartResp = session.Finalize(liveStartResp, "user_model_diff")
 	liveStartResp, _ = sjson.Set(liveStartResp, "user_model_diff.user_status.latest_live_deck_id", liveStartReq.DeckID)
 	liveStartResp, _ = sjson.Set(liveStartResp, "user_model_diff.user_status.last_live_difficulty_id", liveStartReq.LiveDifficultyID)
 	resp := SignResp(ctx.GetString("ep"), liveStartResp, config.SessionKey)
@@ -307,6 +301,8 @@ func LiveFinish(ctx *gin.Context) {
 		RemainingStamina: liveFinishReq.Get("live_score.remaining_stamina").Int(),
 	}
 
+	session := serverdb.GetSession(UserID)
+
 	liveFinishResp := GetData("liveFinish.json")
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_difficulty_master_id", liveStartReq.LiveDifficultyID)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_deck_id", liveStartReq.DeckID)
@@ -315,11 +311,11 @@ func LiveFinish(ctx *gin.Context) {
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_result_achievement_status", liveResult)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.voltage", liveFinishReq.Get("live_score.current_score").Int())
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.last_best_voltage", liveFinishReq.Get("live_score.current_score").Int())
-	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.before_user_exp", GetUserStatus()["exp"].(float64))
+	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.before_user_exp", session.UserInfo.Exp)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.gain_user_exp", 0)
-	liveFinishResp, _ = sjson.Set(liveFinishResp, "user_model_diff.user_status", GetUserStatus())
-	liveFinishResp, _ = sjson.Set(liveFinishResp, "user_model_diff.user_status.latest_live_deck_id", liveStartReq.DeckID)
-	liveFinishResp, _ = sjson.Set(liveFinishResp, "user_model_diff.user_status.last_live_difficulty_id", liveStartReq.LiveDifficultyID)
+	session.UserInfo.LastLiveDifficultyID = liveStartReq.LiveDifficultyID
+	session.UserInfo.LatestLiveDeckID =  liveStartReq.DeckID
+	liveFinishResp = session.Finalize(liveFinishResp, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), liveFinishResp, config.SessionKey)
 	// fmt.Println(resp)
 
@@ -328,8 +324,8 @@ func LiveFinish(ctx *gin.Context) {
 }
 
 func LiveMvStart(ctx *gin.Context) {
-	signBody, _ := sjson.Set(GetData("liveMvStart.json"),
-		"user_model_diff.user_status", GetUserStatus())
+	session := serverdb.GetSession(UserID)
+	signBody := session.Finalize(GetData("liveMvStart.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -448,8 +444,10 @@ func LiveMvSaveDeck(ctx *gin.Context) {
 	userLiveMvDeckCustomByID = append(userLiveMvDeckCustomByID, userLiveMvDeckInfo)
 	// fmt.Println(userLiveMvDeckCustomByID)
 
+	session := serverdb.GetSession(UserID)
 	signBody := GetData("liveMvSaveDeck.json")
-	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())
+	signBody = session.Finalize(signBody, "user_model")
+	// signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())
 	signBody, _ = sjson.Set(signBody, "user_model.user_live_mv_deck_custom_by_id", userLiveMvDeckCustomByID)
 	signBody, _ = sjson.Set(signBody, "user_model.user_member_by_member_id", newMemberInfoList)
 
@@ -484,9 +482,8 @@ func SaveSuit(ctx *gin.Context) {
 	}
 
 	SetLiveDeckData(keyLiveDeck, deckInfo)
-
-	signBody, _ := sjson.Set(GetData("saveSuit.json"),
-		"user_model.user_status", GetUserStatus())
+	session := serverdb.GetSession(UserID)
+	signBody := session.Finalize(GetData("saveSuit.json"), "user_model")
 	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.0", deckId)
 	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.1", deckInfo)
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
@@ -573,8 +570,8 @@ func SaveDeck(ctx *gin.Context) {
 		return true
 	})
 
-	signBody := GetData("SaveDeck.json")
-	signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())
+	session := serverdb.GetSession(UserID)
+	signBody := session.Finalize(GetData("SaveDeck.json"), "user_model")
 	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.0", deckId.Int())
 	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.1", gjson.Parse(deckInfo).Value())
 	signBody, _ = sjson.Set(signBody, "user_model.user_live_party_by_id.0", partyId)

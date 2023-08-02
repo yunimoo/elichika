@@ -2,15 +2,16 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/serverdb"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tidwall/sjson"
 )
 
 func SaveUserNaviVoice(ctx *gin.Context) {
-	signBody, _ := sjson.Set(GetData("saveUserNaviVoice.json"),
-		"user_model.user_status", GetUserStatus())
+	session := serverdb.GetSession(UserID)
+	signBody := session.Finalize(GetData("saveUserNaviVoice.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
