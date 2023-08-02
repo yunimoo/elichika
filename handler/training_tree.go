@@ -99,8 +99,8 @@ func GetBondLevel(maxBond int) int {
 	res := 0
 	for i := 2; ; i++ {
 		res += BondRequired(i)
-		if res >= maxBond {
-			return i
+		if res > maxBond {
+			return i - 1
 		}
 	}
 }

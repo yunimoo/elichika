@@ -50,6 +50,7 @@ func Router(r *gin.Engine) {
 		api.POST("/mission/clearMissionBadge", handler.ClearMissionBadge)
 		api.POST("/mission/fetchMission", handler.FetchMission)
 		api.POST("/navi/saveUserNaviVoice", handler.SaveUserNaviVoice)
+		api.POST("/navi/tapLovePoint", handler.TapLovePoint)
 		api.POST("/notice/fetchNotice", handler.FetchNotice)
 		api.POST("/present/fetch", handler.FetchPresent)
 		api.POST("/sif2DataLink/dataLink", handler.Sif2DataLink)
