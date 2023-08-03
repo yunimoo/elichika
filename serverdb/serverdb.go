@@ -30,12 +30,12 @@ func InitTable(tableName string, structure interface{}) {
 
 func InitTables() {
 	type DbUser struct {
-		model.UserStatus `xorm:"extends"`
+		model.UserStatus             `xorm:"extends"`
 		model.DBUserProfileLiveStats `xorm:"extends"`
 	}
 	InitTable("s_user_info", DbUser{})
 	type DbCard struct {
-		model.CardInfo `xorm:"extends"`
+		model.CardInfo       `xorm:"extends"`
 		model.DBCardPlayInfo `xorm:"extends"`
 	}
 	InitTable("s_user_card", DbCard{})

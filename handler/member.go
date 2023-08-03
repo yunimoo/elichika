@@ -89,7 +89,7 @@ func UpdateUserLiveDifficultyNewFlag(ctx *gin.Context) {
 func FinishUserStorySide(ctx *gin.Context) {
 	// need to award items / mark as read
 	session := serverdb.GetSession(UserID)
-	signBody := session.Finalize(GetData("finishUserStorySide.json"),"user_model")
+	signBody := session.Finalize(GetData("finishUserStorySide.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -99,7 +99,7 @@ func FinishUserStorySide(ctx *gin.Context) {
 func FinishUserStoryMember(ctx *gin.Context) {
 	// need to award items / mark as read
 	session := serverdb.GetSession(UserID)
-	signBody := session.Finalize(GetData("finishUserStoryMember.json"),"user_model")
+	signBody := session.Finalize(GetData("finishUserStoryMember.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")

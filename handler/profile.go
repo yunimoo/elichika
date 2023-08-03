@@ -4,8 +4,8 @@ import (
 	"elichika/config"
 	"elichika/serverdb"
 
-	"net/http"
 	"encoding/json"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -24,12 +24,12 @@ func FetchProfile(ctx *gin.Context) {
 
 	session := serverdb.GetSession(UserID)
 	profile := session.FetchProfile(req.UserID)
-	
+
 	signBody, err := json.Marshal(profile)
 	if err != nil {
 		panic(err)
 	}
-	
+
 	resp := SignResp(ctx.GetString("ep"), string(signBody), config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -51,7 +51,7 @@ func SetProfile(ctx *gin.Context) {
 		session.UserStatus.Message.DotUnderText = gjson.Parse(reqBody).Array()[0].Get("message").String()
 	}
 
-	signBody := session.Finalize(GetData("setProfile.json"),	"user_model")
+	signBody := session.Finalize(GetData("setProfile.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -72,12 +72,11 @@ func SetRecommendCard(ctx *gin.Context) {
 	ctx.String(http.StatusOK, resp)
 }
 
-
 func SetLivePartner(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	type SetLivePartnerReq struct {
 		LivePartnerCategoryID int `json:"live_partner_category_id"`
-		CardMasterID int `json:"card_master_id"`
+		CardMasterID          int `json:"card_master_id"`
 	}
 	req := SetLivePartnerReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {

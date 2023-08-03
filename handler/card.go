@@ -5,8 +5,8 @@ import (
 	"elichika/model"
 	"elichika/serverdb"
 
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +18,7 @@ func UpdateCardNewFlag(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	fmt.Println(reqBody.String())
 	session := serverdb.GetSession(UserID)
-	
+
 	signBody := session.Finalize(GetData("updateCardNewFlag.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")

@@ -3,9 +3,9 @@ package serverdb
 import (
 	"elichika/model"
 
+	"encoding/json"
 	"strconv"
 	"strings"
-	"encoding/json"
 
 	"github.com/tidwall/gjson"
 )
@@ -16,7 +16,7 @@ func (session *Session) FetchPartnerCards(otherUserID int) []model.CardInfo {
 		Where("user_id = ? AND live_partner_categories != 0", otherUserID).
 		Find(&partnerCards)
 	if err != nil {
-			panic(err)
+		panic(err)
 	}
 	return partnerCards
 
@@ -37,7 +37,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	// recommend card
 
 	recommendCard := model.CardInfo{}
-	exists, err = Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?", 
+	exists, err = Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?",
 		otherUserID, profile.ProfileInfo.BasicInfo.RecommendCardMasterID).
 		Get(&recommendCard)
 	if err != nil {
@@ -65,7 +65,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	for _, member := range members {
 		profile.ProfileInfo.TotalLovePoint += member.LovePoint
 	}
-	for i:=0; i < 3; i++ {
+	for i := 0; i < 3; i++ {
 		profile.ProfileInfo.LoveMembers[i].MemberMasterID = members[i].MemberMasterID
 		profile.ProfileInfo.LoveMembers[i].LovePoint = members[i].LovePoint
 	}
@@ -81,7 +81,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	for _, card := range partnerCards {
 		// this is a just convention, might be better to check db
 		memberId := (card.CardMasterID / 10000) % 1000
-		
+
 		partnerCard := model.PartnerCardInfo{}
 
 		jsonByte, err := json.Marshal(card)
@@ -112,7 +112,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 		livePartner.PartnerCard = partnerCard
 		for i := 1; i <= 7; i++ {
 			if (card.LivePartnerCategories & (1 << i)) != 0 {
-				profile.GuestInfo.LivePartnersCards[i - 1].PartnerCard = partnerCard
+				profile.GuestInfo.LivePartnersCards[i-1].PartnerCard = partnerCard
 			}
 		}
 	}
@@ -125,8 +125,8 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	if err != nil {
 		panic(err)
 	}
-	gjson.Parse(string(jsonByte)).ForEach( func (key, value gjson.Result) bool {
-		songRarity, _ := strconv.Atoi(key.String()[len(key.String()) - 2:])
+	gjson.Parse(string(jsonByte)).ForEach(func(key, value gjson.Result) bool {
+		songRarity, _ := strconv.Atoi(key.String()[len(key.String())-2:])
 		if strings.Contains(key.String(), "LivePlayCount") {
 			profile.PlayInfo.LivePlayCount = append(profile.PlayInfo.LivePlayCount, songRarity)
 			profile.PlayInfo.LivePlayCount = append(profile.PlayInfo.LivePlayCount, int(value.Int()))
@@ -138,9 +138,9 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	})
 
 	Engine.Table("s_user_card").Where("user_id = ?", otherUserID).
-	OrderBy("live_join_count DESC").Limit(3).Find(&profile.PlayInfo.JoinedLiveCardRanking)
+		OrderBy("live_join_count DESC").Limit(3).Find(&profile.PlayInfo.JoinedLiveCardRanking)
 	Engine.Table("s_user_card").Where("user_id = ?", otherUserID).
-	OrderBy("active_skill_play_count DESC").Limit(3).Find(&profile.PlayInfo.PlaySkillCardRanking)
+		OrderBy("active_skill_play_count DESC").Limit(3).Find(&profile.PlayInfo.PlaySkillCardRanking)
 
 	// can get from members[] to save sql
 	Engine.Table("s_user_member").Where("user_id = ?", otherUserID).Find(&profile.MemberInfo.UserMembers)

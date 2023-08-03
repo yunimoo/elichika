@@ -314,7 +314,7 @@ func LiveFinish(ctx *gin.Context) {
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.before_user_exp", session.UserStatus.Exp)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.gain_user_exp", 0)
 	session.UserStatus.LastLiveDifficultyID = liveStartReq.LiveDifficultyID
-	session.UserStatus.LatestLiveDeckID =  liveStartReq.DeckID
+	session.UserStatus.LatestLiveDeckID = liveStartReq.DeckID
 	liveFinishResp = session.Finalize(liveFinishResp, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), liveFinishResp, config.SessionKey)
 	// fmt.Println(resp)

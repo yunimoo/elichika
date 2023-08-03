@@ -4,14 +4,13 @@ import (
 	"elichika/config"
 	"elichika/serverdb"
 
-	"net/http"
 	"encoding/json"
+	"net/http"
 	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	// "github.com/tidwall/sjson"
-
 )
 
 func SaveUserNaviVoice(ctx *gin.Context) {
@@ -28,7 +27,6 @@ func TapLovePoint(ctx *gin.Context) {
 	type TapLovePointReq struct {
 		MemberMasterID int `json:"member_master_id"`
 	}
-	
 
 	req := TapLovePointReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {

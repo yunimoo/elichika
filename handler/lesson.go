@@ -56,7 +56,7 @@ func ExecuteLesson(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.3", actionList)
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.5", actionList)
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.7", actionList)
-	
+
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")

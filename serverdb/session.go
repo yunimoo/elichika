@@ -32,7 +32,7 @@ func DbGetUserData(fileName string) string {
 // so 1 session per request
 // A session fetch the data needs to be modified.
 type Session struct {
-	UserStatus            model.UserStatus
+	UserStatus          model.UserStatus
 	CardDiffs           map[int]model.CardInfo
 	UserMemberDiffs     map[int]model.UserMemberInfo
 	UserLessonDeckDiffs map[int]model.UserLessonDeck
@@ -56,7 +56,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 }
 
 // fetch the user, this is always sent back to client
-func (session *Session) InitUser(userID int, ) {
+func (session *Session) InitUser(userID int) {
 	session.UserStatus.UserID = userID
 	exists, err := Engine.Table("s_user_info").Where("user_id = ?", userID).Get(&session.UserStatus)
 	if err != nil {
@@ -77,7 +77,7 @@ func (session *Session) InitUser(userID int, ) {
 	}
 }
 
-func (session* Session) FinalizeUserInfo() model.UserStatus {
+func (session *Session) FinalizeUserInfo() model.UserStatus {
 	_, err := Engine.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).Update(&session.UserStatus)
 	if err != nil {
 		panic(err)
