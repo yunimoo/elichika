@@ -9,7 +9,7 @@ import (
 func (session *Session) GetUserLiveParty(partyID int) model.UserLiveParty {
 	liveParty := model.UserLiveParty{}
 	exists, err := Engine.Table("s_user_live_party").
-		Where("user_id = ? AND party_id = ?", session.UserInfo.UserID, partyID).
+		Where("user_id = ? AND party_id = ?", session.UserStatus.UserID, partyID).
 		Get(&liveParty)
 	if err != nil {
 		panic(err)
@@ -30,7 +30,7 @@ func (session *Session) FinalizeUserLivePartyDiffs() []any {
 		userLivePartyByID = append(userLivePartyByID, userLivePartyId)
 		userLivePartyByID = append(userLivePartyByID, userLiveParty)
 		affected, err := Engine.Table("s_user_live_party").
-			Where("user_id = ? AND party_id = ?", session.UserInfo.UserID, userLivePartyId).
+			Where("user_id = ? AND party_id = ?", session.UserStatus.UserID, userLivePartyId).
 			AllCols().Update(userLiveParty)
 		if (err != nil) || (affected != 1) {
 			panic(err)
@@ -41,7 +41,7 @@ func (session *Session) FinalizeUserLivePartyDiffs() []any {
 
 func (session *Session) GetAllLiveParties() []model.UserLiveParty {
 	parties := []model.UserLiveParty{}
-	err := Engine.Table("s_user_live_party").Where("user_id = ?", session.UserInfo.UserID).Find(&parties)
+	err := Engine.Table("s_user_live_party").Where("user_id = ?", session.UserStatus.UserID).Find(&parties)
 	if err != nil {
 		panic(err)
 	}

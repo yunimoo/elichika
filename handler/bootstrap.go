@@ -12,7 +12,7 @@ import (
 
 func FetchBootstrap(ctx *gin.Context) {
 	session := serverdb.GetSession(UserID)
-	session.UserInfo.BootstrapSifidCheckAt = ClientTimeStamp
+	session.UserStatus.BootstrapSifidCheckAt = ClientTimeStamp
 	signBody := session.Finalize(GetData("fetchBootstrap.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")

@@ -10,7 +10,7 @@ import (
 func (session *Session) GetTrainingTree(cardMasterID int) []model.TrainingTreeCell {
 	cells := []model.TrainingTreeCell{}
 	err := Engine.Table("s_user_training_tree_cell").
-		Where("user_id = ? AND card_master_id = ?", session.UserInfo.UserID, cardMasterID).Find(&cells)
+		Where("user_id = ? AND card_master_id = ?", session.UserStatus.UserID, cardMasterID).Find(&cells)
 	if err != nil {
 		panic(err)
 	}

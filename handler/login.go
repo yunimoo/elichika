@@ -92,12 +92,12 @@ func Login(ctx *gin.Context) {
 	newKey64 := base64.StdEncoding.EncodeToString(newKey)
 	// fmt.Println("Session Key:", newKey64)
 	session := serverdb.GetSession(UserID)
-	session.UserInfo.LastLoginAt = ClientTimeStamp
+	session.UserStatus.LastLoginAt = ClientTimeStamp
 
 	loginBody := GetData("login.json")
 	loginBody, _ = sjson.Set(loginBody, "session_key", newKey64)
 
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_status", session.UserInfo)
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_status", session.UserStatus)
 
 	/* ======== UserData ======== */
 	fmt.Println("User logins: ", UserID)

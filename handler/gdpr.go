@@ -13,7 +13,7 @@ import (
 func UpdateConsentState(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	session := serverdb.GetSession(UserID)
-	session.UserInfo.GdprVersion = int(reqBody.Get("version").Int())
+	session.UserStatus.GdprVersion = int(reqBody.Get("version").Int())
 	session.Finalize(GetData("userModel.json"), "user_model")
 	// Don't know the format of this response, but we can set gdpr version to 4 to skip it.
 	// resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)

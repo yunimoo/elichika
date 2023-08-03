@@ -22,6 +22,16 @@ type UserMemberInfo struct {
 	LoveLevel                int  `json:"love_level"`
 	ViewStatus               int  `json:"view_status"`
 	IsNew                    bool `json:"is_new"`
+	OwnedCardCount 			 int  `json:"-"`
+	AllTrainingCardCount     int  `json:"-"`
+}
+
+type MemberPublicInfo struct {
+	MemberMasterID           int  `xorm:"pk 'member_master_id'" json:"member_master_id"`
+	LoveLevel                int  `json:"love_level"`
+	LovePointLimit           int  `json:"love_point_limit"`
+	OwnedCardCount 			 int  `json:"owned_card_count"`
+	AllTrainingCardCount     int  `json:"all_training_activated_card_count"`
 }
 
 // Bond board tile

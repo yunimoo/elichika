@@ -145,7 +145,7 @@ func SetTheme(ctx *gin.Context) {
 func SetFavoriteMember(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	session := serverdb.GetSession(UserID)
-	session.UserInfo.FavoriteMemberID = int(gjson.Parse(reqBody).Array()[0].Get("member_master_id").Int())
+	session.UserStatus.FavoriteMemberID = int(gjson.Parse(reqBody).Array()[0].Get("member_master_id").Int())
 	signBody := session.Finalize(GetData("setFavoriteMember.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 

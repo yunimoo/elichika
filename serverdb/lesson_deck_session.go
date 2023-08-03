@@ -13,7 +13,7 @@ func (session *Session) GetLessonDeck(userLessonDeckId int) model.UserLessonDeck
 	}
 	deck = model.UserLessonDeck{}
 	exists, err := Engine.Table("s_user_lesson_deck").
-		Where("user_id = ? AND user_lesson_deck_id = ?", session.UserInfo.UserID, userLessonDeckId).
+		Where("user_id = ? AND user_lesson_deck_id = ?", session.UserStatus.UserID, userLessonDeckId).
 		Get(&deck)
 	if err != nil {
 		panic(err)
@@ -34,7 +34,7 @@ func (session *Session) FinalizeUserLessonDeckDiffs() []any {
 		userLessonDeckByID = append(userLessonDeckByID, userLessonDeckId)
 		userLessonDeckByID = append(userLessonDeckByID, userLessonDeck)
 		affected, err := Engine.Table("s_user_lesson_deck").
-			Where("user_id = ? AND user_lesson_deck_id = ?", session.UserInfo.UserID, userLessonDeckId).
+			Where("user_id = ? AND user_lesson_deck_id = ?", session.UserStatus.UserID, userLessonDeckId).
 			AllCols().Update(userLessonDeck)
 		if (err != nil) || (affected != 1) {
 			panic(err)
@@ -45,7 +45,7 @@ func (session *Session) FinalizeUserLessonDeckDiffs() []any {
 
 func (session *Session) GetAllLessonDecks() []model.UserLessonDeck {
 	decks := []model.UserLessonDeck{}
-	err := Engine.Table("s_user_lesson_deck").Where("user_id = ?", session.UserInfo.UserID).Find(&decks)
+	err := Engine.Table("s_user_lesson_deck").Where("user_id = ?", session.UserStatus.UserID).Find(&decks)
 	if err != nil {
 		panic(err)
 	}

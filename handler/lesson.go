@@ -50,7 +50,7 @@ func ExecuteLesson(ctx *gin.Context) {
 		return true
 	})
 
-	session.UserInfo.MainLessonDeckID = req.SelectedDeckID
+	session.UserStatus.MainLessonDeckID = req.SelectedDeckID
 	signBody := session.Finalize(GetData("executeLesson.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.1", actionList)
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.3", actionList)
@@ -66,7 +66,7 @@ func ExecuteLesson(ctx *gin.Context) {
 func ResultLesson(ctx *gin.Context) {
 	session := serverdb.GetSession(UserID)
 	signBody := session.Finalize(GetData("resultLesson.json"), "user_model_diff")
-	signBody, _ = sjson.Set(signBody, "selected_deck_id", session.UserInfo.MainLessonDeckID)
+	signBody, _ = sjson.Set(signBody, "selected_deck_id", session.UserStatus.MainLessonDeckID)
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 

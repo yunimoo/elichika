@@ -32,7 +32,7 @@ func DbGetUserData(fileName string) string {
 // so 1 session per request
 // A session fetch the data needs to be modified.
 type Session struct {
-	UserInfo            model.UserInfo
+	UserStatus            model.UserStatus
 	CardDiffs           map[int]model.CardInfo
 	UserMemberDiffs     map[int]model.UserMemberInfo
 	UserLessonDeckDiffs map[int]model.UserLessonDeck
@@ -57,32 +57,32 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 
 // fetch the user, this is always sent back to client
 func (session *Session) InitUser(userID int, ) {
-	session.UserInfo.UserID = userID
-	exists, err := Engine.Table("s_user_info").Where("user_id = ?", userID).Get(&session.UserInfo)
+	session.UserStatus.UserID = userID
+	exists, err := Engine.Table("s_user_info").Where("user_id = ?", userID).Get(&session.UserStatus)
 	if err != nil {
 		panic(err)
 	}
 	if !exists { // create one
 		fmt.Println("Insert new user: ", userID)
 		data := utils.ReadAllText("assets/userdata/userStatus.json")
-		if err := json.Unmarshal([]byte(data), &session.UserInfo); err != nil {
+		if err := json.Unmarshal([]byte(data), &session.UserStatus); err != nil {
 			panic(err)
 		}
 
 		// insert into the db
-		_, err := Engine.Table("s_user_info").AllCols().Insert(&session.UserInfo)
+		_, err := Engine.Table("s_user_info").AllCols().Insert(&session.UserStatus)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-func (session* Session) FinalizeUserInfo() model.UserInfo {
-	_, err := Engine.Table("s_user_info").Where("user_id = ?", session.UserInfo.UserID).Update(&session.UserInfo)
+func (session* Session) FinalizeUserInfo() model.UserStatus {
+	_, err := Engine.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).Update(&session.UserStatus)
 	if err != nil {
 		panic(err)
 	}
-	return session.UserInfo
+	return session.UserStatus
 }
 
 func GetSession(userId int) Session {

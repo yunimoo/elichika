@@ -9,7 +9,7 @@ import (
 func (session *Session) GetUserLiveDeck(userLiveDeckID int) model.UserLiveDeck {
 	liveDeck := model.UserLiveDeck{}
 	exists, err := Engine.Table("s_user_live_deck").
-		Where("user_id = ? AND user_live_deck_id = ?", session.UserInfo.UserID, userLiveDeckID).
+		Where("user_id = ? AND user_live_deck_id = ?", session.UserStatus.UserID, userLiveDeckID).
 		Get(&liveDeck)
 	if err != nil {
 		panic(err)
@@ -30,7 +30,7 @@ func (session *Session) FinalizeUserLiveDeckDiffs() []any {
 		userLiveDeckByID = append(userLiveDeckByID, userLiveDeckId)
 		userLiveDeckByID = append(userLiveDeckByID, userLiveDeck)
 		affected, err := Engine.Table("s_user_live_deck").
-			Where("user_id = ? AND user_live_deck_id = ?", session.UserInfo.UserID, userLiveDeckId).
+			Where("user_id = ? AND user_live_deck_id = ?", session.UserStatus.UserID, userLiveDeckId).
 			AllCols().Update(userLiveDeck)
 		if (err != nil) || (affected != 1) {
 			panic(err)
@@ -41,7 +41,7 @@ func (session *Session) FinalizeUserLiveDeckDiffs() []any {
 
 func (session *Session) GetAllLiveDecks() []model.UserLiveDeck {
 	decks := []model.UserLiveDeck{}
-	err := Engine.Table("s_user_live_deck").Where("user_id = ?", session.UserInfo.UserID).Find(&decks)
+	err := Engine.Table("s_user_live_deck").Where("user_id = ?", session.UserStatus.UserID).Find(&decks)
 	if err != nil {
 		panic(err)
 	}

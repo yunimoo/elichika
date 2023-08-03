@@ -1,6 +1,6 @@
 package model
 
-type UserInfo struct {
+type UserStatus struct {
 	UserID int `xorm:"pk 'user_id'" json:"-"`
 	Name   struct {
 		DotUnderText string `xorm:"name" json:"dot_under_text"`
@@ -58,4 +58,82 @@ type UserInfo struct {
 	MemberGuildMemberMasterID                 int    `xorm:"'member_guild_member_master_id'" json:"member_guild_member_master_id"` // member id of the channel joined
 	MemberGuildLastUpdatedAt                  int64    `json:"member_guild_last_updated_at"`                                         // unix time stamp, last time joining the channel (used to allow only 1 channel changing)
 	Cash                                      int    `json:"cash"`
+}
+
+// this is not stored, constructed from main db
+// partially loaded from s_user_info, then load from s_user_card
+type UserBasicInfo struct {
+	UserID int `xorm:"pk 'user_id'" json:"user_id"`
+	Name   struct {
+		DotUnderText string `xorm:"name" json:"dot_under_text"`
+	} `xorm:"extends" json:"name"` // player name
+	Rank        int `json:"rank"`          // rank
+	LastPlayedAt int64 `xorm:"'last_login_at'" json:"last_played_at"` 
+	RecommendCardMasterID                     int    `xorm:"'recommend_card_master_id'" json:"recommend_card_master_id"` // featured / partner card
+	
+	RecommendCardLevel int `xorm:"-" json:"recommend_card_level"`
+	IsRecommendCardImageAwaken bool `xorm:"-" json:"is_recommend_card_image_awaken"`
+	IsRecommendCardAllTrainingActivated bool `xorm:"-" json:"is_recommend_card_all_training_activated"`
+
+	EmblemID                                  int    `xorm:"'emblem_id' "json:"emblem_id"`                                                                        // title
+	IsNew bool `xorm:"-" json:"is_new"` // not sure what this thing is about, maybe new friend?
+	IntroductionMessage     struct {
+		DotUnderText string `xorm:"message" json:"dot_under_text"`
+	} `xorm:"extends" json:"introduction_message"` // introduction message
+	FriendApprovedAt *int64 `xorm:"-" json:"friend_approved_at"`
+	RequestStatus int `xorm:"-" json:"request_status"`
+	IsRequestPending bool `xorm:"-" json:"is_request_pending"`
+}
+
+
+type DBUserProfileLiveStats struct {
+	LivePlayCount10 int `xorm:"default 0"`
+	LivePlayCount20 int `xorm:"default 0"`
+	LivePlayCount30 int `xorm:"default 0"`
+	LivePlayCount35 int `xorm:"default 0"`
+	LivePlayCount40 int `xorm:"default 0"`
+	LiveClearCount10 int `xorm:"default 0"`
+	LiveClearCount20 int `xorm:"default 0"`
+	LiveClearCount30 int `xorm:"default 0"`
+	LiveClearCount35 int `xorm:"default 0"`
+	LiveClearCount40 int `xorm:"default 0"`
+}
+
+type UserProfileInfo struct {
+	BasicInfo UserBasicInfo `xorm:"extends" json:"basic_info"`
+	TotalLovePoint int `xorm:"-" json:"total_love_point"`
+	LoveMembers [3]struct {
+		MemberMasterID int `json:"member_master_id"`
+		LovePoint int `json:"love_point"`
+	} `xorm:"-" json:"love_members"`
+	MemberGuildMemberMasterID int `xorm:"'member_guild_member_master_id'" json:"member_guild_member_master_id"`
+}
+
+type LivePartnerCard struct {
+	LivePartnerCategoryMasterId int `json:"live_partner_category_master_id"`
+	PartnerCard PartnerCardInfo `json:"partner_card"` 
+}
+
+type Profile struct {
+	ProfileInfo UserProfileInfo `xorm:"extends" json:"profile_info"`
+	GuestInfo struct {
+		LivePartnersCards []LivePartnerCard `json:"live_partner_cards"`
+	} `xorm:"-" json:"guest_info"`
+	PlayInfo struct {
+		LivePlayCount []int `xorm:"-" json:"live_play_count"`
+		LiveClearCount []int `xorm:"-" json:"live_clear_count"`
+		JoinedLiveCardRanking []CardPlayInfo `xorm:"-" json:"joined_live_card_ranking"`
+		PlaySkillCardRanking []CardPlayInfo `xorm:"-" json:"play_skill_card_ranking"`
+		MaxScoreLiveDifficulty struct {
+			LiveDifficultyMasterID int    `xorm:"'max_score_live_difficulty_master_id'" json:"live_difficulty_master_id"`
+			Score int   `xorm:"'live_max_score'" json:"score"`
+		} `xorm:"extends" json:"max_score_live_difficulty"`
+		MaxComboLiveDifficulty struct {
+			LiveDifficultyMasterID int    `xorm:"'max_combo_live_difficulty_master_id'" json:"live_difficulty_master_id"`
+			Score int   `xorm:"'live_max_combo'" json:"score"`
+		} `xorm:"extends" json:"max_combo_live_difficulty"`
+	} `xorm:"extends" json:"play_info"`
+	MemberInfo struct {
+		UserMembers []MemberPublicInfo `json:"user_members"`
+	} `xorm:"-" json:"member_info"`
 }

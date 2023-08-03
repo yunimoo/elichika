@@ -5,6 +5,7 @@ import (
 	"elichika/model"
 	"elichika/serverdb"
 
+	"fmt"
 	"encoding/json"
 	"net/http"
 
@@ -14,6 +15,8 @@ import (
 )
 
 func UpdateCardNewFlag(ctx *gin.Context) {
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	fmt.Println(reqBody.String())
 	session := serverdb.GetSession(UserID)
 	
 	signBody := session.Finalize(GetData("updateCardNewFlag.json"), "user_model_diff")
@@ -35,12 +38,6 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 	cardInfo := session.GetCard(req.CardMasterID)
 	cardInfo.IsAwakeningImage = req.IsAwakeningImage
 	session.UpdateCard(cardInfo)
-
-	// Update user profile
-	cardMasterId := gjson.Parse(GetUserData("fetchProfile.json")).Get("profile_info.basic_info.recommend_card_master_id").Int()
-	if cardMasterId == int64(req.CardMasterID) {
-		SetUserData("fetchProfile.json", "profile_info.basic_info.is_recommend_card_image_awaken", req.IsAwakeningImage)
-	}
 
 	cardResp := session.Finalize(GetData("changeIsAwakeningImage.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
@@ -80,7 +77,7 @@ func GetOtherUserCard(ctx *gin.Context) {
 	}
 	// fmt.Println(liveStartReq)
 
-	var newUserCardInfo model.NewCardInfo
+	var newUserCardInfo model.PartnerCard
 	var cardInfo string
 	partnerList := gjson.Parse(GetData("fetchLivePartners.json")).Get("partner_select_state.live_partners")
 	partnerList.ForEach(func(k, v gjson.Result) bool {

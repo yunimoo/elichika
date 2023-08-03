@@ -33,7 +33,10 @@ type CardInfo struct {
 	AdditionalPassiveSkill4ID  int   `xorm:"'additional_passive_skill_4_id'" json:"additional_passive_skill_4_id"`
 	AcquiredAt                 int64 `json:"acquired_at"`
 	IsNew                      bool  `json:"is_new"`
+	LivePartnerCategories int `xorm:"default 0" json:"-"` // bitset, i-th bit is on if is i-th partner card
 }
+
+
 
 // CardFavoriteReq ...
 type CardFavoriteReq struct {
@@ -47,8 +50,8 @@ type UserCardReq struct {
 	CardMasterID int64 `json:"card_master_id"`
 }
 
-// NewCardInfo ...
-type NewCardInfo struct {
+// PartnerCard (Other user's card)
+type PartnerCardInfo struct {
 	CardMasterID              int   `json:"card_master_id"`
 	Level                     int   `json:"level"`
 	Grade                     int   `json:"grade"`
@@ -64,4 +67,22 @@ type NewCardInfo struct {
 	TrainingAppeal            int   `json:"training_appeal"`
 	TrainingTechnique         int   `json:"training_technique"`
 	MemberLovePanels          []any `json:"member_love_panels"`
+}
+
+// Additional info to stores aside from CardInfo
+type DBCardPlayInfo struct {
+	LiveJoinCount int `xorm:"'live_join_count' default 0" json:"live_join_count"`
+	ActiveSkillPlayCount int `xorm:"'active_skill_play_count' default 0" json:"active_skill_play_count"`
+}
+
+type CardPlayInfo struct {
+	CardMasterID 			   int   `xorm:"'card_master_id'" json:"card_master_id"`
+	Level                      int   `json:"level"`
+	IsAwakeningImage           bool  `json:"is_awakening_image"`
+	IsAllTrainingActivated     bool  `json:"is_all_training_activated"`
+	DBCardPlayInfo `xorm:"extends"`
+}
+
+type DbPartnerCardInfo struct {
+
 }

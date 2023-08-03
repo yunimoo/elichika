@@ -25,7 +25,7 @@ func ActivateEmblem(ctx *gin.Context) {
 	gjson.Parse(reqBody).ForEach(func(key, value gjson.Result) bool {
 		if value.Get("emblem_master_id").String() != "" {
 			emblemId = value.Get("emblem_master_id").Int()
-			session.UserInfo.EmblemID = int(emblemId)
+			session.UserStatus.EmblemID = int(emblemId)
 			return false
 		}
 		return true
