@@ -64,7 +64,7 @@ type PartnerCardInfo struct {
 	TrainingStamina           int   `json:"training_stamina"`
 	TrainingAppeal            int   `json:"training_appeal"`
 	TrainingTechnique         int   `json:"training_technique"`
-	MemberLovePanels          []any `json:"member_love_panels"`
+	MemberLovePanels          []int `json:"member_love_panels"`
 }
 
 // Additional info to stores aside from CardInfo

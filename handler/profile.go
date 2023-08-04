@@ -90,7 +90,7 @@ func SetLivePartner(ctx *gin.Context) {
 	session.UpdateCard(newCard)
 
 	// remove the bit on the other cards
-	partnerCards := session.FetchPartnerCards(UserID)
+	partnerCards := serverdb.FetchPartnerCards(UserID)
 	for _, card := range partnerCards {
 		if card.CardMasterID == req.CardMasterID {
 			continue

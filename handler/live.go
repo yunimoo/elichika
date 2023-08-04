@@ -133,9 +133,37 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 }
 
 func FetchLivePartners(ctx *gin.Context) {
-	signBody := GetData("fetchLivePartners.json")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	// a set of partners player (i.e. friends and others), then fetch the card for them
+	// this set include the current user, so we can use our own cards.
+	// currently only have current user
+	// note that all card are available, but we need to use the filter functionality to actually get them to show up.
+	partnerIDs := []int{}
+	partnerIDs = append(partnerIDs, UserID)
+	livePartners := []model.LiveStartLivePartner{}
+	for _, partnerID := range partnerIDs {
+		partner := model.LiveStartLivePartner{}
+		partner.IsFriend = true
+		serverdb.FetchDBProfile(partnerID, &partner)
+		partnerCards := serverdb.FetchPartnerCards(partnerID) // model.UserCard
+		for i := 1; i <= 7; i++ {
+			partner.CardByCategory = append(partner.CardByCategory, i)
+			partner.CardByCategory = append(partner.CardByCategory, model.PartnerCardInfo{})
+		}
+		for _, card := range partnerCards {
+			for i := 1; i <= 7; i++ {
+				if (card.LivePartnerCategories & (1 << i)) != 0 {
+					partnerCardInfo := serverdb.GetPartnerCardFromUserCard(card)
+					partner.CardByCategory[i*2-1] = partnerCardInfo
+				}
+			}
+		}
+		livePartners = append(livePartners, partner)
+	}
 
+	signBody := "{}"
+	signBody, _ = sjson.Set(signBody, "partner_select_state.live_partners", livePartners)
+	signBody, _ = sjson.Set(signBody, "partner_select_state.friend_count", len(livePartners))
+	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

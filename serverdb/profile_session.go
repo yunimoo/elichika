@@ -10,7 +10,17 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func (session *Session) FetchPartnerCards(otherUserID int) []model.CardInfo {
+func FetchDBProfile(userID int, result interface{}) {
+	exists, err := Engine.Table("s_user_info").Where("user_id = ?", userID).Get(result)
+	if err != nil {
+		panic(err)
+	}
+	if !exists {
+		panic("user doesn't exist")
+	}
+}
+
+func FetchPartnerCards(otherUserID int) []model.CardInfo {
 	partnerCards := []model.CardInfo{}
 	err := Engine.Table("s_user_card").
 		Where("user_id = ? AND live_partner_categories != 0", otherUserID).
@@ -19,7 +29,60 @@ func (session *Session) FetchPartnerCards(otherUserID int) []model.CardInfo {
 		panic(err)
 	}
 	return partnerCards
+}
 
+func GetPartnerCardFromUserCard(card model.CardInfo) model.PartnerCardInfo {
+	memberId := (card.CardMasterID / 10000) % 1000
+
+	partnerCard := model.PartnerCardInfo{}
+
+	jsonByte, err := json.Marshal(card)
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(jsonByte, &partnerCard)
+	if err != nil {
+		panic(err)
+	}
+
+	exists, err := Engine.Table("s_user_member").Where("user_id = ? AND member_master_id = ?", card.UserID, memberId).
+		Cols("love_level").Get(&partnerCard.LoveLevel)
+	if err != nil {
+		panic(err)
+	}
+	if !exists {
+		panic("member doesn't exist")
+	}
+
+	partnerCard.PassiveSkillLevels = []int{}
+	partnerCard.PassiveSkillLevels = append(partnerCard.PassiveSkillLevels, card.PassiveSkillALevel)
+	partnerCard.PassiveSkillLevels = append(partnerCard.PassiveSkillLevels, card.PassiveSkillBLevel)
+	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill1ID)
+	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill2ID)
+	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill3ID)
+	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill4ID)
+	partnerCard.MemberLovePanels = []int{}
+	err = Engine.Table("s_user_member_love_panel").
+		Where("user_id = ? AND member_id = ?", card.UserID, memberId).
+		Cols("member_love_panel_cell_id").Find(&partnerCard.MemberLovePanels)
+	if err != nil {
+		panic(err)
+	}
+	return partnerCard
+}
+
+func GetUserCard(userID, cardMasterID int) model.CardInfo {
+	card := model.CardInfo{}
+
+	exists, err := Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?", userID, cardMasterID).
+		Get(&card)
+	if err != nil {
+		panic(err)
+	}
+	if !exists {
+		panic("user card doesn't exist")
+	}
+	return card
 }
 
 // fetch profile of another user, from session.UserStatus.UserID's perspective
@@ -77,37 +140,10 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 		profile.GuestInfo.LivePartnersCards[i].LivePartnerCategoryMasterId = i + 1
 	}
 
-	partnerCards := session.FetchPartnerCards(otherUserID)
+	partnerCards := FetchPartnerCards(otherUserID)
 	for _, card := range partnerCards {
 		// this is a just convention, might be better to check db
-		memberId := (card.CardMasterID / 10000) % 1000
-
-		partnerCard := model.PartnerCardInfo{}
-
-		jsonByte, err := json.Marshal(card)
-		if err != nil {
-			panic(err)
-		}
-		err = json.Unmarshal(jsonByte, &partnerCard)
-		if err != nil {
-			panic(err)
-		}
-		for _, member := range members {
-			if member.MemberMasterID == memberId {
-				partnerCard.LoveLevel = member.LoveLevel
-				break
-			}
-		}
-		partnerCard.PassiveSkillLevels = []int{}
-		partnerCard.PassiveSkillLevels = append(partnerCard.PassiveSkillLevels, card.PassiveSkillALevel)
-		partnerCard.PassiveSkillLevels = append(partnerCard.PassiveSkillLevels, card.PassiveSkillBLevel)
-		partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill1ID)
-		partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill2ID)
-		partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill3ID)
-		partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill4ID)
-		Engine.Table("s_user_member_love_panel").
-			Where("user_id = ? AND member_id = ?", otherUserID, memberId).
-			Cols("member_love_panel_cell_id").Find(&partnerCard.MemberLovePanels)
+		partnerCard := GetPartnerCardFromUserCard(card)
 		livePartner := model.LivePartnerCard{}
 		livePartner.PartnerCard = partnerCard
 		for i := 1; i <= 7; i++ {

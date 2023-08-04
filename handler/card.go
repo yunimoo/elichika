@@ -69,42 +69,21 @@ func ChangeFavorite(ctx *gin.Context) {
 
 func GetOtherUserCard(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
-
-	userCardReq := model.UserCardReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &userCardReq); err != nil {
-		panic(err)
+	fmt.Println(reqBody.String())
+	type OtherUserCardReq struct {
+		UserID       int `json:"user_id"`
+		CardMasterID int `json:"card_master_id"`
 	}
-	// fmt.Println(liveStartReq)
-
-	var newUserCardInfo model.PartnerCard
-	var cardInfo string
-	partnerList := gjson.Parse(GetData("fetchLivePartners.json")).Get("partner_select_state.live_partners")
-	partnerList.ForEach(func(k, v gjson.Result) bool {
-		userId := v.Get("user_id").Int()
-		if userId == userCardReq.UserID {
-			v.Get("card_by_category").ForEach(func(kk, vv gjson.Result) bool {
-				if vv.IsObject() {
-					cardId := vv.Get("card_master_id").Int()
-					if cardId == userCardReq.CardMasterID {
-						cardInfo = vv.String()
-						// fmt.Println(cardInfo)
-						return false
-					}
-				}
-				return true
-			})
-			return false
-		}
-		return true
-	})
-
-	if err := json.Unmarshal([]byte(cardInfo), &newUserCardInfo); err != nil {
+	req := OtherUserCardReq{}
+	// userCardReq := model.UserCardReq{}
+	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
 		panic(err)
 	}
 
-	userCardResp := GetData("getOtherUserCard.json")
-	userCardResp, _ = sjson.Set(userCardResp, "other_user_card", newUserCardInfo)
+	// return current user card because other user is not correct for now.
+	partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetUserCard(UserID, req.CardMasterID))
+	// partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetUserCard(req.UserID, req.CardMasterID))
+	userCardResp, _ := sjson.Set("{}", "other_user_card", partnerCard)
 	resp := SignResp(ctx.GetString("ep"), userCardResp, config.SessionKey)
 	// fmt.Println(resp)
 

@@ -100,6 +100,22 @@ type LivePartnerInfo struct {
 	IsRequestPending                    bool                `json:"is_request_pending"`
 }
 
+// guests before live start
+type LiveStartLivePartner struct {
+	UserID int `xorm:"'user_id' "json:"user_id"`
+	Name   struct {
+		DotUnderText string `xorm:"'name'" json:"dot_under_text"`
+	} `xorm:"extends" json:"name"`
+	Rank                int   `json:"rank"`
+	LastLoginAt         int64 `json:"last_login_at"`
+	CardByCategory      []any `xorm:"-" json:"card_by_category"`
+	EmblemID            int   `xorm:"'emblem_id'" json:"emblem_id"`
+	IsFriend            bool  `xorm:"-" json:"is_friend"`
+	IntroductionMessage struct {
+		DotUnderText string `xorm:"'message'" json:"dot_under_text"`
+	} `xorm:"extends" json:"introduction_message"`
+}
+
 // PartnerName ...
 type PartnerName struct {
 	DotUnderText string `json:"dot_under_text"`
@@ -210,25 +226,6 @@ type NoteGimmicks struct {
 type PartnerCardReq struct {
 	LivePartnerCategoryID int `json:"live_partner_category_id"`
 	CardMasterID          int `json:"card_master_id"`
-}
-
-// PartnerCard ...
-type PartnerCard struct {
-	CardMasterID              int                `json:"card_master_id"`
-	Level                     int                `json:"level"`
-	Grade                     int                `json:"grade"`
-	LoveLevel                 int                `json:"love_level"`
-	IsAwakening               bool               `json:"is_awakening"`
-	IsAwakeningImage          bool               `json:"is_awakening_image"`
-	IsAllTrainingActivated    bool               `json:"is_all_training_activated"`
-	ActiveSkillLevel          int                `json:"active_skill_level"`
-	PassiveSkillLevels        []int              `json:"passive_skill_levels"`
-	AdditionalPassiveSkillIds []int              `json:"additional_passive_skill_ids"`
-	MaxFreePassiveSkill       int                `json:"max_free_passive_skill"`
-	TrainingStamina           int                `json:"training_stamina"`
-	TrainingAppeal            int                `json:"training_appeal"`
-	TrainingTechnique         int                `json:"training_technique"`
-	MemberLovePanels          []MemberLovePanels `json:"member_love_panels"`
 }
 
 // MemberLovePanels ...
