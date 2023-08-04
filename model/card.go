@@ -50,7 +50,7 @@ type UserCardReq struct {
 
 // PartnerCard (Other user's card)
 type PartnerCardInfo struct {
-	CardMasterID              int   `json:"card_master_id"`
+	CardMasterID              int   `xorm:"'card_master_id' default 0" json:"card_master_id"`
 	Level                     int   `json:"level"`
 	Grade                     int   `json:"grade"`
 	LoveLevel                 int   `json:"love_level"`
@@ -79,7 +79,4 @@ type CardPlayInfo struct {
 	IsAwakeningImage       bool `json:"is_awakening_image"`
 	IsAllTrainingActivated bool `json:"is_all_training_activated"`
 	DBCardPlayInfo         `xorm:"extends"`
-}
-
-type DbPartnerCardInfo struct {
 }

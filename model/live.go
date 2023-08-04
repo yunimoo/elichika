@@ -75,6 +75,7 @@ type LiveDaily struct {
 type LiveStartReq struct {
 	LiveDifficultyID    int  `json:"live_difficulty_id"`
 	DeckID              int  `json:"deck_id"`
+	CellID              *int  `json:"cell_id"`
 	PartnerUserID       int  `json:"partner_user_id"`
 	PartnerCardMasterID int  `json:"partner_card_master_id"`
 	LpMagnification     int  `json:"lp_magnification"`
@@ -83,22 +84,7 @@ type LiveStartReq struct {
 }
 
 // LivePartnerInfo ...
-type LivePartnerInfo struct {
-	UserID                              int                 `json:"user_id"`
-	Name                                PartnerName         `json:"name"`
-	Rank                                int                 `json:"rank"`
-	LastPlayedAt                        int64               `json:"last_played_at"`
-	RecommendCardMasterID               int                 `json:"recommend_card_master_id"`
-	RecommendCardLevel                  int                 `json:"recommend_card_level"`
-	IsRecommendCardImageAwaken          bool                `json:"is_recommend_card_image_awaken"`
-	IsRecommendCardAllTrainingActivated bool                `json:"is_recommend_card_all_training_activated"`
-	EmblemID                            int                 `json:"emblem_id"`
-	IsNew                               bool                `json:"is_new"`
-	IntroductionMessage                 IntroductionMessage `json:"introduction_message"`
-	FriendApprovedAt                    any                 `json:"friend_approved_at"`
-	RequestStatus                       int                 `json:"request_status"`
-	IsRequestPending                    bool                `json:"is_request_pending"`
-}
+type LivePartnerInfo UserBasicInfo
 
 // guests before live start
 type LiveStartLivePartner struct {
@@ -114,6 +100,30 @@ type LiveStartLivePartner struct {
 	IntroductionMessage struct {
 		DotUnderText string `xorm:"'message'" json:"dot_under_text"`
 	} `xorm:"extends" json:"introduction_message"`
+}
+
+// the state of the song user is playing
+// sent to user in /live/Start
+// stored necessary info to recover full state in db
+// each user can only have 1 live state stored in db
+type LiveState struct {
+	UserID    int   `xorm:"pk 'user_id'" json:"-"`
+	LiveID    int64 `xorm:"'live_id'" json:"live_id"`
+	LiveType  int   `json:"live_type"`
+	DeckID    int `xorm:"-" json:"deck_id"` // get from user status
+	LiveStage struct {
+		LiveDifficultyID int               `json:"live_difficulty_id"` // get from user status
+		// get from song db
+		LiveNotes        []LiveNote        `json:"live_notes"`
+		LiveWaveSettings []LiveWaveSetting `json:"live_wave_settings"`
+		NoteGimmicks     []NoteGimmick     `json:"note_gimmicks"`
+		StageGimmickDict []any             `json:"stage_gimmick_dict"`
+	} `xorm:"-" json:"live_stage"`
+	PartnerUserID int `xorm:"partner_user_id" json:"-"`
+	LivePartnerCard PartnerCardInfo `xorm:"extends" json:"live_partner_card"`
+	IsPartnerFriend bool `json:"is_partner_friend"`
+	CellID          *int  `xorm:"'cell_id' "json:"cell_id"`
+	TowerLive       *int `json:"tower_live"`
 }
 
 // PartnerName ...
@@ -182,14 +192,14 @@ type UserLiveMvDeckInfo struct {
 // LiveStageInfo ...
 type LiveStageInfo struct {
 	LiveDifficultyID int                `json:"live_difficulty_id"`
-	LiveNotes        []LiveNotes        `json:"live_notes"`
-	LiveWaveSettings []LiveWaveSettings `json:"live_wave_settings"`
-	NoteGimmicks     []NoteGimmicks     `json:"note_gimmicks"`
+	LiveNotes        []LiveNote        `json:"live_notes"`
+	LiveWaveSettings []LiveWaveSetting `json:"live_wave_settings"`
+	NoteGimmicks     []NoteGimmick     `json:"note_gimmicks"`
 	StageGimmickDict []any              `json:"stage_gimmick_dict"`
 }
 
 // LiveNotes ...
-type LiveNotes struct {
+type LiveNote struct {
 	ID                  int `json:"id"`
 	CallTime            int `json:"call_time"`
 	NoteType            int `json:"note_type"`
@@ -201,8 +211,8 @@ type LiveNotes struct {
 	AutoJudgeType       int `json:"auto_judge_type"`
 }
 
-// LiveWaveSettings ...
-type LiveWaveSettings struct {
+// LiveWaveSetting
+type LiveWaveSetting struct {
 	ID            int `json:"id"`
 	WaveDamage    int `json:"wave_damage"`
 	MissionType   int `json:"mission_type"`
@@ -211,8 +221,8 @@ type LiveWaveSettings struct {
 	RewardVoltage int `json:"reward_voltage"`
 }
 
-// NoteGimmicks ...
-type NoteGimmicks struct {
+// NoteGimmick
+type NoteGimmick struct {
 	UniqID          int `json:"uniq_id"`
 	ID              int `json:"id"`
 	NoteGimmickType int `json:"note_gimmick_type"`

@@ -45,6 +45,7 @@ func InitTables() {
 	InitTable("s_user_lesson_deck", model.UserLessonDeck{})
 	InitTable("s_user_live_deck", model.UserLiveDeck{})
 	InitTable("s_user_live_party", model.UserLiveParty{})
+	InitTable("s_user_live_state", model.LiveState{})
 }
 
 func init() {

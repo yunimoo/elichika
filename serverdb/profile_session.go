@@ -73,7 +73,6 @@ func GetPartnerCardFromUserCard(card model.CardInfo) model.PartnerCardInfo {
 
 func GetUserCard(userID, cardMasterID int) model.CardInfo {
 	card := model.CardInfo{}
-
 	exists, err := Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?", userID, cardMasterID).
 		Get(&card)
 	if err != nil {
@@ -83,6 +82,23 @@ func GetUserCard(userID, cardMasterID int) model.CardInfo {
 		panic("user card doesn't exist")
 	}
 	return card
+}
+
+func (sesison *Session) GetOtherUserBasicProfile(otherUserID int) model.UserBasicInfo {
+	basicInfo := model.UserBasicInfo{}
+	FetchDBProfile(otherUserID, &basicInfo)
+	recommendCard := GetUserCard(otherUserID, basicInfo.RecommendCardMasterID)
+
+	basicInfo.RecommendCardLevel = recommendCard.Level
+	basicInfo.IsRecommendCardImageAwaken = recommendCard.IsAwakeningImage
+	basicInfo.IsRecommendCardAllTrainingActivated = recommendCard.IsAllTrainingActivated
+
+	// friend system, not implemented
+	basicInfo.FriendApprovedAt = new(int64)
+	*basicInfo.FriendApprovedAt = 0
+	basicInfo.RequestStatus = 3
+	basicInfo.IsRequestPending = false
+	return basicInfo
 }
 
 // fetch profile of another user, from session.UserStatus.UserID's perspective
@@ -99,10 +115,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	}
 	// recommend card
 
-	recommendCard := model.CardInfo{}
-	exists, err = Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?",
-		otherUserID, profile.ProfileInfo.BasicInfo.RecommendCardMasterID).
-		Get(&recommendCard)
+	recommendCard := GetUserCard(otherUserID, profile.ProfileInfo.BasicInfo.RecommendCardMasterID)
 	if err != nil {
 		panic(err)
 	}
@@ -114,8 +127,9 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	profile.ProfileInfo.BasicInfo.IsRecommendCardAllTrainingActivated = recommendCard.IsAllTrainingActivated
 
 	// friend system, not implemented
-	profile.ProfileInfo.BasicInfo.FriendApprovedAt = nil
-	profile.ProfileInfo.BasicInfo.RequestStatus = 1
+	profile.ProfileInfo.BasicInfo.FriendApprovedAt = new(int64)
+	*profile.ProfileInfo.BasicInfo.FriendApprovedAt = 0
+	profile.ProfileInfo.BasicInfo.RequestStatus = 3
 	profile.ProfileInfo.BasicInfo.IsRequestPending = false
 
 	// other user's members

@@ -3,7 +3,7 @@ package handler
 import (
 	"bytes"
 	"elichika/config"
-	"elichika/database"
+	// "elichika/database"
 	"elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
+	// "strconv"
 	"strings"
 	"time"
 
@@ -29,7 +29,7 @@ func SaveDeckAll(ctx *gin.Context) {
 	decoder.UseNumber()
 	err := decoder.Decode(&req)
 	CheckErr(err)
-	// fmt.Println("Raw:", req.SquadDict)
+
 	session := serverdb.GetSession(UserID)
 	deckInfo := session.GetUserLiveDeck(req.DeckID)
 
@@ -117,7 +117,7 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	for k := range liveDailyList {
 		liveDailyList[k].EndAt = int(tomorrow)
 		liveDailyList[k].RemainingPlayCount = 5
-		liveDailyList[k].RemainingRecoveryCount = 9
+		liveDailyList[k].RemainingRecoveryCount = 10
 	}
 
 	signBody := GetData("fetchLiveMusicSelect.json")
@@ -179,77 +179,52 @@ func FetchLiveDeckSelect(ctx *gin.Context) {
 func LiveStart(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	// fmt.Println(reqBody.String())
-
-	liveStartReq := model.LiveStartReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &liveStartReq); err != nil {
+	req := model.LiveStartReq{}
+	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
 		panic(err)
 	}
-	// fmt.Println(liveStartReq)
+	session := serverdb.GetSession(UserID)
 
-	var cardInfo string
-	partnerResp := gjson.Parse(GetData("fetchLivePartners.json")).Get("partner_select_state.live_partners")
-	partnerResp.ForEach(func(k, v gjson.Result) bool {
-		userId := v.Get("user_id").Int()
-		if userId == int64(liveStartReq.PartnerUserID) {
-			v.Get("card_by_category").ForEach(func(kk, vv gjson.Result) bool {
-				if vv.IsObject() {
-					cardId := vv.Get("card_master_id").Int()
-					if cardId == int64(liveStartReq.PartnerCardMasterID) {
-						cardInfo = vv.String()
-						// fmt.Println(cardInfo)
-						return false
-					}
-				}
-				return true
-			})
-			return false
-		}
-		return true
-	})
+	session.UserStatus.LastLiveDifficultyID = req.LiveDifficultyID
+	session.UserStatus.LatestLiveDeckID = req.DeckID
 
 	// 保存请求包因为 /live/finish 接口的响应包里有部分字段不在该接口的请求包里
-	liveId := time.Now().UnixNano()
-	liveIdStr := strconv.Itoa(int(liveId))
-	err := database.LevelDb.Put([]byte("live_"+liveIdStr), []byte(reqBody.String()))
-	CheckErr(err)
+	// live is stored in db
+	live := model.LiveState{}
+	live.UserID = UserID
+	live.PartnerUserID = req.PartnerUserID
+	live.LiveID = time.Now().UnixNano()
+	live.LiveType = 1 // not sure what this is
+	live.IsPartnerFriend = true
+	live.DeckID = req.DeckID
+	live.CellID = req.CellID  // cell id send player to the correct place after playing, normal live don't have cell id.
 
-	liveDifficultyId := strconv.Itoa(liveStartReq.LiveDifficultyID)
-	liveNotes := utils.ReadAllText("assets/stages/" + liveDifficultyId + ".json")
+	liveNotes := utils.ReadAllText(fmt.Sprintf("assets/stages/%d.json", req.LiveDifficultyID))
 	if liveNotes == "" {
-		panic("歌曲情报信息不存在！")
+		panic("歌曲情报信息不存在！(song doesn't exist)")
 	}
 
-	var liveNotesRes model.LiveStageInfo
-	if err := json.Unmarshal([]byte(liveNotes), &liveNotesRes); err != nil {
+	if err := json.Unmarshal([]byte(liveNotes), &live.LiveStage); err != nil {
 		panic(err)
 	}
 
-	if liveStartReq.IsAutoPlay {
-		for k := range liveNotesRes.LiveNotes {
-			liveNotesRes.LiveNotes[k].AutoJudgeType = 30
+	if req.IsAutoPlay {
+		for k := range live.LiveStage.LiveNotes {
+			live.LiveStage.LiveNotes[k].AutoJudgeType = 30
 		}
 	}
-
-	var partnerInfo any
-	if cardInfo != "" {
-		var info map[string]any
-		if err = json.Unmarshal([]byte(cardInfo), &info); err != nil {
-			panic(err)
-		}
-		partnerInfo = info
-	} else {
-		partnerInfo = nil
+	
+	if req.PartnerUserID != 0 {
+		live.LivePartnerCard = serverdb.GetPartnerCardFromUserCard(
+			serverdb.GetUserCard(req.PartnerUserID, req.PartnerCardMasterID))
 	}
 
-	liveStartResp := GetData("liveStart.json")
-	liveStartResp, _ = sjson.Set(liveStartResp, "live.live_id", liveId)
-	liveStartResp, _ = sjson.Set(liveStartResp, "live.deck_id", liveStartReq.DeckID)
-	liveStartResp, _ = sjson.Set(liveStartResp, "live.live_stage", liveNotesRes)
-	liveStartResp, _ = sjson.Set(liveStartResp, "live.live_partner_card", partnerInfo)
-	session := serverdb.GetSession(UserID)
-	liveStartResp = session.Finalize(liveStartResp, "user_model_diff")
-	liveStartResp, _ = sjson.Set(liveStartResp, "user_model_diff.user_status.latest_live_deck_id", liveStartReq.DeckID)
-	liveStartResp, _ = sjson.Set(liveStartResp, "user_model_diff.user_status.last_live_difficulty_id", liveStartReq.LiveDifficultyID)
+	liveStartResp := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
+	liveStartResp, _ = sjson.Set(liveStartResp, "live", live)
+	if req.PartnerUserID == 0 {
+		liveStartResp, _ = sjson.Set(liveStartResp, "live.live_partner_card", nil)
+	}
+	serverdb.SaveLiveState(live)
 	resp := SignResp(ctx.GetString("ep"), liveStartResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
@@ -276,6 +251,8 @@ func LiveFinish(ctx *gin.Context) {
 		return true
 	})
 
+	session := serverdb.GetSession(UserID)
+
 	mvpInfo := model.MvpInfo{
 		CardMasterID:        cardMasterId,
 		GetVoltage:          maxVolt,
@@ -283,45 +260,12 @@ func LiveFinish(ctx *gin.Context) {
 		AppealCount:         appealCount,
 	}
 
-	liveId := liveFinishReq.Get("live_id").String()
-	res, err := database.LevelDb.Get([]byte("live_" + liveId))
-	CheckErr(err)
-
-	liveStartReq := model.LiveStartReq{}
-	if err := json.Unmarshal(res, &liveStartReq); err != nil {
-		panic(err)
+	exists, live := serverdb.LoadLiveState(UserID)
+	if !exists {
+		panic("live doesn't exists")
 	}
-	// fmt.Println("liveStartReq:", liveStartReq)
-
-	var partnerInfo any
-	if liveStartReq.PartnerUserID != 0 {
-		info := model.LivePartnerInfo{
-			LastPlayedAt:                        time.Now().Unix(),
-			RecommendCardMasterID:               liveStartReq.PartnerCardMasterID,
-			RecommendCardLevel:                  1,
-			IsRecommendCardImageAwaken:          true,
-			IsRecommendCardAllTrainingActivated: true,
-			IsNew:                               false,
-			FriendApprovedAt:                    nil,
-			RequestStatus:                       3,
-			IsRequestPending:                    false,
-		}
-		partnerResp := gjson.Parse(GetData("fetchLivePartners.json")).Get("partner_select_state.live_partners")
-		partnerResp.ForEach(func(k, v gjson.Result) bool {
-			userId := v.Get("user_id").Int()
-			if userId == int64(liveStartReq.PartnerUserID) {
-				info.UserID = int(userId)
-				info.Name.DotUnderText = v.Get("name.dot_under_text").String()
-				info.Rank = int(v.Get("rank").Int())
-				info.EmblemID = int(v.Get("emblem_id").Int())
-				info.IntroductionMessage.DotUnderText = v.Get("introduction_message.dot_under_text").String()
-			}
-			return true
-		})
-		partnerInfo = info
-	} else {
-		partnerInfo = nil
-	}
+	live.DeckID = session.UserStatus.LatestLiveDeckID
+	live.LiveStage.LiveDifficultyID = session.UserStatus.LastLiveDifficultyID
 
 	liveResult := model.LiveResultAchievementStatus{
 		ClearCount:       1,
@@ -329,23 +273,25 @@ func LiveFinish(ctx *gin.Context) {
 		RemainingStamina: liveFinishReq.Get("live_score.remaining_stamina").Int(),
 	}
 
-	session := serverdb.GetSession(UserID)
-
 	liveFinishResp := GetData("liveFinish.json")
-	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_difficulty_master_id", liveStartReq.LiveDifficultyID)
-	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_deck_id", liveStartReq.DeckID)
+	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_difficulty_master_id", live.LiveStage.LiveDifficultyID)
+	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_deck_id", live.DeckID)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.mvp", mvpInfo)
-	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.partner", partnerInfo)
+	if live.PartnerUserID == 0 {
+		liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.partner", nil)
+	} else {
+		liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.partner", 
+		session.GetOtherUserBasicProfile(live.PartnerUserID))
+	}
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_result_achievement_status", liveResult)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.voltage", liveFinishReq.Get("live_score.current_score").Int())
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.last_best_voltage", liveFinishReq.Get("live_score.current_score").Int())
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.before_user_exp", session.UserStatus.Exp)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.gain_user_exp", 0)
-	session.UserStatus.LastLiveDifficultyID = liveStartReq.LiveDifficultyID
-	session.UserStatus.LatestLiveDeckID = liveStartReq.DeckID
+
+
 	liveFinishResp = session.Finalize(liveFinishResp, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), liveFinishResp, config.SessionKey)
-	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
