@@ -24,5 +24,4 @@ func (session *Session) InsertTrainingCells(cells *[]model.TrainingTreeCell) {
 		panic(err)
 	}
 	fmt.Println("Inserted ", affected, " training cells")
-
 }
