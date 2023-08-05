@@ -131,7 +131,7 @@ func SaveDeckLesson(ctx *gin.Context) {
 		panic(err)
 	}
 	session.UpdateLessonDeck(userLessonDeck)
-	signBody := session.Finalize(GetUserData("userModel.json"), "user_model")
+	signBody := session.Finalize(GetData("userModel.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 

@@ -1,6 +1,7 @@
 package model
 
 type LiveMVDeck struct {
+	// unused, LiveMVDeck is not saved in server db
 	UserID int `xorm:"pk 'user_id'" json:"-"`
 	LiveMasterID int `xorm:"pk 'live_master_id'" json:"live_master_id"`
 	LiveMvDeckType int `json:"live_mv_deck_type"`  // 1 for original deck, 2 for custom deck

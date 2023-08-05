@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"bytes"
 	"elichika/config"
-	// "elichika/database"
 	"elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
@@ -11,96 +9,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	// "strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
-
-func SaveDeckAll(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
-
-	req := model.SaveDeckReq{}
-	decoder := json.NewDecoder(strings.NewReader(reqBody.String()))
-	decoder.UseNumber()
-	err := decoder.Decode(&req)
-	CheckErr(err)
-
-	session := serverdb.GetSession(UserID)
-	deckInfo := session.GetUserLiveDeck(req.DeckID)
-
-	for i := 0; i < 9; i++ {
-		if req.CardWithSuit[i*2+1] == 0 {
-			req.CardWithSuit[i*2+1] = GetMemberDefaultSuitByCardMasterId(req.CardWithSuit[i*2])
-		}
-	}
-
-	deckByte, _ := json.Marshal(deckInfo)
-	deckJson := string(deckByte)
-	for i := 0; i < 9; i++ {
-		deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("card_master_id_%d", i+1), req.CardWithSuit[i*2])
-		deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", i+1), req.CardWithSuit[i*2+1])
-	}
-
-	if err := json.Unmarshal([]byte(deckJson), &deckInfo); err != nil {
-		panic(err)
-	}
-	// fmt.Println(deckInfo)
-
-	session.UpdateUserLiveDeck(deckInfo)
-
-	for k, v := range req.SquadDict {
-		if k%2 == 0 {
-			partyId, err := v.(json.Number).Int64()
-			if err != nil {
-				panic(err)
-			}
-			// fmt.Println("Party ID:", partyId)
-
-			rDictInfo, err := json.Marshal(req.SquadDict[k+1])
-			CheckErr(err)
-
-			dictInfo := model.DeckSquadDict{}
-			decoder := json.NewDecoder(bytes.NewReader(rDictInfo))
-			decoder.UseNumber()
-			err = decoder.Decode(&dictInfo)
-			CheckErr(err)
-			// fmt.Println("Party Info:", dictInfo)
-
-			roleIds := []int{}
-			err = MainEng.Table("m_card").
-				Where("id IN (?,?,?)", dictInfo.CardMasterIds[0], dictInfo.CardMasterIds[1], dictInfo.CardMasterIds[2]).
-				Cols("role").Find(&roleIds)
-			CheckErr(err)
-			// fmt.Println("roleIds:", roleIds)
-
-			partyInfo := model.UserLiveParty{}
-			partyInfo.UserID = UserID
-			partyInfo.PartyID = int(partyId)
-			partyIcon, partyName := GetPartyInfoByRoleIds(roleIds)
-			partyInfo.Name.DotUnderText = GetRealPartyName(partyName)
-			partyInfo.UserLiveDeckID = req.DeckID
-			partyInfo.IconMasterID = partyIcon
-			partyInfo.CardMasterID1 = dictInfo.CardMasterIds[0]
-			partyInfo.CardMasterID2 = dictInfo.CardMasterIds[1]
-			partyInfo.CardMasterID3 = dictInfo.CardMasterIds[2]
-			partyInfo.UserAccessoryID1 = dictInfo.UserAccessoryIds[0]
-			partyInfo.UserAccessoryID2 = dictInfo.UserAccessoryIds[1]
-			partyInfo.UserAccessoryID3 = dictInfo.UserAccessoryIds[2]
-			session.UpdateUserLiveParty(partyInfo)
-		}
-	}
-
-	respBody := session.Finalize(GetData("saveDeckAll.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), respBody, config.SessionKey)
-
-	ctx.Header("Content-Type", "application/json")
-	ctx.String(http.StatusOK, resp)
-}
 
 func FetchLiveMusicSelect(ctx *gin.Context) {
 	now := time.Now()
@@ -164,14 +78,6 @@ func FetchLivePartners(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "partner_select_state.live_partners", livePartners)
 	signBody, _ = sjson.Set(signBody, "partner_select_state.friend_count", len(livePartners))
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	ctx.Header("Content-Type", "application/json")
-	ctx.String(http.StatusOK, resp)
-}
-
-func FetchLiveDeckSelect(ctx *gin.Context) {
-	signBody := GetData("fetchLiveDeckSelect.json")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -292,131 +198,6 @@ func LiveFinish(ctx *gin.Context) {
 
 	liveFinishResp = session.Finalize(liveFinishResp, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), liveFinishResp, config.SessionKey)
-
-	ctx.Header("Content-Type", "application/json")
-	ctx.String(http.StatusOK, resp)
-}
-
-func SaveSuit(ctx *gin.Context) {
-	reqBody := ctx.GetString("reqBody")
-	// fmt.Println(reqBody)
-
-	req := gjson.Parse(reqBody).Array()[0]
-	deckId := req.Get("deck_id").Int()
-	cardId := req.Get("card_index").Int()
-	suitId := req.Get("suit_master_id").Int()
-
-	deckIndex := deckId*2 - 1
-	keyLiveDeck := fmt.Sprintf("user_live_deck_by_id.%d", deckIndex)
-	// fmt.Println("keyLiveDeck:", keyLiveDeck)
-	liveDeck := gjson.Parse(GetLiveDeckData()).Get(keyLiveDeck).String()
-	// fmt.Println(liveDeck)
-	keyLiveDeckInfo := fmt.Sprintf("suit_master_id_%d", cardId)
-	liveDeck, _ = sjson.Set(liveDeck, keyLiveDeckInfo, suitId)
-	// fmt.Println(liveDeck)
-
-	var deckInfo model.UserLiveDeck
-	if err := json.Unmarshal([]byte(liveDeck), &deckInfo); err != nil {
-		panic(err)
-	}
-
-	SetLiveDeckData(keyLiveDeck, deckInfo)
-	session := serverdb.GetSession(UserID)
-	signBody := session.Finalize(GetData("saveSuit.json"), "user_model")
-	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.0", deckId)
-	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.1", deckInfo)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	// fmt.Println(resp)
-
-	ctx.Header("Content-Type", "application/json")
-	ctx.String(http.StatusOK, resp)
-}
-
-func SaveDeck(ctx *gin.Context) {
-	reqBody := ctx.GetString("reqBody")
-	// fmt.Println(reqBody)
-
-	req := gjson.Parse(reqBody).Array()[0]
-	deckId := req.Get("deck_id")
-	// fmt.Println("deckId:", deckId)
-
-	position := req.Get("card_master_ids.0")
-	cardMasterId := req.Get("card_master_ids.1")
-	// fmt.Println("cardMasterId:", cardMasterId)
-
-	var deckInfo, partyInfo string
-	var oldCardMasterId int64
-	var partyId int64
-	var savePartyInfo model.UserLiveParty
-	deckList := GetLiveDeckData()
-	gjson.Parse(deckList).Get("user_live_deck_by_id").ForEach(func(key, value gjson.Result) bool {
-		if value.IsObject() && value.Get("user_live_deck_id").String() == deckId.String() {
-			deckInfo = value.String()
-			// fmt.Println("deckInfo:", deckInfo)
-
-			oldCardMasterId = gjson.Parse(deckInfo).Get("card_master_id_" + position.String()).Int()
-			deckInfo, _ = sjson.Set(deckInfo, "card_master_id_"+position.String(), cardMasterId.Int())
-			deckInfo, _ = sjson.Set(deckInfo, "suit_master_id_"+position.String(), cardMasterId.Int())
-			// fmt.Println("New deckInfo:", deckInfo)
-
-			SetLiveDeckData("user_live_deck_by_id."+key.String(), gjson.Parse(deckInfo).Value())
-
-			return false
-		}
-		return true
-	})
-	gjson.Parse(deckList).Get("user_live_party_by_id").ForEach(func(key, value gjson.Result) bool {
-		if value.IsObject() && (value.Get("party_id").String() == deckId.String()+"01" ||
-			value.Get("party_id").String() == deckId.String()+"02" ||
-			value.Get("party_id").String() == deckId.String()+"03") {
-			value.ForEach(func(kk, vv gjson.Result) bool {
-				if vv.Int() == oldCardMasterId {
-					partyInfo = value.String()
-					// fmt.Println("partyInfo:", partyInfo)
-
-					partyInfo, _ = sjson.Set(partyInfo, kk.String(), cardMasterId.Int())
-					// fmt.Println("New partyInfo:", partyInfo)
-
-					newPartyInfo := gjson.Parse(partyInfo)
-					partyId = newPartyInfo.Get("party_id").Int()
-
-					roleIds := []int{}
-					err := MainEng.Table("m_card").
-						Where("id IN (?,?,?)", newPartyInfo.Get("card_master_id_1").Int(),
-							newPartyInfo.Get("card_master_id_2").Int(),
-							newPartyInfo.Get("card_master_id_3").Int()).
-						Cols("role").Find(&roleIds)
-					CheckErr(err)
-					// fmt.Println("roleIds:", roleIds)
-
-					partyIcon, partyName := GetPartyInfoByRoleIds(roleIds)
-					realPartyName := GetRealPartyName(partyName)
-					partyInfo, _ = sjson.Set(partyInfo, "name.dot_under_text", realPartyName)
-					partyInfo, _ = sjson.Set(partyInfo, "icon_master_id", partyIcon)
-					// fmt.Println("New partyInfo 2:", partyInfo)
-
-					decoder := json.NewDecoder(strings.NewReader(partyInfo))
-					decoder.UseNumber()
-					err = decoder.Decode(&savePartyInfo)
-					CheckErr(err)
-					SetLiveDeckData("user_live_party_by_id."+key.String(), savePartyInfo)
-
-					return false
-				}
-				return true
-			})
-		}
-		return true
-	})
-
-	session := serverdb.GetSession(UserID)
-	signBody := session.Finalize(GetData("SaveDeck.json"), "user_model")
-	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.0", deckId.Int())
-	signBody, _ = sjson.Set(signBody, "user_model.user_live_deck_by_id.1", gjson.Parse(deckInfo).Value())
-	signBody, _ = sjson.Set(signBody, "user_model.user_live_party_by_id.0", partyId)
-	signBody, _ = sjson.Set(signBody, "user_model.user_live_party_by_id.1", savePartyInfo)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

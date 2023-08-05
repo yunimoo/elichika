@@ -1,12 +1,5 @@
 package model
 
-// SaveDeckReq ...
-type SaveDeckReq struct {
-	DeckID       int   `json:"deck_id"`
-	CardWithSuit []int `json:"card_with_suit"`
-	SquadDict    []any `json:"squad_dict"`
-}
-
 // UserLiveDeck ...
 type UserLiveDeck struct {
 	UserID         int `xorm:"pk 'user_id'" json:"-"`

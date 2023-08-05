@@ -28,7 +28,7 @@ func ReadCardGradeUp(ctx *gin.Context) {
 	}
 
 	session.AddCardGradeUpTrigger(triggerReq.TriggerID, nil)
-	resp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
+	resp := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

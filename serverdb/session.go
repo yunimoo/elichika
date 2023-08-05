@@ -1,7 +1,6 @@
 package serverdb
 
 import (
-	"elichika/config"
 	"elichika/model"
 	"elichika/utils"
 
@@ -10,23 +9,6 @@ import (
 	// "github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
-
-func DbGetUserData(fileName string) string {
-	userDataFile := config.UserDataPath + fileName
-	if utils.PathExists(userDataFile) {
-		return utils.ReadAllText(userDataFile)
-	}
-
-	presetDataFile := config.PresetDataPath + fileName
-	if !utils.PathExists(presetDataFile) {
-		panic("File not exists")
-	}
-
-	userData := utils.ReadAllText(presetDataFile)
-	utils.WriteAllText(userDataFile, userData)
-
-	return userData
-}
 
 // A session is a complete transation between server and client
 // so 1 session per request
