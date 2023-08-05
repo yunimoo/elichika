@@ -6,12 +6,12 @@ import (
 	"elichika/utils"
 
 	// "os"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	// "xorm.io/xorm"
-	
+
 	"github.com/tidwall/gjson"
 	// "github.com/tidwall/sjson"
 )
@@ -19,8 +19,8 @@ import (
 var (
 	presetDataPath = "assets/preset/"
 	userDataPath   = "assets/userdata/"
-	UserID = 588296696
-	IsGlobal = true
+	UserID         = 588296696
+	IsGlobal       = true
 )
 
 func GetJsonData(fileName string) string {
@@ -40,7 +40,6 @@ func GetJsonData(fileName string) string {
 	return userData
 }
 
-
 func GetLiveDeckData() string {
 	if IsGlobal {
 		return GetJsonData("liveDeck_gl.json")
@@ -48,11 +47,10 @@ func GetLiveDeckData() string {
 	return GetJsonData("liveDeck.json")
 }
 
-
 func CreateNewUser() {
 	fmt.Println("Insert new user: ", UserID)
 	data := GetJsonData("userStatus.json")
-	status := model.UserStatus{} 
+	status := model.UserStatus{}
 	if err := json.Unmarshal([]byte(data), &status); err != nil {
 		panic(err)
 	}
@@ -81,7 +79,7 @@ func LoadMemberFromJson() []model.UserMemberInfo {
 	return members
 }
 
-func LoadLiveDeckAndLivePartyFromJson() ([]model.UserLiveDeck, []model.UserLiveParty){
+func LoadLiveDeckAndLivePartyFromJson() ([]model.UserLiveDeck, []model.UserLiveParty) {
 	fmt.Println("importing live deck data to db")
 	liveDecks := []model.UserLiveDeck{}
 	liveDeckInfo := model.UserLiveDeck{}
@@ -159,23 +157,23 @@ func LoadSuitFromJson() []model.UserSuit {
 	anys := []any{}
 	suits := []model.UserSuit{}
 	fmt.Println("importing json suit data to db")
-	err := json.Unmarshal([]byte(gjson.Get(GetJsonData("login.json"), "user_model.user_suit_by_suit_id").String()),	&anys)
+	err := json.Unmarshal([]byte(gjson.Get(GetJsonData("login.json"), "user_model.user_suit_by_suit_id").String()), &anys)
 	if err != nil {
 		panic(err)
 	}
 	n := len(anys)
 	for i := 0; i < n; i += 2 {
 		suits = append(suits, model.UserSuit{
-			UserID: UserID,
+			UserID:       UserID,
 			SuitMasterID: int(anys[i].(float64)),
-			IsNew: false })
+			IsNew:        false})
 	}
 	// fmt.Println(suits)
 	return suits
 }
 
-func (session* Session) InsertAccount(members []model.UserMemberInfo, 
-	liveDecks []model.UserLiveDeck, 
+func (session *Session) InsertAccount(members []model.UserMemberInfo,
+	liveDecks []model.UserLiveDeck,
 	liveParties []model.UserLiveParty,
 	lessonDecks []model.UserLessonDeck,
 	cards []model.UserCard,
@@ -200,7 +198,6 @@ func (session* Session) InsertAccount(members []model.UserMemberInfo,
 	session.InsertTrainingCells(&trainingTreeCells)
 }
 
-
 func ImportFromJson() {
 	fmt.Println("Importing account data from json")
 	CreateNewUser()
@@ -210,14 +207,14 @@ func ImportFromJson() {
 	members := LoadMemberFromJson()
 	lovePanels := []model.UserMemberLovePanel{}
 	for _, member := range members {
-		lovePanel := model.UserMemberLovePanel {
-			UserID:  member.UserID,
-			MemberID: member.MemberMasterID,
-			MemberLovePanelCellIDs: []int{} }
+		lovePanel := model.UserMemberLovePanel{
+			UserID:                 member.UserID,
+			MemberID:               member.MemberMasterID,
+			MemberLovePanelCellIDs: []int{}}
 
-		for boardLevel := 0; boardLevel <= 31 ; boardLevel++ {
+		for boardLevel := 0; boardLevel <= 31; boardLevel++ {
 			for tile := 1; tile <= 5; tile++ {
-				cellID := boardLevel * 10000 + tile * 1000 +  member.MemberMasterID 
+				cellID := boardLevel*10000 + tile*1000 + member.MemberMasterID
 				lovePanel.MemberLovePanelCellIDs = append(lovePanel.MemberLovePanelCellIDs, cellID)
 			}
 		}
@@ -233,16 +230,15 @@ func ImportFromJson() {
 		for cellID := 1; cellID <= 89; cellID++ {
 			// this is a bit lazy, could have used the correct number instead
 			trainingTreeCells = append(trainingTreeCells,
-				model.TrainingTreeCell {
-					UserID: card.UserID,
+				model.TrainingTreeCell{
+					UserID:       card.UserID,
 					CardMasterID: card.CardMasterID,
-					CellID: cellID,
-					ActivatedAt: int64(1688094000 + cellID)})
+					CellID:       cellID,
+					ActivatedAt:  int64(1688094000 + cellID)})
 		}
 	}
 	session.InsertAccount(members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
 }
-
 
 func BondRequired(l int) int {
 	res := 30 * l
@@ -281,7 +277,6 @@ func ImportMinimalAccount() {
 	CreateNewUser()
 	session := GetSession(UserID)
 
-	
 	// member data
 	members := LoadMemberFromJson()
 	lovePanels := []model.UserMemberLovePanel{}
@@ -301,7 +296,8 @@ func ImportMinimalAccount() {
 	suits := LoadSuitFromJson()
 	// skip the suit awarded from cards
 	suitCount := 0
-	for ; suits[suitCount].SuitMasterID < 1000000; suitCount++ {} 
+	for ; suits[suitCount].SuitMasterID < 1000000; suitCount++ {
+	}
 	suits = suits[:suitCount]
 
 	for i, _ := range cards {
@@ -335,7 +331,7 @@ func ImportMinimalAccount() {
 
 	for _, suit := range suits {
 		memberID := (suit.SuitMasterID / 100) % 1000
-		suitID[memberIDToIndex[memberID]] = suit.SuitMasterID 
+		suitID[memberIDToIndex[memberID]] = suit.SuitMasterID
 	}
 
 	trainingTreeCells := []model.TrainingTreeCell{}

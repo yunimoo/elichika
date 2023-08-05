@@ -144,8 +144,6 @@ func Login(ctx *gin.Context) {
 		panic("no member love panel found")
 	}
 	loginBody, _ = sjson.Set(loginBody, "user_model.member_love_panels", dbLovePanels)
-	
-
 
 	// lesson decks
 	dbLessonDecks := session.GetAllLessonDecks()

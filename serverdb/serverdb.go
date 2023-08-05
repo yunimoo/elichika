@@ -6,13 +6,13 @@ import (
 
 	"fmt"
 
-	"xorm.io/xorm"
 	"os"
+	"xorm.io/xorm"
 )
 
 var (
 	Engine *xorm.Engine
-	IsNew bool = false
+	IsNew  bool = false
 )
 
 func InitTable(tableName string, structure interface{}) bool {
@@ -50,8 +50,8 @@ func InitTables() bool {
 	isNew = InitTable("s_user_training_tree_cell", model.TrainingTreeCell{}) || isNew
 
 	type DbMembers struct {
-		model.UserMemberInfo `xorm:"extends"`
-		MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids'"` 
+		model.UserMemberInfo   `xorm:"extends"`
+		MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids'"`
 	}
 	isNew = InitTable("s_user_member", DbMembers{}) || isNew
 
@@ -68,10 +68,10 @@ func InitDb(isGlobal bool) {
 		IsGlobal = isGlobal
 		if len(os.Args) == 1 { // import from existing jsons
 			ImportFromJson()
-		} else { 
+		} else {
 			ImportMinimalAccount() // make a minimal account
 		}
-		IsNew = false 
+		IsNew = false
 	}
 }
 

@@ -36,8 +36,8 @@ type MemberPublicInfo struct {
 
 // Bond board tile
 type UserMemberLovePanel struct {
-	UserID                int `xorm:"pk 'user_id'" json:"-"`
-	MemberID              int `xorm:"pk 'member_master_id'" json:"member_id"`
+	UserID                 int   `xorm:"pk 'user_id'" json:"-"`
+	MemberID               int   `xorm:"pk 'member_master_id'" json:"member_id"`
 	MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids'" json:"member_love_panel_cell_ids"` // level * 10000 + tile_id * 1000 + member_id
 	// can store user_id, member_id, level * 32 + 5bits instead
 	//but we store all the cell for now

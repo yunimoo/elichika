@@ -62,9 +62,9 @@ func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
 	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill3ID)
 	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill4ID)
 	partnerCard.MemberLovePanels = []int{}
-	
+
 	// filling this for a card of self freeze the game
-	// the displayed value still correct for own's card in the guest setup menu with an empty array 
+	// the displayed value still correct for own's card in the guest setup menu with an empty array
 	// display value in getOtherUserCard is wrong, but if we fill in for own card then it also freeze
 	// TODO: revisit after implmenting friends
 

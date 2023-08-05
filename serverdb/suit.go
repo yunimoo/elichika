@@ -26,11 +26,11 @@ func InsertUserSuits(suits []model.UserSuit) {
 	fmt.Println("Inserted ", count, "suits")
 }
 
-func (session *Session) InsertUserSuit(suit model.UserSuit)  {
+func (session *Session) InsertUserSuit(suit model.UserSuit) {
 	session.UserSuitDiffs = append(session.UserSuitDiffs, suit)
 }
 
-func (session *Session) FinalizeUserSuitDiffs() []any{
+func (session *Session) FinalizeUserSuitDiffs() []any {
 	InsertUserSuits(session.UserSuitDiffs)
 	diffs := []any{}
 	for _, suit := range session.UserSuitDiffs {
