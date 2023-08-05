@@ -44,13 +44,13 @@ func LiveMvSaveDeck(ctx *gin.Context) {
 
 	for k, v := range saveReq.MemberMasterIDByPos {
 		if k%2 == 0 {
-			memberId := saveReq.MemberMasterIDByPos[k + 1]
+			memberId := saveReq.MemberMasterIDByPos[k+1]
 			deckJson, err = sjson.Set(deckJson, fmt.Sprintf("member_master_id_%d", v), memberId)
 		}
 	}
 	for k, v := range saveReq.SuitMasterIDByPos {
 		if k%2 == 0 {
-			suitId := saveReq.SuitMasterIDByPos[k + 1]
+			suitId := saveReq.SuitMasterIDByPos[k+1]
 			deckJson, err = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", v), suitId)
 		}
 	}

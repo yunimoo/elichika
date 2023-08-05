@@ -103,7 +103,7 @@ func LiveStart(ctx *gin.Context) {
 	live.LiveType = 1 // not sure what this is
 	live.IsPartnerFriend = true
 	live.DeckID = req.DeckID
-	live.CellID = req.CellID  // cell id send player to the correct place after playing, normal live don't have cell id.
+	live.CellID = req.CellID // cell id send player to the correct place after playing, normal live don't have cell id.
 
 	liveNotes := utils.ReadAllText(fmt.Sprintf("assets/stages/%d.json", req.LiveDifficultyID))
 	if liveNotes == "" {
@@ -119,7 +119,7 @@ func LiveStart(ctx *gin.Context) {
 			live.LiveStage.LiveNotes[k].AutoJudgeType = 30
 		}
 	}
-	
+
 	if req.PartnerUserID != 0 {
 		live.LivePartnerCard = serverdb.GetPartnerCardFromUserCard(
 			serverdb.GetUserCard(req.PartnerUserID, req.PartnerCardMasterID))
@@ -186,15 +186,14 @@ func LiveFinish(ctx *gin.Context) {
 	if live.PartnerUserID == 0 {
 		liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.partner", nil)
 	} else {
-		liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.partner", 
-		session.GetOtherUserBasicProfile(live.PartnerUserID))
+		liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.partner",
+			session.GetOtherUserBasicProfile(live.PartnerUserID))
 	}
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.live_result_achievement_status", liveResult)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.voltage", liveFinishReq.Get("live_score.current_score").Int())
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.last_best_voltage", liveFinishReq.Get("live_score.current_score").Int())
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.before_user_exp", session.UserStatus.Exp)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.gain_user_exp", 0)
-
 
 	liveFinishResp = session.Finalize(liveFinishResp, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), liveFinishResp, config.SessionKey)

@@ -105,7 +105,6 @@ func SaveDeckAll(ctx *gin.Context) {
 	ctx.String(http.StatusOK, resp)
 }
 
-
 func FetchLiveDeckSelect(ctx *gin.Context) {
 	// return last deck for this song
 	signBody := GetData("fetchLiveDeckSelect.json")
@@ -115,20 +114,19 @@ func FetchLiveDeckSelect(ctx *gin.Context) {
 	ctx.String(http.StatusOK, resp)
 }
 
-
 func SaveSuit(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	type SaveSuitReq struct {
-		DeckID int `json:"deck_id"`
-		CardIndex int `json:"card_index"`
+		DeckID       int `json:"deck_id"`
+		CardIndex    int `json:"card_index"`
 		SuitMasterID int `json:"suit_master_id"`
-		ViewStatus int `json:"view_status"` // always 1?
+		ViewStatus   int `json:"view_status"` // always 1?
 	}
 
 	req := SaveSuitReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
 	CheckErr(err)
-	
+
 	session := serverdb.GetSession(UserID)
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, err := json.Marshal(deck)
@@ -147,7 +145,7 @@ func SaveDeck(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	// fmt.Println(reqBody)
 	type SaveDeckReq struct {
-		DeckID int `json:"deck_id"`
+		DeckID        int    `json:"deck_id"`
 		CardMasterIDs [2]int `json:"card_master_ids"`
 	}
 	req := SaveDeckReq{}
@@ -171,13 +169,13 @@ func SaveDeck(ctx *gin.Context) {
 	if newCardMasterID == oldCardMasterID {
 		panic("same card master id")
 	}
-	
+
 	oldPosition := 0
 	// old position != 0 then new card is in current deck, we have to swap
-	gjson.Parse(deckJson).ForEach(func (key, value gjson.Result) bool {
+	gjson.Parse(deckJson).ForEach(func(key, value gjson.Result) bool {
 		if strings.Contains(key.String(), "card_master_id") {
 			if int(value.Int()) == newCardMasterID {
-				oldPosition = int(key.String()[len(key.String()) - 1] - '0')
+				oldPosition = int(key.String()[len(key.String())-1] - '0')
 				// don't change suit_master_id if we just swap card around
 				newSuitMasterID = int(gjson.Get(deckJson, fmt.Sprintf("suit_master_id_%d", oldPosition)).Int())
 				return false
@@ -195,7 +193,6 @@ func SaveDeck(ctx *gin.Context) {
 		}
 	}
 
-
 	// change card master id in deck, then change the suit master id to default
 	deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("card_master_id_%d", position), newCardMasterID)
 	deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", position), newSuitMasterID)
@@ -212,7 +209,7 @@ func SaveDeck(ctx *gin.Context) {
 		CheckErr(err)
 		partyJson := string(partyJsonByte)
 		// change the live party and update the names
-		gjson.Parse(partyJson).ForEach(func (key, value gjson.Result) bool {
+		gjson.Parse(partyJson).ForEach(func(key, value gjson.Result) bool {
 			if strings.Contains(key.String(), "card_master_id") {
 				if int(value.Int()) == oldCardMasterID {
 					partyJson, _ = sjson.Set(partyJson, key.String(), newCardMasterID)

@@ -24,7 +24,7 @@ func (session *Session) GetUserLivePartyWithDeckAndCardID(deckID int, cardID int
 	liveParty := model.UserLiveParty{}
 	exists, err := Engine.Table("s_user_live_party").
 		Where("user_id = ? AND user_live_deck_id = ? AND (card_master_id_1 = ? OR card_master_id_2 = ? OR card_master_id_3 = ?)",
-		 	session.UserStatus.UserID, deckID, cardID, cardID,  cardID).
+			session.UserStatus.UserID, deckID, cardID, cardID, cardID).
 		Get(&liveParty)
 	if err != nil {
 		panic(err)

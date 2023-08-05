@@ -68,7 +68,7 @@ type LiveDaily struct {
 type LiveStartReq struct {
 	LiveDifficultyID    int  `json:"live_difficulty_id"`
 	DeckID              int  `json:"deck_id"`
-	CellID              *int  `json:"cell_id"`
+	CellID              *int `json:"cell_id"`
 	PartnerUserID       int  `json:"partner_user_id"`
 	PartnerCardMasterID int  `json:"partner_card_master_id"`
 	LpMagnification     int  `json:"lp_magnification"`
@@ -103,20 +103,20 @@ type LiveState struct {
 	UserID    int   `xorm:"pk 'user_id'" json:"-"`
 	LiveID    int64 `xorm:"'live_id'" json:"live_id"`
 	LiveType  int   `json:"live_type"`
-	DeckID    int `xorm:"-" json:"deck_id"` // get from user status
+	DeckID    int   `xorm:"-" json:"deck_id"` // get from user status
 	LiveStage struct {
-		LiveDifficultyID int               `json:"live_difficulty_id"` // get from user status
+		LiveDifficultyID int `json:"live_difficulty_id"` // get from user status
 		// get from song db
 		LiveNotes        []LiveNote        `json:"live_notes"`
 		LiveWaveSettings []LiveWaveSetting `json:"live_wave_settings"`
 		NoteGimmicks     []NoteGimmick     `json:"note_gimmicks"`
 		StageGimmickDict []any             `json:"stage_gimmick_dict"`
 	} `xorm:"-" json:"live_stage"`
-	PartnerUserID int `xorm:"partner_user_id" json:"-"`
+	PartnerUserID   int             `xorm:"partner_user_id" json:"-"`
 	LivePartnerCard PartnerCardInfo `xorm:"extends" json:"live_partner_card"`
-	IsPartnerFriend bool `json:"is_partner_friend"`
-	CellID          *int  `xorm:"'cell_id' "json:"cell_id"`
-	TowerLive       *int `json:"tower_live"`
+	IsPartnerFriend bool            `json:"is_partner_friend"`
+	CellID          *int            `xorm:"'cell_id' "json:"cell_id"`
+	TowerLive       *int            `json:"tower_live"`
 }
 
 // PartnerName ...
@@ -155,7 +155,7 @@ type LiveSaveDeckReq struct {
 
 // UserLiveMvDeckInfo ...
 type UserLiveMvDeckInfo struct {
-	LiveMasterID     int `json:"live_master_id"`
+	LiveMasterID     int  `json:"live_master_id"`
 	MemberMasterID1  *int `json:"member_master_id_1"`
 	MemberMasterID2  *int `json:"member_master_id_2"`
 	MemberMasterID3  *int `json:"member_master_id_3"`
@@ -184,11 +184,11 @@ type UserLiveMvDeckInfo struct {
 
 // LiveStageInfo ...
 type LiveStageInfo struct {
-	LiveDifficultyID int                `json:"live_difficulty_id"`
+	LiveDifficultyID int               `json:"live_difficulty_id"`
 	LiveNotes        []LiveNote        `json:"live_notes"`
 	LiveWaveSettings []LiveWaveSetting `json:"live_wave_settings"`
 	NoteGimmicks     []NoteGimmick     `json:"note_gimmicks"`
-	StageGimmickDict []any              `json:"stage_gimmick_dict"`
+	StageGimmickDict []any             `json:"stage_gimmick_dict"`
 }
 
 // LiveNotes ...

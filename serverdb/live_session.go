@@ -36,4 +36,3 @@ func LoadLiveState(userID int) (bool, model.LiveState) {
 	}
 	return exists, live
 }
-
