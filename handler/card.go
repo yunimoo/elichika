@@ -34,9 +34,9 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 	}
 
 	session := serverdb.GetSession(UserID)
-	cardInfo := session.GetCard(req.CardMasterID)
-	cardInfo.IsAwakeningImage = req.IsAwakeningImage
-	session.UpdateCard(cardInfo)
+	userCard := session.GetUserCard(req.CardMasterID)
+	userCard.IsAwakeningImage = req.IsAwakeningImage
+	session.UpdateUserCard(userCard)
 
 	cardResp := session.Finalize(GetData("changeIsAwakeningImage.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
@@ -55,9 +55,9 @@ func ChangeFavorite(ctx *gin.Context) {
 	}
 
 	session := serverdb.GetSession(UserID)
-	cardInfo := session.GetCard(req.CardMasterID)
-	cardInfo.IsFavorite = req.IsFavorite
-	session.UpdateCard(cardInfo)
+	userCard := session.GetUserCard(req.CardMasterID)
+	userCard.IsFavorite = req.IsFavorite
+	session.UpdateUserCard(userCard)
 
 	cardResp := session.Finalize(GetData("changeFavorite.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
@@ -79,9 +79,7 @@ func GetOtherUserCard(ctx *gin.Context) {
 		panic(err)
 	}
 
-	// return current user card because other user is not correct for now.
-	partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetUserCard(UserID, req.CardMasterID))
-	// partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetUserCard(req.UserID, req.CardMasterID))
+	partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetUserCard(req.UserID, req.CardMasterID))
 	userCardResp, _ := sjson.Set("{}", "other_user_card", partnerCard)
 	resp := SignResp(ctx.GetString("ep"), userCardResp, config.SessionKey)
 	// fmt.Println(resp)

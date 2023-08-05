@@ -2,9 +2,9 @@ package serverdb
 
 import (
 	"elichika/model"
-	"elichika/utils"
+	// "elichika/utils"
 
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	// "github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -15,11 +15,12 @@ import (
 // A session fetch the data needs to be modified.
 type Session struct {
 	UserStatus          model.UserStatus
-	CardDiffs           map[int]model.CardInfo
+	CardDiffs           map[int]model.UserCard
 	UserMemberDiffs     map[int]model.UserMemberInfo
 	UserLessonDeckDiffs map[int]model.UserLessonDeck
 	UserLiveDeckDiffs   map[int]model.UserLiveDeck
 	UserLivePartyDiffs  map[int]model.UserLiveParty
+	UserSuitDiffs       []model.UserSuit
 	CardGradeUpTriggers []any
 }
 
@@ -34,6 +35,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_lesson_deck_by_id", session.FinalizeUserLessonDeckDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_deck_by_id", session.FinalizeUserLiveDeckDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs())
 	return jsonBody
 }
 
@@ -45,17 +47,7 @@ func (session *Session) InitUser(userID int) {
 		panic(err)
 	}
 	if !exists { // create one
-		fmt.Println("Insert new user: ", userID)
-		data := utils.ReadAllText("assets/userdata/userStatus.json")
-		if err := json.Unmarshal([]byte(data), &session.UserStatus); err != nil {
-			panic(err)
-		}
-
-		// insert into the db
-		_, err := Engine.Table("s_user_info").AllCols().Insert(&session.UserStatus)
-		if err != nil {
-			panic(err)
-		}
+		panic(fmt.Sprintf("user doesn't exist %d", userID))
 	}
 }
 
@@ -69,12 +61,13 @@ func (session *Session) FinalizeUserInfo() model.UserStatus {
 
 func GetSession(userId int) Session {
 	s := Session{}
-	s.CardDiffs = make(map[int]model.CardInfo)
+	s.CardDiffs = make(map[int]model.UserCard)
 	s.UserMemberDiffs = make(map[int]model.UserMemberInfo)
 	s.UserLessonDeckDiffs = make(map[int]model.UserLessonDeck)
 	s.UserLiveDeckDiffs = make(map[int]model.UserLiveDeck)
 	s.UserLivePartyDiffs = make(map[int]model.UserLiveParty)
 	s.CardGradeUpTriggers = make([]any, 0)
+	s.UserSuitDiffs = make([]model.UserSuit, 0)
 	s.InitUser(userId)
 	return s
 }

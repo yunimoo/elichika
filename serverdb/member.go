@@ -56,12 +56,26 @@ func (session *Session) FinalizeUserMemberDiffs() []any {
 }
 
 func (session *Session) GetLovePanelCellIDs(memberID int) []int {
-	cells := []int{}
-	err := Engine.Table("s_user_member_love_panel").
-		Where("user_id = ? AND member_id = ?", session.UserStatus.UserID, memberID).Cols("member_love_panel_cell_id").
-		Find(&cells)
+	userMemberLovePanel := model.UserMemberLovePanel{}
+	userMemberLovePanel.MemberLovePanelCellIDs = make([]int, 0) // return empty if empty
+	exists, err := Engine.Table("s_user_member").
+		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberID).
+		Get(&userMemberLovePanel)
 	if err != nil {
 		panic(err)
 	}
-	return cells
+	if !exists {
+		panic("not exists")
+	}
+	return userMemberLovePanel.MemberLovePanelCellIDs
+}
+
+func (session *Session) GetAllMemberLovePanels() []model.UserMemberLovePanel {
+	lovePanels := []model.UserMemberLovePanel{}
+	err := Engine.Table("s_user_member").
+		Where("user_id = ?", session.UserStatus.UserID).Find(&lovePanels)
+	if err != nil {
+		panic(err)
+	}
+	return lovePanels
 }

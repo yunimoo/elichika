@@ -7,13 +7,15 @@ import (
 	"fmt"
 
 	"xorm.io/xorm"
+	"os"
 )
 
 var (
 	Engine *xorm.Engine
+	IsNew bool = false
 )
 
-func InitTable(tableName string, structure interface{}) {
+func InitTable(tableName string, structure interface{}) bool {
 	exist, err := Engine.Table(tableName).IsTableExist(tableName)
 	if err != nil {
 		panic(err)
@@ -25,27 +27,52 @@ func InitTable(tableName string, structure interface{}) {
 		if err != nil {
 			panic(err)
 		}
+		return true
+	} else {
+		return false
 	}
 }
 
-func InitTables() {
+func InitTables() bool {
 	type DbUser struct {
 		model.UserStatus             `xorm:"extends"`
 		model.DBUserProfileLiveStats `xorm:"extends"`
 	}
-	InitTable("s_user_info", DbUser{})
+	isNew := false
+
+	isNew = InitTable("s_user_info", DbUser{})
 	type DbCard struct {
-		model.CardInfo       `xorm:"extends"`
+		model.UserCard       `xorm:"extends"`
 		model.DBCardPlayInfo `xorm:"extends"`
 	}
-	InitTable("s_user_card", DbCard{})
-	InitTable("s_user_training_tree_cell", model.TrainingTreeCell{})
-	InitTable("s_user_member", model.UserMemberInfo{})
-	InitTable("s_user_member_love_panel", model.UserMemberLovePanel{})
-	InitTable("s_user_lesson_deck", model.UserLessonDeck{})
-	InitTable("s_user_live_deck", model.UserLiveDeck{})
-	InitTable("s_user_live_party", model.UserLiveParty{})
-	InitTable("s_user_live_state", model.LiveState{})
+	isNew = InitTable("s_user_card", DbCard{}) || isNew
+	isNew = InitTable("s_user_suit", model.UserSuit{}) || isNew
+	isNew = InitTable("s_user_training_tree_cell", model.TrainingTreeCell{}) || isNew
+
+	type DbMembers struct {
+		model.UserMemberInfo `xorm:"extends"`
+		MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids'"` 
+	}
+	isNew = InitTable("s_user_member", DbMembers{}) || isNew
+
+	isNew = InitTable("s_user_lesson_deck", model.UserLessonDeck{}) || isNew
+
+	isNew = InitTable("s_user_live_deck", model.UserLiveDeck{}) || isNew
+	isNew = InitTable("s_user_live_party", model.UserLiveParty{}) || isNew
+	isNew = InitTable("s_user_live_state", model.LiveState{}) || isNew
+	return isNew
+}
+
+func InitDb(isGlobal bool) {
+	if IsNew { // init the db depend on argv
+		IsGlobal = isGlobal
+		if len(os.Args) == 1 { // import from existing jsons
+			ImportFromJson()
+		} else { 
+			ImportMinimalAccount() // make a minimal account
+		}
+		IsNew = false 
+	}
 }
 
 func init() {
@@ -57,6 +84,5 @@ func init() {
 	Engine.SetMaxOpenConns(50)
 	Engine.SetMaxIdleConns(10)
 	// Engine.ShowSQL(true)
-
-	InitTables()
+	IsNew = InitTables()
 }

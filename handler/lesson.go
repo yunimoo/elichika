@@ -84,19 +84,19 @@ func SkillEditResult(ctx *gin.Context) {
 	skillList := req.Get("selected_skill_ids")
 	skillList.ForEach(func(key, cardId gjson.Result) bool {
 		if key.Int()%2 == 0 {
-			cardInfo := session.GetCard(int(cardId.Int()))
+			userCard := session.GetUserCard(int(cardId.Int()))
 			skills := skillList.Get(fmt.Sprintf("%d", key.Int()+1))
-			cardJsonBytes, _ := json.Marshal(cardInfo)
+			cardJsonBytes, _ := json.Marshal(userCard)
 			cardJson := string(cardJsonBytes)
 			skills.ForEach(func(kk, vv gjson.Result) bool {
 				skillIdKey := fmt.Sprintf("additional_passive_skill_%d_id", kk.Int()+1)
 				cardJson, _ = sjson.Set(cardJson, skillIdKey, vv.Int())
 				return true
 			})
-			if err := json.Unmarshal([]byte(cardJson), &cardInfo); err != nil {
+			if err := json.Unmarshal([]byte(cardJson), &userCard); err != nil {
 				panic(err)
 			}
-			session.UpdateCard(cardInfo)
+			session.UpdateUserCard(userCard)
 		}
 		return true
 	})

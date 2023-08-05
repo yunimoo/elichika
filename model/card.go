@@ -6,8 +6,8 @@ type CardAwakeningReq struct {
 	IsAwakeningImage bool `json:"is_awakening_image"`
 }
 
-// CardInfo ...
-type CardInfo struct {
+// UserCard ...
+type UserCard struct {
 	UserID                     int   `xorm:"pk 'user_id'" json:"-"`
 	CardMasterID               int   `xorm:"pk 'card_master_id'" json:"card_master_id"`
 	Level                      int   `json:"level"`
@@ -67,7 +67,7 @@ type PartnerCardInfo struct {
 	MemberLovePanels          []int `json:"member_love_panels"`
 }
 
-// Additional info to stores aside from CardInfo
+// Additional info to stores aside from UserCard
 type DBCardPlayInfo struct {
 	LiveJoinCount        int `xorm:"'live_join_count' default 0" json:"live_join_count"`
 	ActiveSkillPlayCount int `xorm:"'active_skill_play_count' default 0" json:"active_skill_play_count"`

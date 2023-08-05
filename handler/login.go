@@ -3,7 +3,7 @@ package handler
 import (
 	"elichika/config"
 	"elichika/encrypt"
-	"elichika/model"
+	// "elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
 
@@ -91,6 +91,7 @@ func Login(ctx *gin.Context) {
 	newKey = utils.Xor(newKey, jaKey)
 	newKey64 := base64.StdEncoding.EncodeToString(newKey)
 	// fmt.Println("Session Key:", newKey64)
+	serverdb.InitDb(IsGlobal)
 	session := serverdb.GetSession(UserID)
 	session.UserStatus.LastLoginAt = ClientTimeStamp
 
@@ -105,20 +106,7 @@ func Login(ctx *gin.Context) {
 	// live decks
 	dbLiveDecks := session.GetAllLiveDecks()
 	if len(dbLiveDecks) == 0 {
-		fmt.Println("importing live deck data to db")
-		liveDeckInfo := model.UserLiveDeck{}
-		liveDeckData := gjson.Parse(GetLiveDeckData())
-		liveDeckData.Get("user_live_deck_by_id").ForEach(func(key, value gjson.Result) bool {
-			if value.IsObject() {
-				if err := json.Unmarshal([]byte(value.String()), &liveDeckInfo); err != nil {
-					panic(err)
-				}
-				liveDeckInfo.UserID = UserID
-				dbLiveDecks = append(dbLiveDecks, liveDeckInfo)
-			}
-			return true
-		})
-		session.InsertLiveDecks(dbLiveDecks)
+		panic("no live deck found")
 	}
 	userLiveDecks := []any{}
 	for _, liveDeckInfo := range dbLiveDecks {
@@ -129,21 +117,7 @@ func Login(ctx *gin.Context) {
 
 	dbLiveParties := session.GetAllLiveParties()
 	if len(dbLiveParties) == 0 {
-		fmt.Println("importing live party data to db")
-		livePartyInfo := model.UserLiveParty{}
-		liveDeckData := gjson.Parse(GetLiveDeckData())
-		var livePartyData []json.RawMessage
-		decoder := json.NewDecoder(strings.NewReader(liveDeckData.Get("user_live_party_by_id").String()))
-		decoder.UseNumber()
-		err = decoder.Decode(&livePartyData)
-		CheckErr(err)
-		for i := 1; i < len(livePartyData); i += 2 {
-			err := json.Unmarshal(livePartyData[i], &livePartyInfo)
-			CheckErr(err)
-			livePartyInfo.UserID = UserID
-			dbLiveParties = append(dbLiveParties, livePartyInfo)
-		}
-		session.InsertLiveParties(dbLiveParties)
+		panic("no live party")
 	}
 	userLiveParties := []any{}
 	for _, livePartyInfo := range dbLiveParties {
@@ -155,21 +129,7 @@ func Login(ctx *gin.Context) {
 	// member settings
 	dbMembers := session.GetAllMembers()
 	if len(dbMembers) == 0 {
-		// insert from json
-		fmt.Println("importing member data to db")
-		userMemberInfo := model.UserMemberInfo{}
-		memberData := gjson.Parse(GetUserData("memberSettings.json"))
-		memberData.Get("user_member_by_member_id").ForEach(func(key, value gjson.Result) bool {
-			if value.IsObject() {
-				if err := json.Unmarshal([]byte(value.String()), &userMemberInfo); err != nil {
-					panic(err)
-				}
-				userMemberInfo.UserID = UserID
-				dbMembers = append(dbMembers, userMemberInfo)
-			}
-			return true
-		})
-		session.InsertMembers(dbMembers)
+		panic("no member found")
 	}
 	var userMembers []any
 	for _, memberInfo := range dbMembers {
@@ -178,24 +138,19 @@ func Login(ctx *gin.Context) {
 	}
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_member_by_member_id", userMembers)
 
+	// member love panel settings
+	dbLovePanels := session.GetAllMemberLovePanels()
+	if len(dbLovePanels) == 0 {
+		panic("no member love panel found")
+	}
+	loginBody, _ = sjson.Set(loginBody, "user_model.member_love_panels", dbLovePanels)
+	
+
+
 	// lesson decks
 	dbLessonDecks := session.GetAllLessonDecks()
 	if len(dbLessonDecks) == 0 {
-		// insert from json
-		fmt.Println("importing lesson deck data to db")
-		lessonData := gjson.Parse(GetUserData("lessonDeck.json"))
-		userLessonDeck := model.UserLessonDeck{}
-		lessonData.Get("user_lesson_deck_by_id").ForEach(func(key, value gjson.Result) bool {
-			if value.IsObject() {
-				if err := json.Unmarshal([]byte(value.String()), &userLessonDeck); err != nil {
-					panic(err)
-				}
-				userLessonDeck.UserID = UserID
-				dbLessonDecks = append(dbLessonDecks, userLessonDeck)
-			}
-			return true
-		})
-		session.InsertLessonDecks(dbLessonDecks)
+		panic("no lesson deck")
 	}
 
 	userLessonDecks := []any{}
@@ -208,29 +163,29 @@ func Login(ctx *gin.Context) {
 	// user cards
 	dbCards := session.GetAllCards()
 	if len(dbCards) == 0 {
-		// first time, parse the json and insert to db
-		fmt.Println("importing json card data to db")
-		cardData := gjson.Parse(GetUserData("userCard.json"))
-		cardInfo := model.CardInfo{}
-		cardData.Get("user_card_by_card_id").ForEach(func(key, value gjson.Result) bool {
-			if value.IsObject() {
-				if err := json.Unmarshal([]byte(value.String()), &cardInfo); err != nil {
-					panic(err)
-				}
-				cardInfo.UserID = UserID
-				dbCards = append(dbCards, cardInfo)
-			}
-			return true
-		})
-		session.InsertCards(dbCards)
+		panic("no card")
 	}
 
 	userCards := []any{}
-	for _, cardInfo := range dbCards {
-		userCards = append(userCards, cardInfo.CardMasterID)
-		userCards = append(userCards, cardInfo)
+	for _, userCard := range dbCards {
+		userCards = append(userCards, userCard.CardMasterID)
+		userCards = append(userCards, userCard)
 	}
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_card_by_card_id", userCards)
+
+	// user suits
+	dbSuits := session.GetAllSuits()
+	if len(dbSuits) == 0 {
+		panic("no suit")
+	}
+
+	userSuits := []any{}
+	for _, userSuit := range dbSuits {
+		userSuits = append(userSuits, userSuit.SuitMasterID)
+		userSuits = append(userSuits, userSuit)
+	}
+	loginBody, err = sjson.Set(loginBody, "user_model.user_suit_by_suit_id", userSuits)
+	CheckErr(err)
 
 	// user accessory
 	var UserAccessory []any
@@ -243,7 +198,6 @@ func Login(ctx *gin.Context) {
 	/* ======== UserData ======== */
 	session.Finalize("{}", "")
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
-
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

@@ -19,9 +19,17 @@ func (session *Session) GetTrainingTree(cardMasterID int) []model.TrainingTreeCe
 
 // insert a training cell sets
 func (session *Session) InsertTrainingCells(cells *[]model.TrainingTreeCell) {
-	affected, err := Engine.Table("s_user_training_tree_cell").AllCols().Insert(cells)
-	if err != nil {
-		panic(err)
+	n := len(*cells)
+	step := 5000
+	for begin := 0; begin < n; begin += step {
+		end := begin + step
+		if end > n {
+			end = n
+		}
+		affected, err := Engine.Table("s_user_training_tree_cell").AllCols().Insert((*cells)[begin:end])
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Inserted ", affected, " training cells")
 	}
-	fmt.Println("Inserted ", affected, " training cells")
 }

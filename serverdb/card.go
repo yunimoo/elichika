@@ -7,12 +7,12 @@ import (
 )
 
 // fetch a card, use the value in diff is present, otherwise fetch from db
-func (session *Session) GetCard(cardMasterID int) model.CardInfo {
+func (session *Session) GetUserCard(cardMasterID int) model.UserCard {
 	card, exist := session.CardDiffs[cardMasterID]
 	if exist {
 		return card
 	}
-	card = model.CardInfo{}
+	card = model.UserCard{}
 	exists, err := Engine.Table("s_user_card").
 		Where("user_id = ? AND card_master_id = ?", session.UserStatus.UserID, cardMasterID).Get(&card)
 	if err != nil {
@@ -49,8 +49,8 @@ func (session *Session) GetCard(cardMasterID int) model.CardInfo {
 	return card
 }
 
-func (session *Session) GetAllCards() []model.CardInfo {
-	var cards []model.CardInfo
+func (session *Session) GetAllCards() []model.UserCard {
+	var cards []model.UserCard
 	err := Engine.Table("s_user_card").Where("user_id = ?", session.UserStatus.UserID).Find(&cards)
 	if err != nil {
 		panic(err)
@@ -58,7 +58,7 @@ func (session *Session) GetAllCards() []model.CardInfo {
 	return cards
 }
 
-func (session *Session) UpdateCard(card model.CardInfo) {
+func (session *Session) UpdateUserCard(card model.UserCard) {
 	session.CardDiffs[card.CardMasterID] = card
 }
 
@@ -78,7 +78,7 @@ func (session *Session) FinalizeCardDiffs() []any {
 }
 
 // insert all the cards
-func (session *Session) InsertCards(cards []model.CardInfo) {
+func (session *Session) InsertCards(cards []model.UserCard) {
 	affected, err := Engine.Table("s_user_card").Insert(&cards)
 	if err != nil {
 		panic(err)

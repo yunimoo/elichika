@@ -20,8 +20,8 @@ func FetchDBProfile(userID int, result interface{}) {
 	}
 }
 
-func FetchPartnerCards(otherUserID int) []model.CardInfo {
-	partnerCards := []model.CardInfo{}
+func FetchPartnerCards(otherUserID int) []model.UserCard {
+	partnerCards := []model.UserCard{}
 	err := Engine.Table("s_user_card").
 		Where("user_id = ? AND live_partner_categories != 0", otherUserID).
 		Find(&partnerCards)
@@ -31,7 +31,7 @@ func FetchPartnerCards(otherUserID int) []model.CardInfo {
 	return partnerCards
 }
 
-func GetPartnerCardFromUserCard(card model.CardInfo) model.PartnerCardInfo {
+func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
 	memberId := (card.CardMasterID / 10000) % 1000
 
 	partnerCard := model.PartnerCardInfo{}
@@ -62,17 +62,28 @@ func GetPartnerCardFromUserCard(card model.CardInfo) model.PartnerCardInfo {
 	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill3ID)
 	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill4ID)
 	partnerCard.MemberLovePanels = []int{}
-	err = Engine.Table("s_user_member_love_panel").
-		Where("user_id = ? AND member_id = ?", card.UserID, memberId).
-		Cols("member_love_panel_cell_id").Find(&partnerCard.MemberLovePanels)
-	if err != nil {
-		panic(err)
-	}
+	
+	// filling this for a card of self freeze the game
+	// the displayed value still correct for own's card in the guest setup menu with an empty array 
+	// display value in getOtherUserCard is wrong, but if we fill in for own card then it also freeze
+	// TODO: revisit after implmenting friends
+
+	// lovePanel := model.UserMemberLovePanel{}
+	// exists, err = Engine.Table("s_user_member").
+	// 	Where("user_id = ? AND member_master_id = ?", card.UserID, memberId).Get(&lovePanel)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// if !exists {
+	// 	panic("member doesn't exist")
+	// }
+	// partnerCard.MemberLovePanels = lovePanel.MemberLovePanelCellIDs
+
 	return partnerCard
 }
 
-func GetUserCard(userID, cardMasterID int) model.CardInfo {
-	card := model.CardInfo{}
+func GetUserCard(userID, cardMasterID int) model.UserCard {
+	card := model.UserCard{}
 	exists, err := Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?", userID, cardMasterID).
 		Get(&card)
 	if err != nil {
@@ -156,7 +167,6 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 
 	partnerCards := FetchPartnerCards(otherUserID)
 	for _, card := range partnerCards {
-		// this is a just convention, might be better to check db
 		partnerCard := GetPartnerCardFromUserCard(card)
 		livePartner := model.LivePartnerCard{}
 		livePartner.PartnerCard = partnerCard

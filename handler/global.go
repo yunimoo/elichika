@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 	"xorm.io/xorm"
 )
 
@@ -90,34 +89,11 @@ func GetUserData(fileName string) string {
 	return userData
 }
 
-func GetLiveDeckData() string {
-	if IsGlobal {
-		return GetUserData("liveDeck_gl.json")
-	}
-	return GetUserData("liveDeck.json")
-}
-
 func GetUserAccessoryData() string {
 	if IsGlobal {
 		return GetData("userAccessory_gl.json")
 	}
 	return GetData("userAccessory.json")
-}
-
-func SetUserData(fileName, key string, value any) string {
-	userData, err := sjson.Set(GetUserData(fileName), key, value)
-	CheckErr(err)
-
-	utils.WriteAllText(userDataPath+fileName, userData)
-
-	return userData
-}
-
-func SetLiveDeckData(key string, value any) string {
-	if IsGlobal {
-		return SetUserData("liveDeck_gl.json", key, value)
-	}
-	return SetUserData("liveDeck.json", key, value)
 }
 
 func GetPartyInfoByRoleIds(roleIds []int) (partyIcon int, partyName string) {

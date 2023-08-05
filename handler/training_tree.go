@@ -53,9 +53,9 @@ func LevelUpCard(ctx *gin.Context) {
 		panic(err)
 	}
 
-	cardInfo := session.GetCard(req.CardMasterId)
-	cardInfo.Level += req.AdditionalLevel
-	session.UpdateCard(cardInfo)
+	userCard := session.GetUserCard(req.CardMasterId)
+	userCard.Level += req.AdditionalLevel
+	session.UpdateUserCard(userCard)
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
@@ -65,9 +65,9 @@ func LevelUpCard(ctx *gin.Context) {
 
 	// TODO: Handle things like exp and gold cost
 
-	// SendCardInfoDiff(ctx, &cardInfo)
+	// SendCardInfoDiff(ctx, &userCard)
 
-	// SendCardInfoDiff(ctx, &cardInfo)
+	// SendCardInfoDiff(ctx, &userCard)
 }
 
 func BondRequired(l int) int {
@@ -118,13 +118,13 @@ func GradeUpCard(ctx *gin.Context) {
 
 	session := serverdb.GetSession(UserID)
 
-	cardInfo := session.GetCard(req.CardMasterID)
+	userCard := session.GetUserCard(req.CardMasterID)
 	memberInfo := session.GetMember(GetMemberMasterIdByCardMasterId(req.CardMasterID))
-	cardInfo.Grade += 1
+	userCard.Grade += 1
 	currentBondLevel := GetBondLevel(memberInfo.LovePointLimit)
 	currentBondLevel += 3
 	memberInfo.LovePointLimit = BondRequiredTotal(currentBondLevel)
-	session.UpdateCard(cardInfo)
+	session.UpdateUserCard(userCard)
 	session.UpdateMember(memberInfo)
 
 	// we need to set user_info_trigger_card_grade_up_by_trigger_id
@@ -146,7 +146,7 @@ func GradeUpCard(ctx *gin.Context) {
 	// after that there's 9 digit, but it's unclear what they actually mean.
 	// could be that it's just a time stamp is unix nanosecond, and something else control how the pop-up behave
 	trigger.TriggerId = ClientTimeStamp * 1000000
-	trigger.CardMasterId = cardInfo.CardMasterID
+	trigger.CardMasterId = userCard.CardMasterID
 	trigger.BeforeLoveLevelLimit = currentBondLevel - 3
 	trigger.AfterLoveLevelLimit = currentBondLevel
 
@@ -219,7 +219,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		Cols("training_content_type", "value").OrderBy("training_content_no").Find(&cellParams)
 
 	increasedStats := [5]int{}
-	card := session.GetCard(req.CardMasterID)
+	card := session.GetUserCard(req.CardMasterID)
 	for _, cellID := range req.CellMasterIDs {
 		switch cellContents[cellID].TrainingTreeCellType {
 		case 2:
@@ -258,7 +258,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		card.IsAllTrainingActivated = true
 	}
 
-	session.UpdateCard(card)
+	session.UpdateUserCard(card)
 
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
 	unlockedCells := []model.TrainingTreeCell{}

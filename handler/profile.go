@@ -85,9 +85,9 @@ func SetLivePartner(ctx *gin.Context) {
 
 	// set the bit on the correct card
 	session := serverdb.GetSession(UserID)
-	newCard := session.GetCard(req.CardMasterID)
+	newCard := session.GetUserCard(req.CardMasterID)
 	newCard.LivePartnerCategories |= (1 << req.LivePartnerCategoryID)
-	session.UpdateCard(newCard)
+	session.UpdateUserCard(newCard)
 
 	// remove the bit on the other cards
 	partnerCards := serverdb.FetchPartnerCards(UserID)
@@ -97,7 +97,7 @@ func SetLivePartner(ctx *gin.Context) {
 		}
 		if (card.LivePartnerCategories & (1 << req.LivePartnerCategoryID)) != 0 {
 			card.LivePartnerCategories ^= (1 << req.LivePartnerCategoryID)
-			session.UpdateCard(card)
+			session.UpdateUserCard(card)
 		}
 	}
 
