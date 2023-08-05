@@ -24,54 +24,70 @@ func LiveMvStart(ctx *gin.Context) {
 }
 
 func LiveMvSaveDeck(ctx *gin.Context) {
-	reqBody := ctx.GetString("reqBody")
-	// fmt.Println(reqBody)
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 
-	reqData := gjson.Parse(reqBody).Array()[0]
+	type LiveSaveDeckReq struct {
+		LiveMasterID        int   `json:"live_master_id"`
+		LiveMvDeckType      int   `json:"live_mv_deck_type"`
+		MemberMasterIDByPos []int `json:"member_master_id_by_pos"`
+		SuitMasterIDByPos   []int `json:"suit_master_id_by_pos"`
+		ViewStatusByPos     []int `json:"view_status_by_pos"`
+	}
 
-	saveReq := model.LiveSaveDeckReq{}
-	err := json.Unmarshal([]byte(reqData.String()), &saveReq)
+	req := LiveSaveDeckReq{}
+	err := json.Unmarshal([]byte(reqBody), &req)
 	if err != nil {
 		panic(err)
 	}
 
 	userLiveMvDeckInfo := model.UserLiveMvDeckInfo{
-		LiveMasterID: saveReq.LiveMasterID,
+		LiveMasterID: req.LiveMasterID,
 	}
 	deckJsonBytes, err := json.Marshal(userLiveMvDeckInfo)
 	CheckErr(err)
 	deckJson := string(deckJsonBytes)
 
-	for k, v := range saveReq.MemberMasterIDByPos {
+	for k, v := range req.MemberMasterIDByPos {
 		if k%2 == 0 {
-			memberId := saveReq.MemberMasterIDByPos[k+1]
+			memberId := req.MemberMasterIDByPos[k+1]
 			deckJson, err = sjson.Set(deckJson, fmt.Sprintf("member_master_id_%d", v), memberId)
 		}
 	}
-	for k, v := range saveReq.SuitMasterIDByPos {
+	for k, v := range req.SuitMasterIDByPos {
 		if k%2 == 0 {
-			suitId := saveReq.SuitMasterIDByPos[k+1]
+			suitId := req.SuitMasterIDByPos[k+1]
 			deckJson, err = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", v), suitId)
 		}
 	}
 	err = json.Unmarshal([]byte(deckJson), &userLiveMvDeckInfo)
 	CheckErr(err)
+	session := serverdb.GetSession(UserID)
+	for k, _ := range req.ViewStatusByPos {
+		if k%2 == 0 {
+			memberID := req.MemberMasterIDByPos[k+1]
+			// Rina-chan board toggle
+			if memberID == 209 {
+				RinaChan := session.GetMember(209)
+				RinaChan.ViewStatus = req.ViewStatusByPos[k+1]
+				session.UpdateMember(RinaChan)
+			}
+		}
+	}
 
 	var userLiveMvDeckCustomByID []any
-	userLiveMvDeckCustomByID = append(userLiveMvDeckCustomByID, saveReq.LiveMasterID)
+	userLiveMvDeckCustomByID = append(userLiveMvDeckCustomByID, req.LiveMasterID)
 	userLiveMvDeckCustomByID = append(userLiveMvDeckCustomByID, userLiveMvDeckInfo)
 
-	session := serverdb.GetSession(UserID)
-	signBody := GetData("liveMvSaveDeck.json")
+	signBody := GetData("userModel.json")
 	signBody = session.Finalize(signBody, "user_model")
-	if saveReq.LiveMvDeckType == 1 {
+	if req.LiveMvDeckType == 1 {
 		signBody, _ = sjson.Set(signBody, "user_model.user_live_mv_deck_by_id", userLiveMvDeckCustomByID)
 	} else {
 		signBody, _ = sjson.Set(signBody, "user_model.user_live_mv_deck_custom_by_id", userLiveMvDeckCustomByID)
 	}
 
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	fmt.Println(resp)
+	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

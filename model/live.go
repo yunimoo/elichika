@@ -144,15 +144,6 @@ type MvpInfo struct {
 	AppealCount         int64 `json:"appeal_count"`
 }
 
-// LiveSaveDeckReq ...
-type LiveSaveDeckReq struct {
-	LiveMasterID        int   `json:"live_master_id"`
-	LiveMvDeckType      int   `json:"live_mv_deck_type"`
-	MemberMasterIDByPos []int `json:"member_master_id_by_pos"`
-	SuitMasterIDByPos   []int `json:"suit_master_id_by_pos"`
-	ViewStatusByPos     []int `json:"view_status_by_pos"`
-}
-
 // UserLiveMvDeckInfo ...
 type UserLiveMvDeckInfo struct {
 	LiveMasterID     int  `json:"live_master_id"`

@@ -120,8 +120,9 @@ func SaveSuit(ctx *gin.Context) {
 		DeckID       int `json:"deck_id"`
 		CardIndex    int `json:"card_index"`
 		SuitMasterID int `json:"suit_master_id"`
-		ViewStatus   int `json:"view_status"` // always 1?
+		ViewStatus   int `json:"view_status"` // 2 for Rina-chan board off, 1 for everyone else
 	}
+	// fmt.Println(reqBody)
 
 	req := SaveSuitReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
@@ -134,6 +135,14 @@ func SaveSuit(ctx *gin.Context) {
 	deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", req.CardIndex), req.SuitMasterID)
 	err = json.Unmarshal([]byte(deckJson), &deck)
 	session.UpdateUserLiveDeck(deck)
+
+	// Rina-chan board toggle
+	if (req.SuitMasterID/10000)%1000 == 209 {
+		RinaChan := session.GetMember(209)
+		RinaChan.ViewStatus = req.ViewStatus
+		session.UpdateMember(RinaChan)
+	}
+
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)

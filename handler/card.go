@@ -6,7 +6,6 @@ import (
 	"elichika/serverdb"
 
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,8 +14,8 @@ import (
 )
 
 func UpdateCardNewFlag(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	fmt.Println(reqBody.String())
+	// reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	// fmt.Println(reqBody.String())
 	session := serverdb.GetSession(UserID)
 
 	signBody := session.Finalize(GetData("updateCardNewFlag.json"), "user_model_diff")
@@ -69,7 +68,7 @@ func ChangeFavorite(ctx *gin.Context) {
 
 func GetOtherUserCard(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	fmt.Println(reqBody.String())
+	// fmt.Println(reqBody.String())
 	type OtherUserCardReq struct {
 		UserID       int `json:"user_id"`
 		CardMasterID int `json:"card_master_id"`
