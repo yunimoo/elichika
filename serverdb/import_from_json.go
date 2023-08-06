@@ -259,8 +259,6 @@ func ImportMinimalAccount() {
 	memberIDToIndex := make(map[int]int)
 	maxBondLevel := [30]int{}
 
-	defaultSuitIDFromMemberMasterID := make(map[int]int)
-
 	for i, _ := range members {
 		memberIDToIndex[members[i].MemberMasterID] = i
 		maxBondLevel[i] = 500
@@ -278,6 +276,10 @@ func ImportMinimalAccount() {
 	for ; suits[suitCount].SuitMasterID < 1000000; suitCount++ {
 	}
 	suits = suits[:suitCount]
+	for i, _ := range members { // set default uniform and add it to the suit list
+		members[i].SuitMasterID = klab.DefaultSuitMasterIDFromMemberMasterID(members[i].MemberMasterID)
+		suits = append(suits, model.UserSuit{UserID: UserID, SuitMasterID: members[i].SuitMasterID, IsNew: false})
+	}
 
 	for i, _ := range cards {
 		memberID := klab.MemberMasterIDFromCardMasterID(cards[i].CardMasterID)
@@ -308,11 +310,6 @@ func ImportMinimalAccount() {
 		cards[i].AdditionalPassiveSkill4ID = 0
 	}
 
-	for _, suit := range suits {
-		memberID := klab.MemberMasterIDFromSuitMasterID(suit.SuitMasterID)
-		defaultSuitIDFromMemberMasterID[memberID] = suit.SuitMasterID
-	}
-
 	for i, _ := range liveDecks {
 		// need to set suit master ID to valid value or it freeze
 		deckJsonByte, err := json.Marshal(liveDecks[i])
@@ -320,7 +317,8 @@ func ImportMinimalAccount() {
 		for j := 1; j <= 9; j++ {
 			cardMasterID := int(gjson.Get(deckJson, fmt.Sprintf("card_master_id_%d", j)).Int())
 			memberID := klab.MemberMasterIDFromCardMasterID(cardMasterID)
-			deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", j), defaultSuitIDFromMemberMasterID[memberID])
+			deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", j),
+				klab.DefaultSuitMasterIDFromMemberMasterID(memberID))
 		}
 		err = json.Unmarshal([]byte(deckJson), &liveDecks[i])
 		if err != nil {
@@ -331,7 +329,6 @@ func ImportMinimalAccount() {
 	trainingTreeCells := []model.TrainingTreeCell{}
 	for i, _ := range members {
 		members[i].LovePointLimit = klab.BondRequiredTotal(maxBondLevel[i])
-		members[i].SuitMasterID = defaultSuitIDFromMemberMasterID[members[i].MemberMasterID]
 	}
 
 	session.InsertAccount(members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)

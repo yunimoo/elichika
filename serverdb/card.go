@@ -19,32 +19,8 @@ func (session *Session) GetUserCard(cardMasterID int) model.UserCard {
 		panic(err)
 	}
 
-	// if not in db then fetch from json
 	if !exists {
-		panic("db error")
-		// insert this card, from json for now
-		// cardData := DbGetUserData("userCard.json")
-		// gjson.Parse(cardData).Get("user_card_by_card_id").ForEach(func(key, value gjson.Result) bool {
-		// 	if value.IsObject() {
-		// 		if err := json.Unmarshal([]byte(value.String()), &card); err != nil {
-		// 			panic(err)
-		// 		}
-		// 		if card.CardMasterID == cardMasterID {
-		// 			exists = true
-		// 			return false
-		// 		}
-		// 	}
-		// 	return true
-		// })
-		// if !exists {
-		// 	panic("Card doesn't exist")
-		// }
-		// card.UserID = session.UserStatus.UserID
-		// fmt.Println("Insert new card, user_id: ", card.UserID, ", card_master_id: ", cardMasterID)
-		// _, err := Engine.Table("s_user_card").Insert(&card)
-		// if err != nil {
-		// 	panic(err)
-		// }
+		panic("no user card")
 	}
 	return card
 }

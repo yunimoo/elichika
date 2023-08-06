@@ -59,16 +59,11 @@ func LevelUpCard(ctx *gin.Context) {
 	session.UpdateUserCard(userCard)
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 
 	// TODO: Handle things like exp and gold cost
-
-	// SendCardInfoDiff(ctx, &userCard)
-
-	// SendCardInfoDiff(ctx, &userCard)
 }
 
 func GradeUpCard(ctx *gin.Context) {
@@ -162,7 +157,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		TrainingContentNo    int // the content of the cell
 		// RequiredGrade int // the limit break required, no need to read this here
 		TrainingTreeCellItemSetMID int `xorm:"'training_tree_cell_item_set_m_id'"` // the set of items used to unlock this cell
-		// SnsCoin int // always 1, maybe we could earn gem by unlocking cell?
+		// SnsCoin int // always 1, maybe we have could earned gem by unlocking cell?
 	}
 
 	cellContents := []TrainingTreeCellContent{}
@@ -202,7 +197,14 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 			// idolize
 			card.IsAwakening = true
 			card.IsAwakeningImage = true
-			// idolize stats is calculated by the flag?
+		case 6:
+			// award suit, suit have the same id as card
+			// alternative suit is awarded based on amount of tile instead
+			// SELECT * FROM m_training_tree_card_suit WHERE card_m_id == suit_m_id; -> 0
+			session.InsertUserSuit(model.UserSuit{
+				UserID:       UserID,
+				SuitMasterID: card.CardMasterID,
+				IsNew:        true})
 		case 7:
 			// skill
 			card.ActiveSkillLevel += 1
@@ -218,6 +220,17 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	card.TrainingLife += increasedStats[2]
 	card.TrainingAttack += increasedStats[3]
 	card.TrainingDexterity += increasedStats[4]
+
+	// progression reward
+	progressionRewards := []model.RewardByContent{}
+	err = db.Table("m_training_tree_progress_reward").Where("card_master_id = ? AND activate_num > ? and activate_num <= ?",
+		card.CardMasterID, card.TrainingActivatedCellCount, card.TrainingActivatedCellCount+len(req.CellMasterIDs)).
+		Find(&progressionRewards)
+	CheckErr(err)
+	for _, reward := range progressionRewards {
+		session.AddRewardContent(reward)
+	}
+
 	card.TrainingActivatedCellCount += len(req.CellMasterIDs)
 
 	if card.TrainingActivatedCellCount+1 == len(cellContents) {
@@ -229,15 +242,16 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
 	unlockedCells := []model.TrainingTreeCell{}
 	for _, cellID := range req.CellMasterIDs {
-		cell := model.TrainingTreeCell{}
-		cell.UserID = UserID
-		cell.CardMasterID = req.CardMasterID
-		cell.CellID = cellID
-		cell.ActivatedAt = ClientTimeStamp
-		unlockedCells = append(unlockedCells, cell)
+		unlockedCells = append(unlockedCells,
+			model.TrainingTreeCell{
+				UserID:       UserID,
+				CardMasterID: req.CardMasterID,
+				CellID:       cellID,
+				ActivatedAt:  ClientTimeStamp})
 	}
 
 	session.InsertTrainingCells(&unlockedCells)
+
 	jsonResp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 	jsonResp, _ = sjson.Set(jsonResp, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
 	resp := SignResp(ctx.GetString("ep"), jsonResp, config.SessionKey)
