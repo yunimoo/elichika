@@ -2,6 +2,7 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/klab"
 	"elichika/serverdb"
 
 	"encoding/json"
@@ -38,7 +39,7 @@ func TapLovePoint(ctx *gin.Context) {
 	if member.LovePoint > member.LovePointLimit {
 		member.LovePoint = member.LovePointLimit
 	}
-	member.LoveLevel = GetBondLevel(member.LovePoint)
+	member.LoveLevel = klab.BondLevelFromBondValue(member.LovePoint)
 	session.UpdateMember(member)
 
 	signBody := session.Finalize(GetData("saveUserNaviVoice.json"), "user_model")

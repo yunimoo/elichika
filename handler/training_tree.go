@@ -2,10 +2,11 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
-	"encoding/json"
 
+	"encoding/json"
 	// "fmt"
 	"net/http"
 
@@ -70,41 +71,6 @@ func LevelUpCard(ctx *gin.Context) {
 	// SendCardInfoDiff(ctx, &userCard)
 }
 
-func BondRequired(l int) int {
-	res := 30 * l
-	if l > 2 {
-		res += 10 * (l - 2)
-	}
-	if l > 6 {
-		res += 10 * (l - 6)
-	}
-	if l > 20 {
-		res += 10 * (l - 20)
-	}
-	if l > 59 {
-		res += 10 * (l - 59)
-	}
-	return res
-}
-
-func BondRequiredTotal(l int) int {
-	res := 0
-	for i := 2; i <= l; i++ {
-		res += BondRequired(i)
-	}
-	return res
-}
-
-func GetBondLevel(maxBond int) int {
-	res := 0
-	for i := 2; ; i++ {
-		res += BondRequired(i)
-		if res > maxBond {
-			return i - 1
-		}
-	}
-}
-
 func GradeUpCard(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	type GradeUpCardReq struct {
@@ -121,9 +87,9 @@ func GradeUpCard(ctx *gin.Context) {
 	userCard := session.GetUserCard(req.CardMasterID)
 	memberInfo := session.GetMember(GetMemberMasterIdByCardMasterId(req.CardMasterID))
 	userCard.Grade += 1
-	currentBondLevel := GetBondLevel(memberInfo.LovePointLimit)
-	currentBondLevel += 3
-	memberInfo.LovePointLimit = BondRequiredTotal(currentBondLevel)
+	currentBondLevel := klab.BondLevelFromBondValue(memberInfo.LovePointLimit)
+	currentBondLevel += klab.CardRarityFromCardMasterID(req.CardMasterID) / 10
+	memberInfo.LovePointLimit = klab.BondRequiredTotal(currentBondLevel)
 	session.UpdateUserCard(userCard)
 	session.UpdateMember(memberInfo)
 
@@ -147,7 +113,7 @@ func GradeUpCard(ctx *gin.Context) {
 	// could be that it's just a time stamp is unix nanosecond, and something else control how the pop-up behave
 	trigger.TriggerId = ClientTimeStamp * 1000000
 	trigger.CardMasterId = userCard.CardMasterID
-	trigger.BeforeLoveLevelLimit = currentBondLevel - 3
+	trigger.BeforeLoveLevelLimit = currentBondLevel - klab.CardRarityFromCardMasterID(req.CardMasterID)/10
 	trigger.AfterLoveLevelLimit = currentBondLevel
 
 	session.AddCardGradeUpTrigger(trigger.TriggerId, trigger)

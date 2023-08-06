@@ -51,7 +51,7 @@ func InitTables() bool {
 
 	type DbMembers struct {
 		model.UserMemberInfo   `xorm:"extends"`
-		MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids'"`
+		MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids' default '[]'"`
 	}
 	isNew = InitTable("s_user_member", DbMembers{}) || isNew
 

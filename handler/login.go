@@ -143,7 +143,7 @@ func Login(ctx *gin.Context) {
 	if len(dbLovePanels) == 0 {
 		panic("no member love panel found")
 	}
-	loginBody, _ = sjson.Set(loginBody, "user_model.member_love_panels", dbLovePanels)
+	loginBody, _ = sjson.Set(loginBody, "member_love_panels", dbLovePanels)
 
 	// lesson decks
 	dbLessonDecks := session.GetAllLessonDecks()
@@ -193,8 +193,10 @@ func Login(ctx *gin.Context) {
 	err = decoder.Decode(&UserAccessory)
 	CheckErr(err)
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", UserAccessory)
+
 	/* ======== UserData ======== */
 	session.Finalize("{}", "")
+	// fmt.Println(loginBody)
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

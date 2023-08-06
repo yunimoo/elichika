@@ -2,6 +2,7 @@ package serverdb
 
 import (
 	"elichika/config"
+	"elichika/klab"
 	"elichika/model"
 	"elichika/utils"
 
@@ -13,7 +14,7 @@ import (
 	// "xorm.io/xorm"
 
 	"github.com/tidwall/gjson"
-	// "github.com/tidwall/sjson"
+	"github.com/tidwall/sjson"
 )
 
 var (
@@ -240,31 +241,6 @@ func ImportFromJson() {
 	session.InsertAccount(members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
 }
 
-func BondRequired(l int) int {
-	res := 30 * l
-	if l > 2 {
-		res += 10 * (l - 2)
-	}
-	if l > 6 {
-		res += 10 * (l - 6)
-	}
-	if l > 20 {
-		res += 10 * (l - 20)
-	}
-	if l > 59 {
-		res += 10 * (l - 59)
-	}
-	return res
-}
-
-func BondRequiredTotal(l int) int {
-	res := 0
-	for i := 2; i <= l; i++ {
-		res += BondRequired(i)
-	}
-	return res
-}
-
 func ImportMinimalAccount() {
 	// EXPERIMENTAL, for testing functionality only.
 	// insert an account that can be upgraded to maximum strength from existing functionality
@@ -282,7 +258,9 @@ func ImportMinimalAccount() {
 	lovePanels := []model.UserMemberLovePanel{}
 	memberIDToIndex := make(map[int]int)
 	maxBondLevel := [30]int{}
-	suitID := [30]int{}
+
+	defaultSuitIDFromMemberMasterID := make(map[int]int)
+
 	for i, _ := range members {
 		memberIDToIndex[members[i].MemberMasterID] = i
 		maxBondLevel[i] = 500
@@ -295,14 +273,15 @@ func ImportMinimalAccount() {
 	cards := LoadCardFromJson()
 	suits := LoadSuitFromJson()
 	// skip the suit awarded from cards
+	// this also skip the initial suit, so probably need to read from db
 	suitCount := 0
 	for ; suits[suitCount].SuitMasterID < 1000000; suitCount++ {
 	}
 	suits = suits[:suitCount]
 
 	for i, _ := range cards {
-		memberID := (cards[i].CardMasterID / 10000) % 1000
-		rarity := (cards[i].CardMasterID / 100) % 100
+		memberID := klab.MemberMasterIDFromCardMasterID(cards[i].CardMasterID)
+		rarity := klab.CardRarityFromCardMasterID(cards[i].CardMasterID)
 		maxBondLevel[memberIDToIndex[memberID]] -= (rarity / 10) * 5 // 5 grade worths of limit break
 		cards[i].Level = 1
 		cards[i].IsAwakening = false
@@ -330,14 +309,30 @@ func ImportMinimalAccount() {
 	}
 
 	for _, suit := range suits {
-		memberID := (suit.SuitMasterID / 100) % 1000
-		suitID[memberIDToIndex[memberID]] = suit.SuitMasterID
+		memberID := klab.MemberMasterIDFromSuitMasterID(suit.SuitMasterID)
+		defaultSuitIDFromMemberMasterID[memberID] = suit.SuitMasterID
+	}
+
+	for i, _ := range liveDecks {
+		// need to set suit master ID to valid value or it freeze
+		deckJsonByte, err := json.Marshal(liveDecks[i])
+		deckJson := string(deckJsonByte)
+		for j := 1; j <= 9; j++ {
+			cardMasterID := int(gjson.Get(deckJson, fmt.Sprintf("card_master_id_%d", j)).Int())
+			memberID := klab.MemberMasterIDFromCardMasterID(cardMasterID)
+			deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", j), defaultSuitIDFromMemberMasterID[memberID])
+		}
+		err = json.Unmarshal([]byte(deckJson), &liveDecks[i])
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	trainingTreeCells := []model.TrainingTreeCell{}
 	for i, _ := range members {
-		members[i].LovePointLimit = BondRequiredTotal(maxBondLevel[i])
-		members[i].SuitMasterID = suitID[i]
+		members[i].LovePointLimit = klab.BondRequiredTotal(maxBondLevel[i])
+		members[i].SuitMasterID = defaultSuitIDFromMemberMasterID[members[i].MemberMasterID]
 	}
+
 	session.InsertAccount(members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
 }

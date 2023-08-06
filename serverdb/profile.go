@@ -1,6 +1,7 @@
 package serverdb
 
 import (
+	"elichika/klab"
 	"elichika/model"
 
 	"encoding/json"
@@ -32,7 +33,7 @@ func FetchPartnerCards(otherUserID int) []model.UserCard {
 }
 
 func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
-	memberId := (card.CardMasterID / 10000) % 1000
+	memberId := klab.MemberMasterIDFromCardMasterID(card.CardMasterID)
 
 	partnerCard := model.PartnerCardInfo{}
 
@@ -61,7 +62,7 @@ func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
 	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill2ID)
 	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill3ID)
 	partnerCard.AdditionalPassiveSkillIds = append(partnerCard.AdditionalPassiveSkillIds, card.AdditionalPassiveSkill4ID)
-	partnerCard.MemberLovePanels = []int{}
+	partnerCard.MemberLovePanels = []int{} // must not be null
 
 	// filling this for a card of self freeze the game
 	// the displayed value still correct for own's card in the guest setup menu with an empty array
@@ -163,6 +164,9 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	for i := 0; i < 7; i++ {
 		profile.GuestInfo.LivePartnersCards = append(profile.GuestInfo.LivePartnersCards, model.LivePartnerCard{})
 		profile.GuestInfo.LivePartnersCards[i].LivePartnerCategoryMasterId = i + 1
+		profile.GuestInfo.LivePartnersCards[i].PartnerCard.MemberLovePanels = []int{}
+		profile.GuestInfo.LivePartnersCards[i].PartnerCard.PassiveSkillLevels = []int{}
+		profile.GuestInfo.LivePartnersCards[i].PartnerCard.AdditionalPassiveSkillIds = []int{}
 	}
 
 	partnerCards := FetchPartnerCards(otherUserID)

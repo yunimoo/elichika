@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"fmt"
+	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -42,7 +42,7 @@ func FetchCommunicationMemberDetail(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "weekday_state.weekday", weekday)
 	signBody, _ = sjson.Set(signBody, "weekday_state.next_weekday_at", tomorrow)
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	fmt.Println(resp)
+	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

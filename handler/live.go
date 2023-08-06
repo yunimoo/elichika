@@ -59,15 +59,12 @@ func FetchLivePartners(ctx *gin.Context) {
 		partner.IsFriend = true
 		serverdb.FetchDBProfile(partnerID, &partner)
 		partnerCards := serverdb.FetchPartnerCards(partnerID) // model.UserCard
-		for i := 1; i <= 7; i++ {
-			partner.CardByCategory = append(partner.CardByCategory, i)
-			partner.CardByCategory = append(partner.CardByCategory, model.PartnerCardInfo{})
-		}
 		for _, card := range partnerCards {
 			for i := 1; i <= 7; i++ {
 				if (card.LivePartnerCategories & (1 << i)) != 0 {
 					partnerCardInfo := serverdb.GetPartnerCardFromUserCard(card)
-					partner.CardByCategory[i*2-1] = partnerCardInfo
+					partner.CardByCategory = append(partner.CardByCategory, i)
+					partner.CardByCategory = append(partner.CardByCategory, partnerCardInfo)
 				}
 			}
 		}
