@@ -35,7 +35,7 @@ func TapLovePoint(ctx *gin.Context) {
 	}
 	session := serverdb.GetSession(UserID)
 	member := session.GetMember(req.MemberMasterID)
-	member.LovePoint += 20
+	member.LovePoint += 20 * 10000
 	if member.LovePoint > member.LovePointLimit {
 		member.LovePoint = member.LovePointLimit
 	}

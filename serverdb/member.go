@@ -7,7 +7,10 @@ import (
 )
 
 func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
-	member := model.UserMemberInfo{}
+	member, exist := session.UserMemberDiffs[memberMasterID]
+	if exist {
+		return member
+	}
 	exists, err := Engine.Table("s_user_member").
 		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).Get(&member)
 	// inserted at login if not exist
@@ -78,4 +81,39 @@ func (session *Session) GetAllMemberLovePanels() []model.UserMemberLovePanel {
 		panic(err)
 	}
 	return lovePanels
+}
+
+func (session *Session) GetMemberLovePanel(memberMasterID int) model.UserMemberLovePanel {
+	panel, exists := session.UserMemberLovePanelDiffs[memberMasterID]
+	if exists {
+		return panel
+	}
+	exists, err := Engine.Table("s_user_member").
+		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).
+		Get(&panel)
+	if err != nil {
+		panic(err)
+	}
+	if !exists {
+		panic("doesn't exist")
+	}
+	return panel
+}
+
+func (session *Session) UpdateMemberLovePanel(panel model.UserMemberLovePanel) {
+	session.UserMemberLovePanelDiffs[panel.MemberID] = panel
+}
+
+func (session *Session) FinalizeUpdateMemberLovePanelDiffs() []model.UserMemberLovePanel {
+	panels := []model.UserMemberLovePanel{}
+	for _, panel := range session.UserMemberLovePanelDiffs {
+		_, err := Engine.Table("s_user_member").
+			Where("user_id = ? AND member_master_id = ?", panel.UserID, panel.MemberID).
+			Update(panel)
+		if err != nil {
+			panic(err)
+		}
+		panels = append(panels, panel)
+	}
+	return panels
 }

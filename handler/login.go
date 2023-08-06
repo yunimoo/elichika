@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"strings"
 
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -93,12 +95,11 @@ func Login(ctx *gin.Context) {
 	// fmt.Println("Session Key:", newKey64)
 	serverdb.InitDb(IsGlobal)
 	session := serverdb.GetSession(UserID)
-	session.UserStatus.LastLoginAt = ClientTimeStamp
+	session.UserStatus.LastLoginAt = time.Now().Unix()
 
-	loginBody := GetData("login.json")
+	loginBody := session.Finalize(GetData("login.json"), "user_model")
 	loginBody, _ = sjson.Set(loginBody, "session_key", newKey64)
-
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_status", session.UserStatus)
+	loginBody, _ = sjson.Set(loginBody, "last_timestamp", time.Now().UnixMilli())
 
 	/* ======== UserData ======== */
 	fmt.Println("User logins: ", UserID)
@@ -195,7 +196,6 @@ func Login(ctx *gin.Context) {
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", UserAccessory)
 
 	/* ======== UserData ======== */
-	session.Finalize("{}", "")
 	// fmt.Println(loginBody)
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")

@@ -63,11 +63,13 @@ func Router(r *gin.Engine) {
 		api.POST("/trainingTree/fetchTrainingTree", handler.FetchTrainingTree)
 		api.POST("/trainingTree/levelUpCard", handler.LevelUpCard)
 		api.POST("/trainingTree/gradeUpCard", handler.GradeUpCard)
-		api.POST("/infoTrigger/readCardGradeUp", handler.ReadCardGradeUp)
+		api.POST("/infoTrigger/read", handler.TriggerRead)
+		api.POST("/infoTrigger/readCardGradeUp", handler.TriggerReadCardGradeUp)
 		api.POST("/trainingTree/activateTrainingTreeCell", handler.ActivateTrainingTreeCell)
 		api.POST("/userProfile/fetchProfile", handler.FetchProfile)
 		api.POST("/userProfile/setProfile", handler.SetProfile)
 		api.POST("/userProfile/setRecommendCard", handler.SetRecommendCard)
 		api.POST("/gdpr/updateConsentState", handler.UpdateConsentState)
+		api.POST("/member/openMemberLovePanel", handler.OpenMemberLovePanel)
 	}
 }

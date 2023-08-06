@@ -86,19 +86,12 @@ func GradeUpCard(ctx *gin.Context) {
 	currentBondLevel += klab.CardRarityFromCardMasterID(req.CardMasterID) / 10
 	memberInfo.LovePointLimit = klab.BondRequiredTotal(currentBondLevel)
 	session.UpdateUserCard(userCard)
+	memberInfo.IsNew = true  // setting this will make the game update the bond level
 	session.UpdateMember(memberInfo)
 
 	// we need to set user_info_trigger_card_grade_up_by_trigger_id
 	// for the pop up after limit breaking
 
-	type Trigger struct {
-		TriggerId            int64 `json:"trigger_id"`
-		CardMasterId         int   `json:"card_master_id"`
-		BeforeLoveLevelLimit int   `json:"before_love_level_limit"`
-		AfterLoveLevelLimit  int   `json:"after_love_level_limit"`
-	}
-
-	trigger := Trigger{}
 	// this trigger show the pop up after limit break
 
 	// TODO: we load the card again, the animation will be played again
@@ -106,12 +99,15 @@ func GradeUpCard(ctx *gin.Context) {
 	// the first 10 digit is certainly the time stamp in unix second
 	// after that there's 9 digit, but it's unclear what they actually mean.
 	// could be that it's just a time stamp is unix nanosecond, and something else control how the pop-up behave
-	trigger.TriggerId = ClientTimeStamp * 1000000
-	trigger.CardMasterId = userCard.CardMasterID
-	trigger.BeforeLoveLevelLimit = currentBondLevel - klab.CardRarityFromCardMasterID(req.CardMasterID)/10
-	trigger.AfterLoveLevelLimit = currentBondLevel
+	// the game seems to have problem clearing triggers of all kind, even after infoTrigger/...
+	// either the client is botched, or there's some sort of checksum in infoTrigger
 
-	session.AddCardGradeUpTrigger(trigger.TriggerId, trigger)
+
+	session.AddTriggerCardGradeUp(&model.TriggerCardGradeUp{
+		TriggerID: 0,
+		CardMasterID: userCard.CardMasterID,
+		BeforeLoveLevelLimit: currentBondLevel - klab.CardRarityFromCardMasterID(req.CardMasterID)/10,
+		AfterLoveLevelLimit: currentBondLevel})
 
 	resp := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)

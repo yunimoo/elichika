@@ -4,6 +4,7 @@ package klab
 
 // this file mainly extract info from ids
 // all functions verified in masterdata.db using SQL
+// only avaiable for commonly used conversion
 
 func DefaultSuitMasterIDFromMemberMasterID(memberMasterID int) int {
 	// SELECT * FROM m_member_init WHERE suit_m_id != member_m_id * 10000 + 100001001; -> 0
