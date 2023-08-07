@@ -7,10 +7,10 @@ import (
 	"elichika/utils"
 
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
-	"fmt"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -93,7 +93,7 @@ func GetPartyInfoByRoleIds(roleIds []int) (partyIcon int, partyName string) {
 				continue
 			}
 			exists, err := MainEng.Table("m_live_party_name").
-				Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[i], roleIds[j], roleIds[3 - i - j]).
+				Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[i], roleIds[j], roleIds[3-i-j]).
 				Cols("name,live_party_icon").Get(&partyName, &partyIcon)
 			CheckErr(err)
 			if exists {

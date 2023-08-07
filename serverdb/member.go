@@ -1,9 +1,9 @@
 package serverdb
 
 import (
+	"elichika/enum"
 	"elichika/klab"
 	"elichika/model"
-	"elichika/enum"
 
 	"fmt"
 	"xorm.io/xorm"
@@ -61,7 +61,6 @@ func (session *Session) FinalizeUserMemberDiffs() []any {
 	return userMemberByMemberID
 }
 
-
 func (session *Session) AddLovePoint(memberID, point int) {
 	member := session.GetMember(memberID)
 	member.LovePoint += point * 1000
@@ -89,8 +88,8 @@ func (session *Session) AddLovePoint(memberID, point int) {
 		currentLovePanel := session.GetMemberLovePanel(memberID)
 		if (currentLovePanel.LovePanelLevel < latestLovePanelLevel) && (len(currentLovePanel.LovePanelLastLevelCellIDs) == 5) {
 			currentLovePanel.LevelUp()
-			session.AddTriggerBasic(&model.TriggerBasic{
-				TriggerID:       0, // filled by session
+			session.AddTriggerBasic(0, &model.TriggerBasic{
+				TriggerID:       0,
 				InfoTriggerType: enum.InfoTriggerTypeUnlockBondBoard,
 				LimitAt:         nil,
 				Description:     nil,

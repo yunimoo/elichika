@@ -2,9 +2,7 @@ package serverdb
 
 import (
 	"elichika/model"
-
 	// "fmt"
-
 )
 
 func (session *Session) GetAllMemberLovePanels() []model.UserMemberLovePanel {

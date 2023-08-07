@@ -9,8 +9,10 @@ import (
 // card grade up trigger is responsible for showing the pop-up animation when openning a card after getting a new copy
 // or right after performing a limit break using items
 
-func (session *Session) AddTriggerCardGradeUp(trigger *model.TriggerCardGradeUp) {
-	id := time.Now().UnixNano()
+func (session *Session) AddTriggerCardGradeUp(id int64, trigger *model.TriggerCardGradeUp) {
+	if id == 0 {
+		id = time.Now().UnixNano()
+	}
 	if trigger != nil {
 		trigger.TriggerID = id
 	}
@@ -18,8 +20,10 @@ func (session *Session) AddTriggerCardGradeUp(trigger *model.TriggerCardGradeUp)
 	session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, trigger)
 }
 
-func (session *Session) AddTriggerBasic(trigger *model.TriggerBasic) {
-	id := time.Now().UnixNano()
+func (session *Session) AddTriggerBasic(id int64, trigger *model.TriggerBasic) {
+	if id == 0 {
+		id = time.Now().UnixNano()
+	}
 	if trigger != nil {
 		trigger.TriggerID = id
 	}

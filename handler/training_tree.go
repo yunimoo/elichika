@@ -102,7 +102,7 @@ func GradeUpCard(ctx *gin.Context) {
 	// the game seems to have problem clearing triggers of all kind, even after infoTrigger/...
 	// either the client is botched, or there's some sort of checksum in infoTrigger
 
-	session.AddTriggerCardGradeUp(&model.TriggerCardGradeUp{
+	session.AddTriggerCardGradeUp(0, &model.TriggerCardGradeUp{
 		TriggerID:            0,
 		CardMasterID:         userCard.CardMasterID,
 		BeforeLoveLevelLimit: currentBondLevel - klab.CardRarityFromCardMasterID(req.CardMasterID)/10,

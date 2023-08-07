@@ -21,7 +21,7 @@ func TriggerReadCardGradeUp(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session.AddTriggerCardGradeUp(nil)
+	session.AddTriggerCardGradeUp(req.TriggerID, nil)
 	resp := session.Finalize(GetData("userModel.json"), "user_model")
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
@@ -37,7 +37,7 @@ func TriggerRead(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session.AddTriggerBasic(nil)
+	session.AddTriggerBasic(req.TriggerID, nil)
 	resp := session.Finalize(GetData("userModel.json"), "user_model")
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
