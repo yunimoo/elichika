@@ -8,6 +8,7 @@ import (
 
 	"encoding/json"
 	// "fmt"
+	"time"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -94,14 +95,6 @@ func GradeUpCard(ctx *gin.Context) {
 
 	// this trigger show the pop up after limit break
 
-	// TODO: we load the card again, the animation will be played again
-	// this has something to do with the state of the game, as restarting fix this
-	// the first 10 digit is certainly the time stamp in unix second
-	// after that there's 9 digit, but it's unclear what they actually mean.
-	// could be that it's just a time stamp is unix nanosecond, and something else control how the pop-up behave
-	// the game seems to have problem clearing triggers of all kind, even after infoTrigger/...
-	// either the client is botched, or there's some sort of checksum in infoTrigger
-
 	session.AddTriggerCardGradeUp(0, &model.TriggerCardGradeUp{
 		TriggerID:            0,
 		CardMasterID:         userCard.CardMasterID,
@@ -152,7 +145,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		TrainingContentNo    int // the content of the cell
 		// RequiredGrade int // the limit break required, no need to read this here
 		TrainingTreeCellItemSetMID int `xorm:"'training_tree_cell_item_set_m_id'"` // the set of items used to unlock this cell
-		// SnsCoin int // always 1, maybe we have could earned gem by unlocking cell?
+		// SnsCoin int // always 1, consume exp
 	}
 
 	cellContents := []TrainingTreeCellContent{}
@@ -236,13 +229,14 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
 	unlockedCells := []model.TrainingTreeCell{}
+	timeStamp := time.Now().Unix()
 	for _, cellID := range req.CellMasterIDs {
 		unlockedCells = append(unlockedCells,
 			model.TrainingTreeCell{
 				UserID:       UserID,
 				CardMasterID: req.CardMasterID,
 				CellID:       cellID,
-				ActivatedAt:  ClientTimeStamp})
+				ActivatedAt:  timeStamp})
 	}
 
 	session.InsertTrainingCells(&unlockedCells)

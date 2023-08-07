@@ -28,7 +28,6 @@ var (
 	userDataPath   = "assets/userdata/"
 
 	UserID          int
-	ClientTimeStamp int64
 )
 
 func init() {
