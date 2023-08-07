@@ -28,7 +28,7 @@ func ExecuteLesson(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	deckBytes, _ := json.Marshal(session.GetLessonDeck(req.SelectedDeckID))
 	deckInfo := string(deckBytes)
 	var actionList []model.LessonMenuAction
@@ -64,7 +64,7 @@ func ExecuteLesson(ctx *gin.Context) {
 }
 
 func ResultLesson(ctx *gin.Context) {
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	signBody := session.Finalize(GetData("resultLesson.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "selected_deck_id", session.UserStatus.MainLessonDeckID)
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
@@ -80,7 +80,7 @@ func SkillEditResult(ctx *gin.Context) {
 
 	req := gjson.Parse(reqBody).Array()[0]
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	skillList := req.Get("selected_skill_ids")
 	skillList.ForEach(func(key, cardId gjson.Result) bool {
 		if key.Int()%2 == 0 {
@@ -120,7 +120,7 @@ func SaveDeckLesson(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	userLessonDeck := session.GetLessonDeck(req.DeckID)
 	deckByte, _ := json.Marshal(userLessonDeck)
 	deckInfo := string(deckByte)

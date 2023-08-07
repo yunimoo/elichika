@@ -16,7 +16,7 @@ import (
 func UpdateCardNewFlag(ctx *gin.Context) {
 	// reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	// fmt.Println(reqBody.String())
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
 	signBody := session.Finalize(GetData("updateCardNewFlag.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
@@ -33,7 +33,7 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsAwakeningImage = req.IsAwakeningImage
 	session.UpdateUserCard(userCard)
@@ -54,7 +54,7 @@ func ChangeFavorite(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsFavorite = req.IsFavorite
 	session.UpdateUserCard(userCard)

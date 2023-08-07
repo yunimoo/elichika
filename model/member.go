@@ -34,13 +34,36 @@ type MemberPublicInfo struct {
 	AllTrainingCardCount int `json:"all_training_activated_card_count"`
 }
 
-// Bond board tile
+// Bond board (Love Panel)
 type UserMemberLovePanel struct {
-	UserID                 int   `xorm:"pk 'user_id'" json:"-"`
-	MemberID               int   `xorm:"pk 'member_master_id'" json:"member_id"`
-	MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids'" json:"member_love_panel_cell_ids"` // level * 10000 + tile_id * 1000 + member_id
-	// can store user_id, member_id, level * 32 + 5bits instead
-	//but we store all the cell for now
+	// love panel level = m_member_love_panel[id] / 1000
+	// SELECT * FROM m_member_love_panel_cell WHERE id != (member_love_panel_master_id / 1000 - 1) * 10000 + (panel_index + 1) * 1000 + (member_love_panel_master_id % 1000); -> 0
+	UserID                    int   `xorm:"pk <- 'user_id'" json:"-"`
+	MemberID                  int   `xorm:"pk <- 'member_master_id'" json:"member_id"` // member_love_panel_master_id % 1000
+	MemberLovePanelCellIDs    []int `xorm:"-" json:"member_love_panel_cell_ids"`
+	LovePanelLevel            int   `json:"-"` // member_love_panel_master_id / 1000
+	LovePanelLastLevelCellIDs []int `xorm:"'love_panel_last_level_cell_ids'" json:"-"`
+	// there is no ambiguous representation
+	// - When the last level is filled, if there is a next level then LovePanelLevel is increased, and LovePanelLastLevelCellIDs is cleared
+	// - otherwise, LovePanelLevel stay the same, and LovePanelLastLevelCellIDs has 5 tiles.
+}
+
+func (x *UserMemberLovePanel) Fill() {
+	x.MemberLovePanelCellIDs = []int{} // [] instead of null
+	for l := 1; l < x.LovePanelLevel; l++ {
+		for cell := 1000; cell <= 5000; cell += 1000 {
+			x.MemberLovePanelCellIDs = append(x.MemberLovePanelCellIDs, (l-1)*10000+cell+x.MemberID)
+		}
+	}
+	x.MemberLovePanelCellIDs = append(x.MemberLovePanelCellIDs, x.LovePanelLastLevelCellIDs...)
+}
+
+func (x *UserMemberLovePanel) LevelUp() {
+	if len(x.LovePanelLastLevelCellIDs) != 5 {
+		panic("incorrect level up")
+	}
+	x.LovePanelLastLevelCellIDs = []int{}
+	x.LovePanelLevel++
 }
 
 // SuitInfo ...

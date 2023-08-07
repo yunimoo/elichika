@@ -50,8 +50,9 @@ func InitTables() bool {
 	isNew = InitTable("s_user_training_tree_cell", model.TrainingTreeCell{}) || isNew
 
 	type DbMembers struct {
-		model.UserMemberInfo   `xorm:"extends"`
-		MemberLovePanelCellIDs []int `xorm:"'member_love_panel_cell_ids' default '[]'"`
+		model.UserMemberInfo      `xorm:"extends"`
+		LovePanelLevel            int   `xorm:"'love_panel_level' default 1"`
+		LovePanelLastLevelCellIds []int `xorm:"'love_panel_last_level_cell_ids' default '[]'"`
 	}
 	isNew = InitTable("s_user_member", DbMembers{}) || isNew
 

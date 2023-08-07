@@ -176,11 +176,3 @@ func GetMemberInfo(memberMasterId int) (memberInfo model.UserMemberInfo) {
 	}
 	return
 }
-
-func GetMasterdataDb() *xorm.Engine {
-	if IsGlobal {
-		return config.MasterdataEngGl
-	} else {
-		return config.MasterdataEngJp
-	}
-}

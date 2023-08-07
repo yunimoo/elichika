@@ -94,7 +94,7 @@ func Login(ctx *gin.Context) {
 	newKey64 := base64.StdEncoding.EncodeToString(newKey)
 	// fmt.Println("Session Key:", newKey64)
 	serverdb.InitDb(IsGlobal)
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	session.UserStatus.LastLoginAt = time.Now().Unix()
 
 	loginBody := session.Finalize(GetData("login.json"), "user_model")

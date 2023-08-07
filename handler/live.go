@@ -38,7 +38,7 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "weekday_state.weekday", weekday)
 	signBody, _ = sjson.Set(signBody, "weekday_state.next_weekday_at", tomorrow)
 	signBody, _ = sjson.Set(signBody, "live_daily_list", liveDailyList)
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	signBody = session.Finalize(signBody, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -59,6 +59,9 @@ func FetchLivePartners(ctx *gin.Context) {
 		partner.IsFriend = true
 		serverdb.FetchDBProfile(partnerID, &partner)
 		partnerCards := serverdb.FetchPartnerCards(partnerID) // model.UserCard
+		if len(partnerCards) == 0 {
+			continue
+		}
 		for _, card := range partnerCards {
 			for i := 1; i <= 7; i++ {
 				if (card.LivePartnerCategories & (1 << i)) != 0 {
@@ -75,6 +78,7 @@ func FetchLivePartners(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "partner_select_state.live_partners", livePartners)
 	signBody, _ = sjson.Set(signBody, "partner_select_state.friend_count", len(livePartners))
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -86,7 +90,7 @@ func LiveStart(ctx *gin.Context) {
 	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
 		panic(err)
 	}
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
 	session.UserStatus.LastLiveDifficultyID = req.LiveDifficultyID
 	session.UserStatus.LatestLiveDeckID = req.DeckID
@@ -154,7 +158,7 @@ func LiveFinish(ctx *gin.Context) {
 		return true
 	})
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
 	mvpInfo := model.MvpInfo{
 		CardMasterID:        cardMasterId,

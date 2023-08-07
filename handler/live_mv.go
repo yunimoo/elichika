@@ -2,6 +2,7 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
 	"elichika/model"
 	"elichika/serverdb"
 
@@ -15,7 +16,7 @@ import (
 )
 
 func LiveMvStart(ctx *gin.Context) {
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	signBody := session.Finalize(GetData("liveMvStart.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -61,13 +62,13 @@ func LiveMvSaveDeck(ctx *gin.Context) {
 	}
 	err = json.Unmarshal([]byte(deckJson), &userLiveMvDeckInfo)
 	CheckErr(err)
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	for k, _ := range req.ViewStatusByPos {
 		if k%2 == 0 {
 			memberID := req.MemberMasterIDByPos[k+1]
 			// Rina-chan board toggle
-			if memberID == 209 {
-				RinaChan := session.GetMember(209)
+			if memberID == enum.MemberMasterIDRina {
+				RinaChan := session.GetMember(enum.MemberMasterIDRina)
 				RinaChan.ViewStatus = req.ViewStatusByPos[k+1]
 				session.UpdateMember(RinaChan)
 			}

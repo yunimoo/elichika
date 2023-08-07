@@ -2,6 +2,7 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
 	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
@@ -27,31 +28,30 @@ func OpenMemberLovePanel(ctx *gin.Context) {
 	req := OpenMemberLovePanelReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
 	CheckErr(err)
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	panel := session.GetMemberLovePanel(req.MemberID)
-	panel.MemberLovePanelCellIDs = append(panel.MemberLovePanelCellIDs, req.MemberLovePanelCellIDs...)
-	session.UpdateMemberLovePanel(panel)
+
+	panel.LovePanelLastLevelCellIDs = append(panel.LovePanelLastLevelCellIDs, req.MemberLovePanelCellIDs...)
 
 	// if is full panel, then we have to send a basic info trigger to actually open up the next panel
 	// we actually have to check for bond level, otherwise it freeze
 	// this mean we also have to implement opening board when bond level catch up too
-	n := len(panel.MemberLovePanelCellIDs)
-	if n >= 5 {
-		tier := panel.MemberLovePanelCellIDs[n-1]/10000 + 1
-		if tier == panel.MemberLovePanelCellIDs[n-5]/10000+1 {
-			member := session.GetMember(panel.MemberID)
-			maxTier := klab.MaxLovePanelTierFromLoveLevel(member.LoveLevel)
-			if tier < maxTier {
-				// unlock the next board
-				session.AddTriggerBasic(&model.TriggerBasic{
-					TriggerID:       0, // filled by session
-					InfoTriggerType: 28,
-					LimitAt:         nil,
-					Description:     nil,
-					ParamInt:        (tier+1)*1000 + panel.MemberID})
-			}
+	if len(panel.LovePanelLastLevelCellIDs) == 5 {
+		member := session.GetMember(panel.MemberID)
+		maxPanelLevel := klab.MaxLovePanelLevelFromLoveLevel(member.LoveLevel)
+		fmt.Println(panel.LovePanelLevel, member.LoveLevel, maxPanelLevel)
+		if panel.LovePanelLevel < maxPanelLevel {
+			// unlock the next board
+			panel.LevelUp()
+			session.AddTriggerBasic(&model.TriggerBasic{
+				TriggerID:       0, // filled by session
+				InfoTriggerType: enum.InfoTriggerTypeUnlockBondBoard,
+				LimitAt:         nil,
+				Description:     nil,
+				ParamInt:        panel.LovePanelLevel*1000 + panel.MemberID})
 		}
 	}
+	session.UpdateMemberLovePanel(panel)
 
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)

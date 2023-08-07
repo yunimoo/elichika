@@ -2,12 +2,12 @@ package handler
 
 import (
 	"elichika/config"
-	"elichika/serverdb"
 	"elichika/model"
+	"elichika/serverdb"
 
 	"encoding/json"
 	"net/http"
-	"fmt"
+	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -15,7 +15,7 @@ import (
 
 func TriggerReadCardGradeUp(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	req := model.TriggerReadReq{}
 	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
 		panic(err)
@@ -31,7 +31,7 @@ func TriggerReadCardGradeUp(ctx *gin.Context) {
 
 func TriggerRead(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	req := model.TriggerReadReq{}
 	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
 		panic(err)

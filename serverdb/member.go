@@ -1,9 +1,12 @@
 package serverdb
 
 import (
+	"elichika/klab"
 	"elichika/model"
+	"elichika/enum"
 
 	"fmt"
+	"xorm.io/xorm"
 )
 
 func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
@@ -58,62 +61,45 @@ func (session *Session) FinalizeUserMemberDiffs() []any {
 	return userMemberByMemberID
 }
 
-func (session *Session) GetLovePanelCellIDs(memberID int) []int {
-	userMemberLovePanel := model.UserMemberLovePanel{}
-	userMemberLovePanel.MemberLovePanelCellIDs = make([]int, 0) // return empty if empty
-	exists, err := Engine.Table("s_user_member").
-		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberID).
-		Get(&userMemberLovePanel)
-	if err != nil {
-		panic(err)
-	}
-	if !exists {
-		panic("not exists")
-	}
-	return userMemberLovePanel.MemberLovePanelCellIDs
-}
 
-func (session *Session) GetAllMemberLovePanels() []model.UserMemberLovePanel {
-	lovePanels := []model.UserMemberLovePanel{}
-	err := Engine.Table("s_user_member").
-		Where("user_id = ?", session.UserStatus.UserID).Find(&lovePanels)
-	if err != nil {
-		panic(err)
+func (session *Session) AddLovePoint(memberID, point int) {
+	member := session.GetMember(memberID)
+	member.LovePoint += point * 1000
+	if member.LovePoint > member.LovePointLimit {
+		member.LovePoint = member.LovePointLimit
 	}
-	return lovePanels
-}
 
-func (session *Session) GetMemberLovePanel(memberMasterID int) model.UserMemberLovePanel {
-	panel, exists := session.UserMemberLovePanelDiffs[memberMasterID]
-	if exists {
-		return panel
-	}
-	exists, err := Engine.Table("s_user_member").
-		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).
-		Get(&panel)
-	if err != nil {
-		panic(err)
-	}
-	if !exists {
-		panic("doesn't exist")
-	}
-	return panel
-}
+	oldLoveLevel := member.LoveLevel
+	member.LoveLevel = klab.BondLevelFromBondValue(member.LovePoint)
+	// unlock bond stories, unlock bond board
+	if oldLoveLevel < member.LoveLevel {
+		db := session.Ctx.MustGet("masterdata.db").(*xorm.Engine)
 
-func (session *Session) UpdateMemberLovePanel(panel model.UserMemberLovePanel) {
-	session.UserMemberLovePanelDiffs[panel.MemberID] = panel
-}
-
-func (session *Session) FinalizeUpdateMemberLovePanelDiffs() []model.UserMemberLovePanel {
-	panels := []model.UserMemberLovePanel{}
-	for _, panel := range session.UserMemberLovePanelDiffs {
-		_, err := Engine.Table("s_user_member").
-			Where("user_id = ? AND member_master_id = ?", panel.UserID, panel.MemberID).
-			Update(panel)
+		rewards := []model.RewardByContent{}
+		err := db.Table("m_member_love_level_reward").Where("member_m_id = ? AND love_level > ? and love_level <= ?",
+			memberID, oldLoveLevel, member.LoveLevel).Find(&rewards)
 		if err != nil {
 			panic(err)
 		}
-		panels = append(panels, panel)
+		for i, _ := range rewards {
+			session.AddRewardContent(rewards[i])
+		}
+
+		latestLovePanelLevel := klab.MaxLovePanelLevelFromLoveLevel(member.LoveLevel)
+		currentLovePanel := session.GetMemberLovePanel(memberID)
+		if (currentLovePanel.LovePanelLevel < latestLovePanelLevel) && (len(currentLovePanel.LovePanelLastLevelCellIDs) == 5) {
+			currentLovePanel.LevelUp()
+			session.AddTriggerBasic(&model.TriggerBasic{
+				TriggerID:       0, // filled by session
+				InfoTriggerType: enum.InfoTriggerTypeUnlockBondBoard,
+				LimitAt:         nil,
+				Description:     nil,
+				ParamInt:        currentLovePanel.LovePanelLevel*1000 + currentLovePanel.MemberID})
+
+			session.UpdateMemberLovePanel(currentLovePanel)
+		}
+
 	}
-	return panels
+
+	session.UpdateMember(member)
 }

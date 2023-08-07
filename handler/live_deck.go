@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"elichika/config"
 	// "elichika/database"
+	"elichika/enum"
+	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
 
@@ -33,7 +35,7 @@ func SaveDeckAll(ctx *gin.Context) {
 	err := decoder.Decode(&req)
 	CheckErr(err)
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	deckInfo := session.GetUserLiveDeck(req.DeckID)
 
 	for i := 0; i < 9; i++ {
@@ -128,7 +130,7 @@ func SaveSuit(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	CheckErr(err)
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, err := json.Marshal(deck)
 	deckJson := string(deckJsonByte)
@@ -137,8 +139,8 @@ func SaveSuit(ctx *gin.Context) {
 	session.UpdateUserLiveDeck(deck)
 
 	// Rina-chan board toggle
-	if (req.SuitMasterID/10000)%1000 == 209 {
-		RinaChan := session.GetMember(209)
+	if klab.MemberMasterIDFromSuitMasterID(req.SuitMasterID) == enum.MemberMasterIDRina {
+		RinaChan := session.GetMember(enum.MemberMasterIDRina)
 		RinaChan.ViewStatus = req.ViewStatus
 		session.UpdateMember(RinaChan)
 	}
@@ -165,7 +167,7 @@ func SaveDeck(ctx *gin.Context) {
 	newCardMasterID := req.CardMasterIDs[1]
 	newSuitMasterID := newCardMasterID
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
 	// fetch the deck and parties affected
 	deck := session.GetUserLiveDeck(req.DeckID)

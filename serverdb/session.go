@@ -6,14 +6,19 @@ import (
 
 	// "encoding/json"
 	"fmt"
+
+	"github.com/gin-gonic/gin"
 	// "github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
 
 // A session is a complete transation between server and client
 // so 1 session per request
-// A session fetch the data needs to be modified.
+// A session fetch the data needs to be modified, and sometime modify the data if the code is shared between handlers.
+// session can use ctx to get things like user id / master db, but it should not make any network operation
+
 type Session struct {
+	Ctx                      *gin.Context
 	UserStatus               model.UserStatus
 	CardDiffs                map[int]model.UserCard
 	UserMemberDiffs          map[int]model.UserMemberInfo
@@ -38,7 +43,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs())
 
-	memberLovePanels := session.FinalizeUpdateMemberLovePanelDiffs()
+	memberLovePanels := session.FinalizeMemberLovePanelDiffs()
 	if len(memberLovePanels) != 0 {
 		jsonBody, _ = sjson.Set(jsonBody, "member_love_panels", memberLovePanels)
 	}
@@ -68,8 +73,9 @@ func (session *Session) FinalizeUserInfo() model.UserStatus {
 	return session.UserStatus
 }
 
-func GetSession(userId int) Session {
+func GetSession(ctx *gin.Context, userId int) Session {
 	s := Session{}
+	s.Ctx = ctx
 	s.CardDiffs = make(map[int]model.UserCard)
 	s.UserMemberDiffs = make(map[int]model.UserMemberInfo)
 	s.UserLessonDeckDiffs = make(map[int]model.UserLessonDeck)

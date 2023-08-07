@@ -23,7 +23,7 @@ func FetchProfile(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	profile := session.FetchProfile(req.UserID)
 
 	signBody, err := json.Marshal(profile)
@@ -40,7 +40,7 @@ func FetchProfile(ctx *gin.Context) {
 
 func SetProfile(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	// fmt.Println(reqBody)
 
 	req := gjson.Parse(reqBody).Array()[0]
@@ -62,7 +62,7 @@ func SetProfile(ctx *gin.Context) {
 func SetRecommendCard(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	// fmt.Println(reqBody)
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	cardMasterId := int(gjson.Parse(reqBody).Array()[0].Get("card_master_id").Int())
 	session.UserStatus.RecommendCardMasterID = cardMasterId
 
@@ -85,7 +85,7 @@ func SetLivePartner(ctx *gin.Context) {
 	}
 
 	// set the bit on the correct card
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	newCard := session.GetUserCard(req.CardMasterID)
 	newCard.LivePartnerCategories |= (1 << req.LivePartnerCategoryID)
 	session.UpdateUserCard(newCard)

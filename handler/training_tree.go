@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	// "xorm.io/xorm"
+	"xorm.io/xorm"
 )
 
 func FetchTrainingTree(ctx *gin.Context) {
@@ -31,7 +31,7 @@ func FetchTrainingTree(ctx *gin.Context) {
 	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
 		panic(err)
 	}
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	signBody := `"{}"`
 	signBody, _ = sjson.Set(signBody, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
@@ -40,7 +40,7 @@ func FetchTrainingTree(ctx *gin.Context) {
 }
 
 func LevelUpCard(ctx *gin.Context) {
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 
@@ -77,7 +77,7 @@ func GradeUpCard(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
 	userCard := session.GetUserCard(req.CardMasterID)
 	memberInfo := session.GetMember(GetMemberMasterIdByCardMasterId(req.CardMasterID))
@@ -86,7 +86,7 @@ func GradeUpCard(ctx *gin.Context) {
 	currentBondLevel += klab.CardRarityFromCardMasterID(req.CardMasterID) / 10
 	memberInfo.LovePointLimit = klab.BondRequiredTotal(currentBondLevel)
 	session.UpdateUserCard(userCard)
-	memberInfo.IsNew = true  // setting this will make the game update the bond level
+	memberInfo.IsNew = true // setting this will make the game update the bond level
 	session.UpdateMember(memberInfo)
 
 	// we need to set user_info_trigger_card_grade_up_by_trigger_id
@@ -102,12 +102,11 @@ func GradeUpCard(ctx *gin.Context) {
 	// the game seems to have problem clearing triggers of all kind, even after infoTrigger/...
 	// either the client is botched, or there's some sort of checksum in infoTrigger
 
-
 	session.AddTriggerCardGradeUp(&model.TriggerCardGradeUp{
-		TriggerID: 0,
-		CardMasterID: userCard.CardMasterID,
+		TriggerID:            0,
+		CardMasterID:         userCard.CardMasterID,
 		BeforeLoveLevelLimit: currentBondLevel - klab.CardRarityFromCardMasterID(req.CardMasterID)/10,
-		AfterLoveLevelLimit: currentBondLevel})
+		AfterLoveLevelLimit:  currentBondLevel})
 
 	resp := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
@@ -128,9 +127,9 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 		panic(err)
 	}
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
-	db := GetMasterdataDb()
+	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 
 	type TrainingTreeMapping struct {
 		// ID int  // card master id

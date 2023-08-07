@@ -202,7 +202,7 @@ func (session *Session) InsertAccount(members []model.UserMemberInfo,
 func ImportFromJson() {
 	fmt.Println("Importing account data from json")
 	CreateNewUser()
-	session := GetSession(UserID)
+	session := GetSession(nil, UserID)
 
 	// member data
 	members := LoadMemberFromJson()
@@ -251,7 +251,7 @@ func ImportMinimalAccount() {
 	// - all members have bond level 1 (no bond)
 	fmt.Println("Creating minimal data from json")
 	CreateNewUser()
-	session := GetSession(UserID)
+	session := GetSession(nil, UserID)
 
 	// member data
 	members := LoadMemberFromJson()

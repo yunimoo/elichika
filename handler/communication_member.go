@@ -25,7 +25,7 @@ func FetchCommunicationMemberDetail(ctx *gin.Context) {
 		return true
 	})
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	lovePanelCellIds := session.GetLovePanelCellIDs(memberId)
 
 	now := time.Now()
@@ -89,7 +89,7 @@ func UpdateUserLiveDifficultyNewFlag(ctx *gin.Context) {
 
 func FinishUserStorySide(ctx *gin.Context) {
 	// need to award items / mark as read
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	signBody := session.Finalize(GetData("finishUserStorySide.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -99,7 +99,7 @@ func FinishUserStorySide(ctx *gin.Context) {
 
 func FinishUserStoryMember(ctx *gin.Context) {
 	// need to award items / mark as read
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	signBody := session.Finalize(GetData("finishUserStoryMember.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -111,7 +111,7 @@ func SetTheme(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	// fmt.Println(reqBody)
 
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 
 	var memberMasterID, suitMasterID, backgroundMasterID int
 	gjson.Parse(reqBody).ForEach(func(key, value gjson.Result) bool {
@@ -145,7 +145,7 @@ func SetTheme(ctx *gin.Context) {
 
 func SetFavoriteMember(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	session.UserStatus.FavoriteMemberID = int(gjson.Parse(reqBody).Array()[0].Get("member_master_id").Int())
 	signBody := session.Finalize(GetData("setFavoriteMember.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)

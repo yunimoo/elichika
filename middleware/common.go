@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"elichika/config"
 	"elichika/handler"
 
 	"io"
@@ -19,18 +20,18 @@ func Common(ctx *gin.Context) {
 
 	lang, _ := ctx.GetQuery("l")
 	if lang == "" {
+		ctx.Set("masterdata.db", config.MasterdataEngJp)
 		handler.IsGlobal = false
 		handler.MasterVersion = "b66ec2295e9a00aa"
 		handler.StartUpKey = "5f7IZY1QrAX0D49g"
 	} else {
+		ctx.Set("masterdata.db", config.MasterdataEngGl)
 		handler.IsGlobal = true
 		handler.MasterVersion = "2d61e7b4e89961c7"
 		handler.StartUpKey = "TxQFwgNcKDlesb93"
 	}
 
 	handler.UserID, _ = strconv.Atoi(ctx.Query("u"))
-	handler.ClientTimeStamp, _ = strconv.ParseInt(ctx.Query("t"), 10, 64)
-	handler.ClientTimeStamp /= 1000
 
 	ctx.Set("ep", ctx.Request.URL.String())
 

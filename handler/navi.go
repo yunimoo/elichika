@@ -2,7 +2,6 @@ package handler
 
 import (
 	"elichika/config"
-	"elichika/klab"
 	"elichika/serverdb"
 
 	"encoding/json"
@@ -15,7 +14,7 @@ import (
 )
 
 func SaveUserNaviVoice(ctx *gin.Context) {
-	session := serverdb.GetSession(UserID)
+	session := serverdb.GetSession(ctx, UserID)
 	signBody := session.Finalize(GetData("saveUserNaviVoice.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -33,15 +32,8 @@ func TapLovePoint(ctx *gin.Context) {
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
-	session := serverdb.GetSession(UserID)
-	member := session.GetMember(req.MemberMasterID)
-	member.LovePoint += 20 * 10000
-	if member.LovePoint > member.LovePointLimit {
-		member.LovePoint = member.LovePointLimit
-	}
-	member.LoveLevel = klab.BondLevelFromBondValue(member.LovePoint)
-	session.UpdateMember(member)
-
+	session := serverdb.GetSession(ctx, UserID)
+	session.AddLovePoint(req.MemberMasterID, 20)
 	signBody := session.Finalize(GetData("saveUserNaviVoice.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")

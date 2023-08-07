@@ -4,7 +4,7 @@ var (
 	LoveLevelRequiredForLovePanel = []int{0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400, 9999, 9999}
 )
 
-func MaxLovePanelTierFromLoveLevel(loveLevel int) int {
+func MaxLovePanelLevelFromLoveLevel(loveLevel int) int {
 	for i, v := range LoveLevelRequiredForLovePanel {
 		if v > loveLevel {
 			return i - 1
