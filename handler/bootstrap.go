@@ -5,7 +5,6 @@ import (
 	"elichika/serverdb"
 
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,7 +20,7 @@ func FetchBootstrap(ctx *gin.Context) {
 		DeviceToken         string `json:"device_token"`
 		DeviceName          string `json:"device_name"`
 	}
-	fmt.Println(reqBody)
+	// fmt.Println(reqBody)
 	req := BootstrapReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
@@ -35,7 +34,7 @@ func FetchBootstrap(ctx *gin.Context) {
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
-	fmt.Println(resp)
+	// fmt.Println(resp)
 }
 
 func GetClearedPlatformAchievement(ctx *gin.Context) {

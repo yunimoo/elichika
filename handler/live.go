@@ -78,7 +78,7 @@ func FetchLivePartners(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "partner_select_state.live_partners", livePartners)
 	signBody, _ = sjson.Set(signBody, "partner_select_state.friend_count", len(livePartners))
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-	fmt.Println(resp)
+	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

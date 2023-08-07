@@ -5,11 +5,12 @@ import (
 	"elichika/encrypt"
 	"elichika/model"
 	"elichika/utils"
+
 	"encoding/json"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"fmt"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -51,18 +52,6 @@ func SignResp(ep, body, key string) (resp string) {
 	return
 }
 
-// func GetUserStatus() map[string]any {
-// 	userData := GetUserData("userStatus.json")
-// 	var r map[string]any
-// 	if err := json.Unmarshal([]byte(userData), &r); err != nil {
-// 		panic(err)
-// 	}
-// 	if IsGlobal {
-// 		r["gdpr_version"] = 4
-// 	}
-// 	return r
-// }
-
 func GetData(fileName string) string {
 	presetDataFile := presetDataPath + fileName
 	if !utils.PathExists(presetDataFile) {
@@ -98,43 +87,21 @@ func GetUserAccessoryData() string {
 
 func GetPartyInfoByRoleIds(roleIds []int) (partyIcon int, partyName string) {
 	// 脑残逻辑部分
-	exists, err := MainEng.Table("m_live_party_name").
-		Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[0], roleIds[1], roleIds[2]).
-		Cols("name,live_party_icon").Get(&partyName, &partyIcon)
-	CheckErr(err)
-	if !exists {
-		exists, err = MainEng.Table("m_live_party_name").
-			Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[0], roleIds[2], roleIds[1]).
-			Cols("name,live_party_icon").Get(&partyName, &partyIcon)
-		CheckErr(err)
-		if !exists {
-			exists, err = MainEng.Table("m_live_party_name").
-				Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[1], roleIds[0], roleIds[2]).
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			if i == j {
+				continue
+			}
+			exists, err := MainEng.Table("m_live_party_name").
+				Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[i], roleIds[j], roleIds[3 - i - j]).
 				Cols("name,live_party_icon").Get(&partyName, &partyIcon)
 			CheckErr(err)
-			if !exists {
-				exists, err = MainEng.Table("m_live_party_name").
-					Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[1], roleIds[2], roleIds[0]).
-					Cols("name,live_party_icon").Get(&partyName, &partyIcon)
-				CheckErr(err)
-				if !exists {
-					exists, err = MainEng.Table("m_live_party_name").
-						Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[2], roleIds[0], roleIds[1]).
-						Cols("name,live_party_icon").Get(&partyName, &partyIcon)
-					CheckErr(err)
-					if !exists {
-						exists, err = MainEng.Table("m_live_party_name").
-							Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[2], roleIds[1], roleIds[0]).
-							Cols("name,live_party_icon").Get(&partyName, &partyIcon)
-						CheckErr(err)
-						if !exists {
-							panic("Fuck you!")
-						}
-					}
-				}
+			if exists {
+				return
 			}
 		}
 	}
+	panic("not found")
 	return
 }
 

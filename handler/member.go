@@ -9,9 +9,6 @@ import (
 
 	"encoding/json"
 	"net/http"
-	// "time"
-
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -34,14 +31,12 @@ func OpenMemberLovePanel(ctx *gin.Context) {
 	panel.LovePanelLastLevelCellIDs = append(panel.LovePanelLastLevelCellIDs, req.MemberLovePanelCellIDs...)
 
 	// if is full panel, then we have to send a basic info trigger to actually open up the next panel
-	// we actually have to check for bond level, otherwise it freeze
-	// this mean we also have to implement opening board when bond level catch up too
 	if len(panel.LovePanelLastLevelCellIDs) == 5 {
 		member := session.GetMember(panel.MemberID)
 		maxPanelLevel := klab.MaxLovePanelLevelFromLoveLevel(member.LoveLevel)
-		fmt.Println(panel.LovePanelLevel, member.LoveLevel, maxPanelLevel)
 		if panel.LovePanelLevel < maxPanelLevel {
-			// unlock the next board
+			// unlock the next board if available
+			// otherwise it will be unlocked when bond level reach the value
 			panel.LevelUp()
 			session.AddTriggerBasic(&model.TriggerBasic{
 				TriggerID:       0, // filled by session
