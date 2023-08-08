@@ -20,6 +20,17 @@ func (session *Session) GetUserLiveParty(partyID int) model.UserLiveParty {
 	return liveParty
 }
 
+func (session *Session) GetUserLivePartiesWithDeckID(deckID int) []model.UserLiveParty {
+	liveParties := []model.UserLiveParty{}
+	err := Engine.Table("s_user_live_party").
+		Where("user_id = ? AND user_live_deck_id = ?", session.UserStatus.UserID, deckID).
+		OrderBy("party_id").Find(&liveParties)
+	if err != nil {
+		panic(err)
+	}
+	return liveParties
+}
+
 func (session *Session) GetUserLivePartyWithDeckAndCardID(deckID int, cardID int) model.UserLiveParty {
 	liveParty := model.UserLiveParty{}
 	exists, err := Engine.Table("s_user_live_party").

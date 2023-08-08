@@ -8,8 +8,8 @@ import (
 
 	"encoding/json"
 	// "fmt"
-	"time"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -87,7 +87,7 @@ func GradeUpCard(ctx *gin.Context) {
 	currentBondLevel += klab.CardRarityFromCardMasterID(req.CardMasterID) / 10
 	memberInfo.LovePointLimit = klab.BondRequiredTotal(currentBondLevel)
 	session.UpdateUserCard(userCard)
-	memberInfo.IsNew = true // setting this will make the game update the bond level
+	memberInfo.IsNew = true // setting this will make the game update the bond level, not sure where to set it to false
 	session.UpdateMember(memberInfo)
 
 	// we need to set user_info_trigger_card_grade_up_by_trigger_id

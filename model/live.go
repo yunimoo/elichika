@@ -51,8 +51,8 @@ type PartyName struct {
 
 // DeckSquadDict ...
 type DeckSquadDict struct {
-	CardMasterIds    []int    `json:"card_master_ids"`
-	UserAccessoryIds []*int64 `json:"user_accessory_ids"`
+	CardMasterIDs    []int    `json:"card_master_ids"`
+	UserAccessoryIDs []*int64 `json:"user_accessory_ids"`
 }
 
 // LiveDaily ...

@@ -78,7 +78,7 @@ func SaveDeckAll(ctx *gin.Context) {
 
 			roleIds := []int{}
 			err = MainEng.Table("m_card").
-				Where("id IN (?,?,?)", dictInfo.CardMasterIds[0], dictInfo.CardMasterIds[1], dictInfo.CardMasterIds[2]).
+				Where("id IN (?,?,?)", dictInfo.CardMasterIDs[0], dictInfo.CardMasterIDs[1], dictInfo.CardMasterIDs[2]).
 				Cols("role").Find(&roleIds)
 			CheckErr(err)
 			// fmt.Println("roleIds:", roleIds)
@@ -90,12 +90,12 @@ func SaveDeckAll(ctx *gin.Context) {
 			partyInfo.Name.DotUnderText = GetRealPartyName(partyName)
 			partyInfo.UserLiveDeckID = req.DeckID
 			partyInfo.IconMasterID = partyIcon
-			partyInfo.CardMasterID1 = dictInfo.CardMasterIds[0]
-			partyInfo.CardMasterID2 = dictInfo.CardMasterIds[1]
-			partyInfo.CardMasterID3 = dictInfo.CardMasterIds[2]
-			partyInfo.UserAccessoryID1 = dictInfo.UserAccessoryIds[0]
-			partyInfo.UserAccessoryID2 = dictInfo.UserAccessoryIds[1]
-			partyInfo.UserAccessoryID3 = dictInfo.UserAccessoryIds[2]
+			partyInfo.CardMasterID1 = dictInfo.CardMasterIDs[0]
+			partyInfo.CardMasterID2 = dictInfo.CardMasterIDs[1]
+			partyInfo.CardMasterID3 = dictInfo.CardMasterIDs[2]
+			partyInfo.UserAccessoryID1 = dictInfo.UserAccessoryIDs[0]
+			partyInfo.UserAccessoryID2 = dictInfo.UserAccessoryIDs[1]
+			partyInfo.UserAccessoryID3 = dictInfo.UserAccessoryIDs[2]
 			session.UpdateUserLiveParty(partyInfo)
 		}
 	}
@@ -109,7 +109,21 @@ func SaveDeckAll(ctx *gin.Context) {
 
 func FetchLiveDeckSelect(ctx *gin.Context) {
 	// return last deck for this song
-	signBody := GetData("fetchLiveDeckSelect.json")
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	type FetchLiveDeckSelectReq struct {
+		LiveDifficultyID int `json:"live_difficulty_id"`
+	}
+	req := FetchLiveDeckSelectReq{}
+	err := json.Unmarshal([]byte(reqBody), &req)
+	CheckErr(err)
+
+	session := serverdb.GetSession(ctx, UserID)
+	deck := session.GetLastPlayLiveDifficultyDeck(req.LiveDifficultyID)
+	signBody, err := sjson.Set("{}", "last_play_live_difficulty_deck", deck)
+	// signBody := GetData("fetchLiveDeckSelect.json")
+
+	// CheckErr(err)
+
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
