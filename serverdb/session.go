@@ -18,17 +18,18 @@ import (
 // session can use ctx to get things like user id / master db, but it should not make any network operation
 
 type Session struct {
-	Ctx                      *gin.Context
-	UserStatus               model.UserStatus
-	CardDiffs                map[int]model.UserCard
-	UserMemberDiffs          map[int]model.UserMemberInfo
-	UserLessonDeckDiffs      map[int]model.UserLessonDeck
-	UserLiveDeckDiffs        map[int]model.UserLiveDeck
-	UserLivePartyDiffs       map[int]model.UserLiveParty
-	UserMemberLovePanelDiffs map[int]model.UserMemberLovePanel
-	UserSuitDiffs            []model.UserSuit
-	TriggerCardGradeUps      []any
-	TriggerBasics            []any
+	Ctx                           *gin.Context
+	UserStatus                    model.UserStatus
+	CardDiffs                     map[int]model.UserCard
+	UserMemberDiffs               map[int]model.UserMemberInfo
+	UserLessonDeckDiffs           map[int]model.UserLessonDeck
+	UserLiveDeckDiffs             map[int]model.UserLiveDeck
+	UserLivePartyDiffs            map[int]model.UserLiveParty
+	UserMemberLovePanelDiffs      map[int]model.UserMemberLovePanel
+	UserLiveDifficultyRecordDiffs map[int]model.UserLiveDifficultyRecord
+	UserSuitDiffs                 []model.UserSuit
+	TriggerCardGradeUps           []any
+	TriggerBasics                 []any
 }
 
 // Push update into the db and create the diff
@@ -42,6 +43,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_deck_by_id", session.FinalizeUserLiveDeckDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_difficulty_by_difficulty_id", session.FinalizeLiveDifficultyRecords())
 
 	memberLovePanels := session.FinalizeMemberLovePanelDiffs()
 	if len(memberLovePanels) != 0 {
@@ -82,6 +84,7 @@ func GetSession(ctx *gin.Context, userId int) Session {
 	s.UserLiveDeckDiffs = make(map[int]model.UserLiveDeck)
 	s.UserLivePartyDiffs = make(map[int]model.UserLiveParty)
 	s.UserMemberLovePanelDiffs = make(map[int]model.UserMemberLovePanel)
+	s.UserLiveDifficultyRecordDiffs = make(map[int]model.UserLiveDifficultyRecord)
 	s.TriggerCardGradeUps = make([]any, 0)
 	s.TriggerBasics = make([]any, 0)
 	s.UserSuitDiffs = make([]model.UserSuit, 0)

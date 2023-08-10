@@ -62,12 +62,12 @@ func InitTables() bool {
 	isNew = InitTable("s_user_live_party", model.UserLiveParty{}) || isNew
 	isNew = InitTable("s_user_live_state", model.LiveState{}) || isNew
 	type DbLiveRecord struct {
-		model.LifeDifficultyRecord `xorm:"extends"`
-		Voltage                    int   `xorm:"'last_clear_voltage'" json:"voltage"`
-		IsCleared                  bool  `xorm:"'last_clear_is_cleared'" json:"is_cleared"`
-		RecordedAt                 int64 `xorm:"'last_clear_recorded_at'" json:"recorded_at"`
-		CardWithSuitDict           []int `xorm:"'last_clear_cards_and_suits'" json:"card_with_suit_dict"`
-		SquadDict                  []any `xorm:"'squad_dict'" json:"squad_dict"`
+		model.UserLiveDifficultyRecord `xorm:"extends"`
+		Voltage                        int   `xorm:"'last_clear_voltage'" json:"voltage"`
+		IsCleared                      bool  `xorm:"'last_clear_is_cleared'" json:"is_cleared"`
+		RecordedAt                     int64 `xorm:"'last_clear_recorded_at'" json:"recorded_at"`
+		CardWithSuitDict               []int `xorm:"'last_clear_cards_and_suits'" json:"card_with_suit_dict"`
+		SquadDict                      []any `xorm:"'squad_dict'" json:"squad_dict"`
 	}
 	isNew = InitTable("s_user_live_record", DbLiveRecord{}) || isNew
 	return isNew

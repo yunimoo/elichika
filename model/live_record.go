@@ -10,14 +10,14 @@ type LastPlayLiveDifficultyDeck struct {
 	SquadDict        []any `xorm:"'squad_dict'" json:"squad_dict"`
 }
 
-type LifeDifficultyRecord struct {
+type UserLiveDifficultyRecord struct {
 	UserID                        int  `xorm:"pk 'user_id'" json:"-"`
 	LiveDifficultyID              int  `xorm:"pk 'live_difficulty_id'" json:"live_difficulty_id"`
-	MaxScore                      int  `xorm:"'max_score'" json:"live_difficulty_id"`
-	MaxCombo                      int  `xorm:"'max_combo'" json:"live_difficulty_id"`
-	PlayCount                     int  `xorm:"'play_count'" json:""`  // live start count
-	ClearCount                    int  `xorm:"'clear_count'" json:""` // live finish and cleared
-	CancelCount                   int  `xorm:"-" json:"cancel_count"` // unused, always 0
+	MaxScore                      int  `xorm:"'max_score'" json:"max_score"`
+	MaxCombo                      int  `xorm:"'max_combo'" json:"max_combo"`
+	PlayCount                     int  `xorm:"'play_count'" json:"play_count"`   // live start count
+	ClearCount                    int  `xorm:"'clear_count'" json:"clear_count"` // live finish and cleared
+	CancelCount                   int  `xorm:"-" json:"cancel_count"`            // unused, always 0
 	NotClearedCount               int  `xorm:"-" json:"not_cleared_count"`
 	IsFullCombo                   bool `xorm:"-" json:"is_full_combo"`                                                     // isn't used, at least not when autoplay is used
 	ClearedDifficultyAchievement1 *int `xorm:"'cleared_difficulty_achievement_1'" json:"cleared_difficulty_achievement_1"` // 1 if cleared, null if not?

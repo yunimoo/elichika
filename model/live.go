@@ -138,10 +138,10 @@ type LiveResultAchievementStatus struct {
 
 // MvpInfo ...
 type MvpInfo struct {
-	CardMasterID        int64 `json:"card_master_id"`
-	GetVoltage          int64 `json:"get_voltage"`
-	SkillTriggeredCount int64 `json:"skill_triggered_count"`
-	AppealCount         int64 `json:"appeal_count"`
+	CardMasterID        int `json:"card_master_id"`
+	GetVoltage          int `json:"get_voltage"`
+	SkillTriggeredCount int `json:"skill_triggered_count"`
+	AppealCount         int `json:"appeal_count"`
 }
 
 // UserLiveMvDeckInfo ...

@@ -10,8 +10,8 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func (session *Session) GetLiveDifficultyRecord(liveDifficultyID int) model.LifeDifficultyRecord {
-	record := model.LifeDifficultyRecord{}
+func (session *Session) GetLiveDifficultyRecord(liveDifficultyID int) model.UserLiveDifficultyRecord {
+	record := model.UserLiveDifficultyRecord{}
 	exists, err := Engine.Table("s_user_live_record").
 		Where("user_id = ? AND live_difficulty_id = ?", session.UserStatus.UserID, liveDifficultyID).
 		Get(&record)
@@ -27,24 +27,43 @@ func (session *Session) GetLiveDifficultyRecord(liveDifficultyID int) model.Life
 	return record
 }
 
-
-func (session *Session) InsertOrUpdateLiveDifficultyRecord(record model.LifeDifficultyRecord)  {
-	inserted, err := Engine.Table("s_user_live_record").
-		Where("user_id = ? AND live_difficulty_id = ?", record.UserID, record.LiveDifficultyID).
-		AllCols().Update(&record)
+func (session *Session) GetAllLiveRecords() []model.UserLiveDifficultyRecord {
+	records := []model.UserLiveDifficultyRecord{}
+	err := Engine.Table("s_user_live_record").Where("user_id = ?", session.UserStatus.UserID).
+		Find(&records)
 	if err != nil {
 		panic(err)
 	}
+	return records
+}
 
-	if inserted == 0 { // need to insert
-		inserted, err = Engine.Table("s_user_live_record").Insert(record)
+func (session *Session) InsertOrUpdateLiveDifficultyRecord(record model.UserLiveDifficultyRecord) {
+	session.UserLiveDifficultyRecordDiffs[record.LiveDifficultyID] = record
+}
+
+func (session *Session) FinalizeLiveDifficultyRecords() []any {
+	diffs := []any{}
+	for _, record := range session.UserLiveDifficultyRecordDiffs {
+		diffs = append(diffs, record.LiveDifficultyID)
+		diffs = append(diffs, record)
+		inserted, err := Engine.Table("s_user_live_record").
+			Where("user_id = ? AND live_difficulty_id = ?", record.UserID, record.LiveDifficultyID).
+			AllCols().Update(&record)
 		if err != nil {
 			panic(err)
 		}
-		if inserted == 0 {
-			panic("failed to insert live record")
+
+		if inserted == 0 { // need to insert
+			inserted, err = Engine.Table("s_user_live_record").Insert(record)
+			if err != nil {
+				panic(err)
+			}
+			if inserted == 0 {
+				panic("failed to insert live record")
+			}
 		}
 	}
+	return diffs
 }
 
 func (session *Session) GetLastPlayLiveDifficultyDeck(liveDifficultyID int) *model.LastPlayLiveDifficultyDeck {

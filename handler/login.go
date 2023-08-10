@@ -195,6 +195,17 @@ func Login(ctx *gin.Context) {
 	CheckErr(err)
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", UserAccessory)
 
+	// song records
+	// if return empty, all the song are unlocked, except for bond episide unlocked song
+	dbLiveRecords := session.GetAllLiveRecords()
+	userLiveRecords := []any{}
+	for _, userLiveRecord := range dbLiveRecords {
+		userLiveRecords = append(userLiveRecords, userLiveRecord.LiveDifficultyID)
+		userLiveRecords = append(userLiveRecords, userLiveRecord)
+	}
+	loginBody, err = sjson.Set(loginBody, "user_model.user_live_difficulty_by_difficulty_id", userLiveRecords)
+	CheckErr(err)
+
 	/* ======== UserData ======== */
 	// fmt.Println(loginBody)
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
