@@ -41,11 +41,7 @@ func InitTables() bool {
 	isNew := false
 
 	isNew = InitTable("s_user_info", DbUser{})
-	type DbCard struct {
-		model.UserCard       `xorm:"extends"`
-		model.DBCardPlayInfo `xorm:"extends"`
-	}
-	isNew = InitTable("s_user_card", DbCard{}) || isNew
+	isNew = InitTable("s_user_card", model.UserCard{}) || isNew
 	isNew = InitTable("s_user_suit", model.UserSuit{}) || isNew
 	isNew = InitTable("s_user_training_tree_cell", model.TrainingTreeCell{}) || isNew
 

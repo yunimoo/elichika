@@ -63,7 +63,7 @@ func (session *Session) FinalizeUserMemberDiffs() []any {
 
 func (session *Session) AddLovePoint(memberID, point int) {
 	member := session.GetMember(memberID)
-	member.LovePoint += point * 1000
+	member.LovePoint += point
 	if member.LovePoint > member.LovePointLimit {
 		member.LovePoint = member.LovePointLimit
 	}

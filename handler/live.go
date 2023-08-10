@@ -3,6 +3,7 @@ package handler
 import (
 	"elichika/config"
 	"elichika/enum"
+	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
@@ -177,30 +178,14 @@ func LiveFinish(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	CheckErr(err)
 
-	var cardMasterId, maxVolt, skillCount, appealCount int
-	for i := 1; i <= 17; i += 2 {
-		cardStat := req.LiveScore.CardStatDict[i].(map[string]any)
-		if int(cardStat["got_voltage"].(float64)) > maxVolt {
-			maxVolt = int(cardStat["got_voltage"].(float64))
-			cardMasterId = int(cardStat["card_master_id"].(float64))
-			skillCount = int(cardStat["skill_triggered_count"].(float64))
-			appealCount = int(cardStat["appeal_count"].(float64))
-		}
-	}
-
-	session := serverdb.GetSession(ctx, UserID)
-
 	exists, liveState := serverdb.LoadLiveState(UserID)
 	if !exists {
 		panic("live doesn't exists")
 	}
 
-	mvpInfo := model.MvpInfo{
-		CardMasterID:        cardMasterId,
-		GetVoltage:          maxVolt,
-		SkillTriggeredCount: skillCount,
-		AppealCount:         appealCount,
-	}
+	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
+	session := serverdb.GetSession(ctx, UserID)
+
 	liveState.DeckID = session.UserStatus.LatestLiveDeckID
 	liveState.LiveStage.LiveDifficultyID = session.UserStatus.LastLiveDifficultyID
 
@@ -220,10 +205,10 @@ func LiveFinish(ctx *gin.Context) {
 			Reward      model.RewardByContent `xorm:"extends"`
 		}
 		missions := []LiveDifficultyMission{}
-		db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 
 		db.Table("m_live_difficulty_mission").Where("live_difficulty_master_id = ?", session.UserStatus.LastLiveDifficultyID).
 			Find(&missions)
+		// TODO: set live_result_achievements
 		for _, mission := range missions { // TODO: maybe work on JSON.
 			if (mission.TargetValue == 1) || (mission.TargetValue <= req.LiveScore.CurrentScore) {
 				if mission.Position == 1 {
@@ -248,12 +233,67 @@ func LiveFinish(ctx *gin.Context) {
 			}
 		}
 	}
+
+	mvpInfo := model.MvpInfo{
+		CardMasterID:        0,
+		GetVoltage:          -1,
+		SkillTriggeredCount: 0,
+		AppealCount:         0,
+	}
+
+	type RewardLovePoint struct {
+		RewardLovePoint int `json:"reward_love_point"`
+	}
+	rewardLovePoint := RewardLovePoint{}
+	if lastPlayDeck.IsCleared {
+		_, err := db.Table("m_live_difficulty").Where("live_difficulty_id = ?", liveState.LiveStage.LiveDifficultyID).
+			Cols("reward_base_love_point").Get(&rewardLovePoint.RewardLovePoint)
+		CheckErr(err)
+	}
+	memberLoveStatuses := []any{}
+	bondCardPosition := make(map[int]int)
+	for i := 1; i <= 17; i += 2 {
+		cardStat := req.LiveScore.CardStatDict[i].(map[string]any)
+		cardMasterID := int(cardStat["card_master_id"].(float64))
+		gotVoltage := int(cardStat["got_voltage"].(float64))
+		skillCount := int(cardStat["skill_triggered_count"].(float64))
+		appealCount := int(cardStat["appeal_count"].(float64))
+
+		// calculate mvp
+		if gotVoltage > mvpInfo.GetVoltage {
+			mvpInfo.GetVoltage = gotVoltage
+			mvpInfo.CardMasterID = cardMasterID
+			mvpInfo.SkillTriggeredCount = skillCount
+			mvpInfo.AppealCount = appealCount
+		}
+
+		// update card stat and member bond if cleared
+		if lastPlayDeck.IsCleared {
+			card := session.GetUserCard(cardMasterID)
+			card.LiveJoinCount++
+			card.ActiveSkillPlayCount += skillCount
+			session.UpdateUserCard(card)
+			// update member bond
+			// TODO: figure out how to add bond for center(s)
+			memberMasterID := klab.MemberMasterIDFromCardMasterID(cardMasterID)
+			session.AddLovePoint(memberMasterID, rewardLovePoint.RewardLovePoint)
+			pos, exists := bondCardPosition[memberMasterID]
+			// only use 1 item or an idol might be shown multiple time
+			if !exists {
+				memberLoveStatuses = append(memberLoveStatuses, cardMasterID)
+				bondCardPosition[memberMasterID] = len(memberLoveStatuses)
+				memberLoveStatuses = append(memberLoveStatuses, rewardLovePoint)
+			} else {
+				memberLoveStatuses[pos] = RewardLovePoint{
+					RewardLovePoint: memberLoveStatuses[pos].(RewardLovePoint).RewardLovePoint + rewardLovePoint.RewardLovePoint}
+			}
+		}
+	}
+
 	lastPlayDeck.Voltage = req.LiveScore.CurrentScore
 	oldMaxScore := liveRecord.MaxScore
 	if liveRecord.MaxScore < req.LiveScore.CurrentScore { // if new high score
 		liveRecord.MaxScore = req.LiveScore.CurrentScore
-		// unlock rewards
-		// not sure what target type does, but we don't need that
 	}
 	if liveRecord.MaxCombo < req.LiveScore.HighestComboCount {
 		liveRecord.MaxCombo = req.LiveScore.HighestComboCount
@@ -280,13 +320,13 @@ func LiveFinish(ctx *gin.Context) {
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.last_best_voltage", oldMaxScore)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.before_user_exp", session.UserStatus.Exp)
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.gain_user_exp", 0)
-
+	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result.member_love_statuses", memberLoveStatuses)
 
 	session.InsertOrUpdateLiveDifficultyRecord(liveRecord)
 	session.SetLastPlayLiveDifficultyDeck(lastPlayDeck)
 	liveFinishResp = session.Finalize(liveFinishResp, "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), liveFinishResp, config.SessionKey)
-
+	fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
