@@ -2,6 +2,7 @@ package router
 
 import (
 	"elichika/handler"
+	handler_live "elichika/handler/live"
 	"elichika/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -38,13 +39,13 @@ func Router(r *gin.Engine) {
 		api.POST("/liveDeck/saveDeckAll", handler.SaveDeckAll)
 		api.POST("/liveDeck/saveDeck", handler.SaveDeck)
 		api.POST("/liveDeck/saveSuit", handler.SaveSuit)
-		api.POST("/live/fetchLiveMusicSelect", handler.FetchLiveMusicSelect)
-		api.POST("/live/finish", handler.LiveFinish)
+		api.POST("/live/fetchLiveMusicSelect", handler_live.FetchLiveMusicSelect)
+		api.POST("/live/start", handler_live.LiveStart)
+		api.POST("/live/finish", handler_live.LiveFinish)
 		api.POST("/liveMv/saveDeck", handler.LiveMvSaveDeck)
 		api.POST("/liveMv/start", handler.LiveMvStart)
-		api.POST("/livePartners/fetch", handler.FetchLivePartners)
+		api.POST("/livePartners/fetch", handler_live.FetchLivePartners)
 		api.POST("/livePartners/setLivePartner", handler.SetLivePartner)
-		api.POST("/live/start", handler.LiveStart)
 		api.POST("/login/login", handler.Login)
 		api.POST("/login/startup", handler.StartUp)
 		api.POST("/mission/clearMissionBadge", handler.ClearMissionBadge)
