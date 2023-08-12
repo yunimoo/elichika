@@ -94,6 +94,7 @@ func Login(ctx *gin.Context) {
 	newKey64 := base64.StdEncoding.EncodeToString(newKey)
 	// fmt.Println("Session Key:", newKey64)
 	serverdb.InitDb(IsGlobal)
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	session.UserStatus.LastLoginAt = time.Now().Unix()
 
@@ -184,7 +185,7 @@ func Login(ctx *gin.Context) {
 		userSuits = append(userSuits, userSuit)
 	}
 	loginBody, err = sjson.Set(loginBody, "user_model.user_suit_by_suit_id", userSuits)
-	CheckErr(err)
+	utils.CheckErr(err)
 
 	// user accessory
 	var UserAccessory []any
@@ -192,7 +193,7 @@ func Login(ctx *gin.Context) {
 		gjson.Parse(GetUserAccessoryData()).Get("user_accessory_by_user_accessory_id").String()))
 	decoder.UseNumber()
 	err = decoder.Decode(&UserAccessory)
-	CheckErr(err)
+	utils.CheckErr(err)
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", UserAccessory)
 
 	// song records
@@ -204,7 +205,7 @@ func Login(ctx *gin.Context) {
 		userLiveRecords = append(userLiveRecords, userLiveRecord)
 	}
 	loginBody, err = sjson.Set(loginBody, "user_model.user_live_difficulty_by_difficulty_id", userLiveRecords)
-	CheckErr(err)
+	utils.CheckErr(err)
 
 	/* ======== UserData ======== */
 	// fmt.Println(loginBody)

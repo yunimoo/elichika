@@ -6,6 +6,7 @@ import (
 	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
+	"elichika/utils"
 
 	"encoding/json"
 	"net/http"
@@ -24,7 +25,8 @@ func OpenMemberLovePanel(ctx *gin.Context) {
 	}
 	req := OpenMemberLovePanelReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
-	CheckErr(err)
+	utils.CheckErr(err)
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	panel := session.GetMemberLovePanel(req.MemberID)
 

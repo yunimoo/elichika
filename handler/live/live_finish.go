@@ -1,7 +1,6 @@
 package live
 
 import (
-	"elichika/common"
 	"elichika/config"
 	"elichika/enum"
 	"elichika/generic"
@@ -9,6 +8,7 @@ import (
 	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
+	"elichika/utils"
 
 	"encoding/json"
 	"fmt"
@@ -134,9 +134,9 @@ func LiveFinish(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	req := LiveFinishReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
-	common.CheckErr(err)
+	utils.CheckErr(err)
 	exists, liveState := serverdb.LoadLiveState(UserID)
-	common.MustExist(exists)
+	utils.MustExist(exists)
 
 	session := serverdb.GetSession(ctx, UserID)
 	liveState.DeckID = session.UserStatus.LatestLiveDeckID
@@ -145,14 +145,14 @@ func LiveFinish(ctx *gin.Context) {
 	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 	info := LiveFinishLiveDifficultyInfo{}
 	exists, err = db.Table("m_live_difficulty").Where("live_difficulty_id = ?", liveState.LiveStage.LiveDifficultyID).Get(&info)
-	common.CheckErrMustExist(err, exists)
+	utils.CheckErrMustExist(err, exists)
 
 	liveMemberMappingID := 0
 	db.Table("m_live").Where("live_id = ?", info.LiveID).Cols("live_member_mapping_id").Get(&liveMemberMappingID)
 	centerPositions := []int{}
 	err = db.Table("m_live_member_mapping").Where("mapping_id = ? AND is_center = 1", liveMemberMappingID).
 		Cols("position").Find(&centerPositions)
-	common.CheckErr(err)
+	utils.CheckErr(err)
 	info.RewardCenterLovePoint = klab.CenterBondGainBasedOnBondGain(info.RewardBaseLovePoint) / len(centerPositions)
 
 	// record this live
@@ -181,16 +181,14 @@ func LiveFinish(ctx *gin.Context) {
 		}
 		if liveRecord.MaxCombo < req.LiveScore.HighestComboCount {
 			liveRecord.MaxCombo = req.LiveScore.HighestComboCount
-		}	
+		}
 		// and award items
 		missions := []LiveDifficultyMission{}
 
 		db.Table("m_live_difficulty_mission").Where("live_difficulty_master_id = ?", session.UserStatus.LastLiveDifficultyID).
 			OrderBy("position").Find(&missions)
 		for i := 1; i <= 3; i++ {
-			achievement := new(LiveResultAchievement)
-			(*achievement).Position = i
-			liveResult.LiveResultAchievements.Objects = append(liveResult.LiveResultAchievements.Objects, achievement)
+			(*liveResult.LiveResultAchievements.AppendNew()).Position = i
 		}
 		(*liveResult.LiveResultAchievements.Objects[0]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement1 != nil
 		(*liveResult.LiveResultAchievements.Objects[1]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement2 != nil
@@ -198,7 +196,7 @@ func LiveFinish(ctx *gin.Context) {
 		for i := 0; i < 3; i++ {
 			if (i == 0) || (req.LiveScore.CurrentScore >= missions[i].TargetValue) {
 				(*liveResult.LiveResultAchievements.Objects[i]).IsCurrentlyAchieved = true
-				if !(*liveResult.LiveResultAchievements.Objects[0]).IsAlreadyAchieved { // new, add reward
+				if !(*liveResult.LiveResultAchievements.Objects[i]).IsAlreadyAchieved { // new, add reward
 					session.AddRewardContent(missions[i].Reward)
 					switch i {
 					case 0:
@@ -218,9 +216,8 @@ func LiveFinish(ctx *gin.Context) {
 	}
 
 	bondCardPosition := make(map[int]int)
-	fmt.Println(req.LiveScore.CardStatDict.Objects)
 	for i, _ := range req.LiveScore.CardStatDict.Objects {
-		liveFinishCard := *req.LiveScore.CardStatDict.Objects[i]
+		liveFinishCard := req.LiveScore.CardStatDict.Objects[i]
 
 		// calculate mvp
 		if liveFinishCard.GotVoltage > liveResult.MVP.GetVoltage {
@@ -252,28 +249,25 @@ func LiveFinish(ctx *gin.Context) {
 			pos, exists := bondCardPosition[memberMasterID]
 			// only use 1 card master id or an idol might be shown multiple times
 			if !exists {
-				memberLoveStatus := new(MemberLoveStatus)
+				memberLoveStatus := liveResult.MemberLoveStatuses.AppendNew()
 				memberLoveStatus.RewardLovePoint = addedBond
 				memberLoveStatus.CardMasterID = liveFinishCard.CardMasterID
-				bondCardPosition[memberMasterID] = len(liveResult.MemberLoveStatuses.Objects)
-				liveResult.MemberLoveStatuses.Objects = append(liveResult.MemberLoveStatuses.Objects, memberLoveStatus)
+				bondCardPosition[memberMasterID] = liveResult.MemberLoveStatuses.Length - 1
 			} else {
 				(*liveResult.MemberLoveStatuses.Objects[pos]).RewardLovePoint += addedBond
 			}
 		}
 	}
 
-	// TODO: not sure if this should be 1 or total clear
-	// check actual live record sometimes
-	liveResult.LiveResultAchievementStatus.ClearCount = 1 
+	liveResult.LiveResultAchievementStatus.ClearCount = 1
 	liveResult.LiveResultAchievementStatus.GotVoltage = req.LiveScore.CurrentScore
 	liveResult.LiveResultAchievementStatus.RemainingStamina = req.LiveScore.RemainingStamina
 	if liveState.PartnerUserID != 0 {
 		liveResult.Partner = new(model.UserBasicInfo)
 		*liveResult.Partner = session.GetOtherUserBasicProfile(liveState.PartnerUserID)
 	}
-
-	session.InsertOrUpdateLiveDifficultyRecord(liveRecord)
+	fmt.Println(liveRecord)
+	session.UpdateLiveDifficultyRecord(liveRecord)
 	session.SetLastPlayLiveDifficultyDeck(lastPlayDeck)
 	liveFinishResp := session.Finalize(handler.GetUserData("userModelDiff.json"), "user_model_diff")
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result", liveResult)

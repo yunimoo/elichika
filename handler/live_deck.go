@@ -3,11 +3,11 @@ package handler
 import (
 	"bytes"
 	"elichika/config"
-	// "elichika/database"
 	"elichika/enum"
 	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
+	"elichika/utils"
 
 	"encoding/json"
 	"fmt"
@@ -21,8 +21,8 @@ import (
 )
 
 func SaveDeckAll(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	// fmt.Println(reqBody)
 	type SaveDeckAllReq struct {
 		DeckID       int   `json:"deck_id"`
 		CardWithSuit []int `json:"card_with_suit"`
@@ -30,11 +30,12 @@ func SaveDeckAll(ctx *gin.Context) {
 	}
 
 	req := SaveDeckAllReq{}
-	decoder := json.NewDecoder(strings.NewReader(reqBody.String()))
+	decoder := json.NewDecoder(strings.NewReader(reqBody))
 	decoder.UseNumber()
 	err := decoder.Decode(&req)
-	CheckErr(err)
+	utils.CheckErr(err)
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	deckInfo := session.GetUserLiveDeck(req.DeckID)
 
@@ -67,20 +68,20 @@ func SaveDeckAll(ctx *gin.Context) {
 			// fmt.Println("Party ID:", partyId)
 
 			rDictInfo, err := json.Marshal(req.SquadDict[k+1])
-			CheckErr(err)
+			utils.CheckErr(err)
 
 			dictInfo := model.DeckSquadDict{}
 			decoder := json.NewDecoder(bytes.NewReader(rDictInfo))
 			decoder.UseNumber()
 			err = decoder.Decode(&dictInfo)
-			CheckErr(err)
+			utils.CheckErr(err)
 			// fmt.Println("Party Info:", dictInfo)
 
 			roleIds := []int{}
 			err = MainEng.Table("m_card").
 				Where("id IN (?,?,?)", dictInfo.CardMasterIDs[0], dictInfo.CardMasterIDs[1], dictInfo.CardMasterIDs[2]).
 				Cols("role").Find(&roleIds)
-			CheckErr(err)
+			utils.CheckErr(err)
 			// fmt.Println("roleIds:", roleIds)
 
 			partyInfo := model.UserLiveParty{}
@@ -115,14 +116,15 @@ func FetchLiveDeckSelect(ctx *gin.Context) {
 	}
 	req := FetchLiveDeckSelectReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
-	CheckErr(err)
+	utils.CheckErr(err)
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	deck := session.GetLastPlayLiveDifficultyDeck(req.LiveDifficultyID)
 	signBody, err := sjson.Set("{}", "last_play_live_difficulty_deck", deck)
 	// signBody := GetData("fetchLiveDeckSelect.json")
 
-	// CheckErr(err)
+	// utils.CheckErr(err)
 
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -142,8 +144,9 @@ func SaveSuit(ctx *gin.Context) {
 
 	req := SaveSuitReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
-	CheckErr(err)
+	utils.CheckErr(err)
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, err := json.Marshal(deck)
@@ -175,18 +178,19 @@ func SaveDeck(ctx *gin.Context) {
 	}
 	req := SaveDeckReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
-	CheckErr(err)
+	utils.CheckErr(err)
 
 	position := req.CardMasterIDs[0]
 	newCardMasterID := req.CardMasterIDs[1]
 	newSuitMasterID := newCardMasterID
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 
 	// fetch the deck and parties affected
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, err := json.Marshal(deck)
-	CheckErr(err)
+	utils.CheckErr(err)
 	deckJson := string(deckJsonByte)
 
 	oldCardMasterID := int(gjson.Get(deckJson, fmt.Sprintf("card_master_id_%d", position)).Int())
@@ -226,12 +230,12 @@ func SaveDeck(ctx *gin.Context) {
 		deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", oldPosition), oldSuitMasterID)
 	}
 	err = json.Unmarshal([]byte(deckJson), &deck)
-	CheckErr(err)
+	utils.CheckErr(err)
 	session.UpdateUserLiveDeck(deck)
 
 	for _, party := range parties {
 		partyJsonByte, err := json.Marshal(party)
-		CheckErr(err)
+		utils.CheckErr(err)
 		partyJson := string(partyJsonByte)
 		// change the live party and update the names
 		gjson.Parse(partyJson).ForEach(func(key, value gjson.Result) bool {
@@ -252,13 +256,13 @@ func SaveDeck(ctx *gin.Context) {
 				partyInfo.Get("card_master_id_2").Int(),
 				partyInfo.Get("card_master_id_3").Int()).
 			Cols("role").Find(&roleIds)
-		CheckErr(err)
+		utils.CheckErr(err)
 		partyIcon, partyName := GetPartyInfoByRoleIds(roleIds)
 		realPartyName := GetRealPartyName(partyName)
 		partyJson, _ = sjson.Set(partyJson, "name.dot_under_text", realPartyName)
 		partyJson, _ = sjson.Set(partyJson, "icon_master_id", partyIcon)
 		err = json.Unmarshal([]byte(partyJson), &party)
-		CheckErr(err)
+		utils.CheckErr(err)
 		session.UpdateUserLiveParty(party)
 	}
 

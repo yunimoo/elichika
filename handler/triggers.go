@@ -14,10 +14,11 @@ import (
 )
 
 func TriggerReadCardGradeUp(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	req := model.TriggerReadReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 
@@ -30,10 +31,11 @@ func TriggerReadCardGradeUp(ctx *gin.Context) {
 }
 
 func TriggerRead(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	req := model.TriggerReadReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 

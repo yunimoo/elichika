@@ -19,7 +19,6 @@ import (
 )
 
 func FetchLiveMusicSelect(ctx *gin.Context) {
-	UserID := ctx.GetInt("user_id")
 	now := time.Now()
 	year, month, day := now.Year(), now.Month(), now.Day()
 	tomorrow := time.Date(year, month, day+1, 0, 0, 0, 0, now.Location()).Unix()
@@ -30,7 +29,7 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 
 	liveDailyList := []model.LiveDaily{}
 	err := handler.MainEng.Table("m_live_daily").Where("weekday = ?", weekday).Cols("id,live_id").Find(&liveDailyList)
-	handler.CheckErr(err)
+	utils.CheckErr(err)
 	for k := range liveDailyList {
 		liveDailyList[k].EndAt = int(tomorrow)
 		liveDailyList[k].RemainingPlayCount = 5
@@ -41,6 +40,7 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "weekday_state.weekday", weekday)
 	signBody, _ = sjson.Set(signBody, "weekday_state.next_weekday_at", tomorrow)
 	signBody, _ = sjson.Set(signBody, "live_daily_list", liveDailyList)
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	signBody = session.Finalize(signBody, "user_model_diff")
 	resp := handler.SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
@@ -54,8 +54,8 @@ func FetchLivePartners(ctx *gin.Context) {
 	// this set include the current user, so we can use our own cards.
 	// currently only have current user
 	// note that all card are available, but we need to use the filter functionality to actually get them to show up.
-	UserID := ctx.GetInt("user_id")
 	partnerIDs := []int{}
+	UserID := ctx.GetInt("user_id")
 	partnerIDs = append(partnerIDs, UserID)
 	livePartners := []model.LiveStartLivePartner{}
 	for _, partnerID := range partnerIDs {
@@ -88,10 +88,9 @@ func FetchLivePartners(ctx *gin.Context) {
 }
 
 func LiveStart(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	req := model.LiveStartReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 	UserID := ctx.GetInt("user_id")

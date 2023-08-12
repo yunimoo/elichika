@@ -37,7 +37,7 @@ func (session *Session) GetAllLiveRecords() []model.UserLiveDifficultyRecord {
 	return records
 }
 
-func (session *Session) InsertOrUpdateLiveDifficultyRecord(record model.UserLiveDifficultyRecord) {
+func (session *Session) UpdateLiveDifficultyRecord(record model.UserLiveDifficultyRecord) {
 	session.UserLiveDifficultyRecordDiffs[record.LiveDifficultyID] = record
 }
 
@@ -54,7 +54,7 @@ func (session *Session) FinalizeLiveDifficultyRecords() []any {
 		}
 
 		if inserted == 0 { // need to insert
-			inserted, err = Engine.Table("s_user_live_record").Insert(record)
+			inserted, err = Engine.Table("s_user_live_record").AllCols().Insert(&record)
 			if err != nil {
 				panic(err)
 			}

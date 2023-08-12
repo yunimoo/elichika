@@ -5,6 +5,7 @@ import (
 	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
+	"elichika/utils"
 
 	"encoding/json"
 	// "fmt"
@@ -18,20 +19,15 @@ import (
 )
 
 func FetchTrainingTree(ctx *gin.Context) {
-	// signBody := GetData("fetchTrainingTree.json")
-	// resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
-
-	// ctx.Header("Content-Type", "application/json")
-	// ctx.String(http.StatusOK, resp)
-
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	type FetchTrainingTreeReq struct {
 		CardMasterID int `json:"card_master_id"`
 	}
 	req := FetchTrainingTreeReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	signBody := `"{}"`
 	signBody, _ = sjson.Set(signBody, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
@@ -41,9 +37,10 @@ func FetchTrainingTree(ctx *gin.Context) {
 }
 
 func LevelUpCard(ctx *gin.Context) {
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 
 	type LevelUpCardReq struct {
 		CardMasterId    int `json:"card_master_id"`
@@ -51,7 +48,7 @@ func LevelUpCard(ctx *gin.Context) {
 	}
 
 	req := LevelUpCardReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 
@@ -68,16 +65,17 @@ func LevelUpCard(ctx *gin.Context) {
 }
 
 func GradeUpCard(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	type GradeUpCardReq struct {
 		CardMasterID int `json:"card_master_id"`
 	}
 	req := GradeUpCardReq{}
 
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 
 	userCard := session.GetUserCard(req.CardMasterID)
@@ -109,17 +107,18 @@ func GradeUpCard(ctx *gin.Context) {
 }
 
 func ActivateTrainingTreeCell(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	type ActivateTrainingTreeCellReq struct {
 		CardMasterID  int   `json:"card_master_id"`
 		CellMasterIDs []int `json:"cell_master_ids"`
 		PayType       int   `json:"pay_type"`
 	}
 	req := ActivateTrainingTreeCellReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 
 	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
@@ -214,7 +213,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	err = db.Table("m_training_tree_progress_reward").Where("card_master_id = ? AND activate_num > ? and activate_num <= ?",
 		card.CardMasterID, card.TrainingActivatedCellCount, card.TrainingActivatedCellCount+len(req.CellMasterIDs)).
 		Find(&progressionRewards)
-	CheckErr(err)
+	utils.CheckErr(err)
 	for _, reward := range progressionRewards {
 		session.AddRewardContent(reward)
 	}

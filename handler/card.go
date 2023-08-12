@@ -14,8 +14,9 @@ import (
 )
 
 func UpdateCardNewFlag(ctx *gin.Context) {
-	// reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
+	// reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	// fmt.Println(reqBody)
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 
 	signBody := session.Finalize(GetData("updateCardNewFlag.json"), "user_model_diff")
@@ -25,14 +26,15 @@ func UpdateCardNewFlag(ctx *gin.Context) {
 }
 
 func ChangeIsAwakeningImage(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	// fmt.Println(reqBody)
 
 	req := model.CardAwakeningReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsAwakeningImage = req.IsAwakeningImage
@@ -46,14 +48,15 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 }
 
 func ChangeFavorite(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	// fmt.Println(reqBody)
 
 	req := model.CardFavoriteReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 
+	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsFavorite = req.IsFavorite
@@ -67,15 +70,15 @@ func ChangeFavorite(ctx *gin.Context) {
 }
 
 func GetOtherUserCard(ctx *gin.Context) {
-	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
-	// fmt.Println(reqBody.String())
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	// fmt.Println(reqBody)
 	type OtherUserCardReq struct {
 		UserID       int `json:"user_id"`
 		CardMasterID int `json:"card_master_id"`
 	}
 	req := OtherUserCardReq{}
 	// userCardReq := model.UserCardReq{}
-	if err := json.Unmarshal([]byte(reqBody.String()), &req); err != nil {
+	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
 	}
 
