@@ -240,11 +240,9 @@ func LiveFinish(ctx *gin.Context) {
 			userCard.LiveJoinCount++
 			userCard.ActiveSkillPlayCount += liveFinishCard.SkillTriggeredCount
 			session.UpdateUserCard(userCard)
-			// update member bond
-
+			// update member love point
 			memberMasterID := klab.MemberMasterIDFromCardMasterID(liveFinishCard.CardMasterID)
-			session.AddLovePoint(memberMasterID, addedBond)
-			// bond love point
+			addedBond = session.AddLovePoint(memberMasterID, addedBond)
 
 			pos, exists := bondCardPosition[memberMasterID]
 			// only use 1 card master id or an idol might be shown multiple times
@@ -259,7 +257,7 @@ func LiveFinish(ctx *gin.Context) {
 		}
 	}
 
-	liveResult.LiveResultAchievementStatus.ClearCount = 1
+	liveResult.LiveResultAchievementStatus.ClearCount = liveRecord.ClearCount
 	liveResult.LiveResultAchievementStatus.GotVoltage = req.LiveScore.CurrentScore
 	liveResult.LiveResultAchievementStatus.RemainingStamina = req.LiveScore.RemainingStamina
 	if liveState.PartnerUserID != 0 {

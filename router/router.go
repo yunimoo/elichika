@@ -42,6 +42,7 @@ func Router(r *gin.Engine) {
 		api.POST("/live/fetchLiveMusicSelect", handler_live.FetchLiveMusicSelect)
 		api.POST("/live/start", handler_live.LiveStart)
 		api.POST("/live/finish", handler_live.LiveFinish)
+		api.POST("/live/updatePlayList", handler_live.LiveUpdatePlayList)
 		api.POST("/liveMv/saveDeck", handler.LiveMvSaveDeck)
 		api.POST("/liveMv/start", handler.LiveMvStart)
 		api.POST("/livePartners/fetch", handler_live.FetchLivePartners)

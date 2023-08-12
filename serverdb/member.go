@@ -61,12 +61,13 @@ func (session *Session) FinalizeUserMemberDiffs() []any {
 	return userMemberByMemberID
 }
 
-func (session *Session) AddLovePoint(memberID, point int) {
+// add love point and return the love point added (in case maxed out)
+func (session *Session) AddLovePoint(memberID, point int) int {
 	member := session.GetMember(memberID)
-	member.LovePoint += point
-	if member.LovePoint > member.LovePointLimit {
-		member.LovePoint = member.LovePointLimit
+	if point > member.LovePointLimit-member.LovePoint {
+		point = member.LovePointLimit - member.LovePoint
 	}
+	member.LovePoint += point
 
 	oldLoveLevel := member.LoveLevel
 	member.LoveLevel = klab.BondLevelFromBondValue(member.LovePoint)
@@ -99,6 +100,6 @@ func (session *Session) AddLovePoint(memberID, point int) {
 		}
 
 	}
-
 	session.UpdateMember(member)
+	return point
 }

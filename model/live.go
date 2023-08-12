@@ -119,31 +119,6 @@ type LiveState struct {
 	TowerLive       *int            `json:"tower_live"`
 }
 
-// PartnerName ...
-type PartnerName struct {
-	DotUnderText string `json:"dot_under_text"`
-}
-
-// IntroductionMessage ...
-type IntroductionMessage struct {
-	DotUnderText string `json:"dot_under_text"`
-}
-
-// LiveResultAchievementStatus ...
-type LiveResultAchievementStatus struct {
-	ClearCount       int64 `json:"clear_count"`
-	GotVoltage       int64 `json:"got_voltage"`
-	RemainingStamina int64 `json:"remaining_stamina"`
-}
-
-// MvpInfo ...
-type MvpInfo struct {
-	CardMasterID        int `json:"card_master_id"`
-	GetVoltage          int `json:"get_voltage"`
-	SkillTriggeredCount int `json:"skill_triggered_count"`
-	AppealCount         int `json:"appeal_count"`
-}
-
 // UserLiveMvDeckInfo ...
 type UserLiveMvDeckInfo struct {
 	LiveMasterID     int  `json:"live_master_id"`
@@ -216,14 +191,26 @@ type NoteGimmick struct {
 	IconType        int `json:"icon_type"`
 }
 
-// PartnerCardReq ...
-type PartnerCardReq struct {
-	LivePartnerCategoryID int `json:"live_partner_category_id"`
-	CardMasterID          int `json:"card_master_id"`
-}
-
 // MemberLovePanels ...
 type MemberLovePanels struct {
 	MemberID               int   `json:"member_id"`
 	MemberLovePanelCellIds []int `json:"member_love_panel_cell_ids"`
+}
+
+type LiveUpdatePlayListReq struct {
+	LiveMasterID int  `json:"live_master_id"`
+	GroupNum     int  `json:"group_num"`
+	IsSet        bool `json:"is_set"`
+}
+
+type UserPlayListItem struct {
+	UserID         int `xorm:"pk 'user_id'" json:"-"`
+	UserPlayListID int `xorm:"pk 'user_play_list_id'" json:"user_play_list_id"`
+	// set to 0 = doesn't exists
+	GroupNum int `xorm:"'group_num'" json:"group_num"` // UserPlayListID % 10
+	LiveID   int `xorm:"'live_id'" json:"live_id"`     // UserPlayListID / 10
+}
+
+func (item UserPlayListItem) ID() int64 {
+	return int64(item.UserPlayListID)
 }

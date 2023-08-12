@@ -57,6 +57,7 @@ func InitTables() bool {
 	isNew = InitTable("s_user_live_deck", model.UserLiveDeck{}) || isNew
 	isNew = InitTable("s_user_live_party", model.UserLiveParty{}) || isNew
 	isNew = InitTable("s_user_live_state", model.LiveState{}) || isNew
+	isNew = InitTable("s_user_play_list", model.UserPlayListItem{}) || isNew
 	type DbLiveRecord struct {
 		model.UserLiveDifficultyRecord `xorm:"extends"`
 		Voltage                        int   `xorm:"'last_clear_voltage'" json:"voltage"`

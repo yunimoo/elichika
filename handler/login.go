@@ -207,8 +207,13 @@ func Login(ctx *gin.Context) {
 	loginBody, err = sjson.Set(loginBody, "user_model.user_live_difficulty_by_difficulty_id", userLiveRecords)
 	utils.CheckErr(err)
 
+	// playlist
+	dbPlaylist := session.GetUserPlayList()
+	loginBody, err = sjson.Set(loginBody, "user_model.user_play_list_by_id", dbPlaylist)
+	utils.CheckErr(err)
+
 	/* ======== UserData ======== */
-	// fmt.Println(loginBody)
+	fmt.Println(gjson.Get(loginBody, "user_model.user_play_list_by_id"))
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

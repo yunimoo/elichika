@@ -107,6 +107,7 @@ func SetLivePartner(ctx *gin.Context) {
 	}
 
 	session.Finalize("{}", "")
+	// this is correct, the server send {}
 	resp := SignResp(ctx.GetString("ep"), "{}", config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")

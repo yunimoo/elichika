@@ -34,11 +34,11 @@ func (oboid *ObjectByObjectIDRead[T]) UnmarshalJSON(data []byte) error {
 		}
 		bytes, err := json.Marshal(arr[i+1])
 		utils.CheckErr(err)
-		ptp := new(T) // pointer to pointer of the original type
-		err = json.Unmarshal(bytes, ptp)  // unmarshal into the pointer of pointer the original type, create a pointer and then an object
-		(*ptp).SetID(int64(arr[i].(float64)))  // set the id
+		ptp := new(T)                         // pointer to pointer of the original type
+		err = json.Unmarshal(bytes, ptp)      // unmarshal into the pointer of pointer the original type, create a pointer and then an object
+		(*ptp).SetID(int64(arr[i].(float64))) // set the id
 		utils.CheckErr(err)
-		oboid.Objects = append(oboid.Objects, *ptp)  // append the pointer of the original type
+		oboid.Objects = append(oboid.Objects, *ptp) // append the pointer of the original type
 	}
 	return nil
 }
@@ -48,7 +48,7 @@ type ObjectByObjectIDWriteInterface interface { // only marshal
 }
 
 type ObjectByObjectIDWrite[T ObjectByObjectIDWriteInterface] struct {
-	Length int
+	Length  int
 	Objects []T
 }
 
@@ -74,10 +74,10 @@ func (oboid *ObjectByObjectIDWrite[T]) PushBack(ptr T) {
 func (oboid *ObjectByObjectIDWrite[T]) AppendNew() T {
 	ptp := new(T) // pointer to pointer, that hold nothing
 	// a bit dirty but it works
-	err := json.Unmarshal([]byte("{}"), ptp)  // unmarshal into the pointer of pointer the original type, create a pointer and then an object
+	err := json.Unmarshal([]byte("{}"), ptp) // unmarshal into the pointer of pointer the original type, create a pointer and then an object
 	utils.CheckErr(err)
 
-	oboid.Objects = append(oboid.Objects, *ptp)  // append the pointer and return it
+	oboid.Objects = append(oboid.Objects, *ptp) // append the pointer and return it
 	oboid.Length += 1
 	return *ptp
 }

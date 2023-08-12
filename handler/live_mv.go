@@ -82,8 +82,7 @@ func LiveMvSaveDeck(ctx *gin.Context) {
 	userLiveMvDeckCustomByID = append(userLiveMvDeckCustomByID, req.LiveMasterID)
 	userLiveMvDeckCustomByID = append(userLiveMvDeckCustomByID, userLiveMvDeckInfo)
 
-	signBody := GetData("userModel.json")
-	signBody = session.Finalize(signBody, "user_model")
+	signBody := session.Finalize(GetData("userModel.json"), "user_model")
 	if req.LiveMvDeckType == 1 {
 		signBody, _ = sjson.Set(signBody, "user_model.user_live_mv_deck_by_id", userLiveMvDeckCustomByID)
 	} else {
