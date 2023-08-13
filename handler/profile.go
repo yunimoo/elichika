@@ -3,9 +3,10 @@ package handler
 import (
 	"elichika/config"
 	"elichika/serverdb"
+	"elichika/utils"
 
 	"encoding/json"
-	// "fmt"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -110,6 +111,29 @@ func SetLivePartner(ctx *gin.Context) {
 	// this is correct, the server send {}
 	resp := SignResp(ctx.GetString("ep"), "{}", config.SessionKey)
 
+	ctx.Header("Content-Type", "application/json")
+	ctx.String(http.StatusOK, resp)
+}
+
+func SetScoreOrComboLive(ctx *gin.Context) {
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	type SetScoreOrComboReq struct {
+		LiveDifficultyMasterID int `json:"live_difficulty_master_id"`
+	}
+	req := SetScoreOrComboReq{}
+	err := json.Unmarshal([]byte(reqBody), &req)
+	utils.CheckErr(err)
+
+	userID := ctx.GetInt("user_id")
+	session := serverdb.GetSession(ctx, userID)
+	customSetProfile := session.GetUserCustomSetProfile()
+	if ctx.Request.URL.Path == "/userProfile/setScoreLive" {
+		customSetProfile.VoltageLiveDifficultyID = req.LiveDifficultyMasterID
+	} else {
+		customSetProfile.ComboLiveDifficultyID = req.LiveDifficultyMasterID
+	}
+	session.SetUserCustomSetProfile(customSetProfile)
+	resp := SignResp(ctx.GetString("ep"), reqBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

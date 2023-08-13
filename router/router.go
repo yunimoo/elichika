@@ -71,6 +71,8 @@ func Router(r *gin.Engine) {
 		api.POST("/userProfile/fetchProfile", handler.FetchProfile)
 		api.POST("/userProfile/setProfile", handler.SetProfile)
 		api.POST("/userProfile/setRecommendCard", handler.SetRecommendCard)
+		api.POST("/userProfile/setScoreLive", handler.SetScoreOrComboLive)
+		api.POST("/userProfile/setCommboLive", handler.SetScoreOrComboLive) // setCommboLive is a typo in the client?
 		api.POST("/gdpr/updateConsentState", handler.UpdateConsentState)
 		api.POST("/member/openMemberLovePanel", handler.OpenMemberLovePanel)
 	}

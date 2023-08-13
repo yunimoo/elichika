@@ -213,7 +213,6 @@ func Login(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	/* ======== UserData ======== */
-	fmt.Println(gjson.Get(loginBody, "user_model.user_play_list_by_id"))
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

@@ -11,7 +11,6 @@ import (
 	"elichika/utils"
 
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -173,6 +172,12 @@ func LiveFinish(ctx *gin.Context) {
 
 	liveRecord.PlayCount++
 	lastPlayDeck.IsCleared = req.LiveFinishStatus == enum.LiveFinishStatusCleared
+	for i := 1; i <= 3; i++ {
+		(*liveResult.LiveResultAchievements.AppendNew()).Position = i
+	}
+	(*liveResult.LiveResultAchievements.Objects[0]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement1 != nil
+	(*liveResult.LiveResultAchievements.Objects[1]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement2 != nil
+	(*liveResult.LiveResultAchievements.Objects[2]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement3 != nil
 	if lastPlayDeck.IsCleared {
 		// update clear record
 		liveRecord.ClearCount++
@@ -182,17 +187,21 @@ func LiveFinish(ctx *gin.Context) {
 		if liveRecord.MaxCombo < req.LiveScore.HighestComboCount {
 			liveRecord.MaxCombo = req.LiveScore.HighestComboCount
 		}
+		if info.IsCountTarget { // counted toward target and profiles
+			liveStats := session.GetUserLiveStats()
+			idx := klab.LiveDifficultyTypeIndexFromLiveDifficultyID(liveState.LiveStage.LiveDifficultyID)
+			liveStats.LivePlayCount[idx]++
+			if liveRecord.ClearCount == 1 { // 1st clear
+				liveStats.LiveClearCount[idx]++
+			}
+			session.UpdateUserLiveStats(liveStats)
+		}
+
 		// and award items
 		missions := []LiveDifficultyMission{}
 
 		db.Table("m_live_difficulty_mission").Where("live_difficulty_master_id = ?", session.UserStatus.LastLiveDifficultyID).
 			OrderBy("position").Find(&missions)
-		for i := 1; i <= 3; i++ {
-			(*liveResult.LiveResultAchievements.AppendNew()).Position = i
-		}
-		(*liveResult.LiveResultAchievements.Objects[0]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement1 != nil
-		(*liveResult.LiveResultAchievements.Objects[1]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement2 != nil
-		(*liveResult.LiveResultAchievements.Objects[2]).IsAlreadyAchieved = liveRecord.ClearedDifficultyAchievement3 != nil
 		for i := 0; i < 3; i++ {
 			if (i == 0) || (req.LiveScore.CurrentScore >= missions[i].TargetValue) {
 				(*liveResult.LiveResultAchievements.Objects[i]).IsCurrentlyAchieved = true
@@ -264,7 +273,6 @@ func LiveFinish(ctx *gin.Context) {
 		liveResult.Partner = new(model.UserBasicInfo)
 		*liveResult.Partner = session.GetOtherUserBasicProfile(liveState.PartnerUserID)
 	}
-	fmt.Println(liveRecord)
 	session.UpdateLiveDifficultyRecord(liveRecord)
 	session.SetLastPlayLiveDifficultyDeck(lastPlayDeck)
 	liveFinishResp := session.Finalize(handler.GetUserData("userModelDiff.json"), "user_model_diff")

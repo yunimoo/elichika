@@ -35,12 +35,13 @@ func InitTable(tableName string, structure interface{}) bool {
 
 func InitTables() bool {
 	type DbUser struct {
-		model.UserStatus             `xorm:"extends"`
-		model.DBUserProfileLiveStats `xorm:"extends"`
+		model.UserStatus           `xorm:"extends"`
+		model.UserProfileLiveStats `xorm:"extends"`
 	}
 	isNew := false
 
 	isNew = InitTable("s_user_info", DbUser{})
+	isNew = InitTable("s_user_custom_set_profile", model.UserCustomSetProfile{}) || isNew
 	isNew = InitTable("s_user_card", model.UserCard{}) || isNew
 	isNew = InitTable("s_user_suit", model.UserSuit{}) || isNew
 	isNew = InitTable("s_user_training_tree_cell", model.TrainingTreeCell{}) || isNew
