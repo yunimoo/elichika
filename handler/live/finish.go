@@ -156,6 +156,7 @@ func LiveFinish(ctx *gin.Context) {
 
 	// record this live
 	liveRecord := session.GetLiveDifficultyRecord(session.UserStatus.LastLiveDifficultyID)
+	liveRecord.IsNew = false
 	lastPlayDeck := session.BuildLastPlayLiveDifficultyDeck(liveState.DeckID, liveState.LiveStage.LiveDifficultyID)
 	lastPlayDeck.Voltage = req.LiveScore.CurrentScore
 

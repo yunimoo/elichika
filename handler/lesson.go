@@ -4,6 +4,7 @@ import (
 	"elichika/config"
 	"elichika/model"
 	"elichika/serverdb"
+	"elichika/utils"
 	"fmt"
 	"net/http"
 	"strings"
@@ -139,6 +140,26 @@ func SaveDeckLesson(ctx *gin.Context) {
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	// fmt.Println(resp)
 
+	ctx.Header("Content-Type", "application/json")
+	ctx.String(http.StatusOK, resp)
+}
+
+func ChangeDeckNameLessonDeck(ctx *gin.Context) {
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	type ChangeDeckNameReq struct {
+		DeckID   int    `json:"deck_id"`
+		DeckName string `json:"deck_name"`
+	}
+	req := ChangeDeckNameReq{}
+	err := json.Unmarshal([]byte(reqBody), &req)
+	utils.CheckErr(err)
+	userID := ctx.GetInt("user_id")
+	session := serverdb.GetSession(ctx, userID)
+	lessonDeck := session.GetLessonDeck(req.DeckID)
+	lessonDeck.Name = req.DeckName
+	session.UpdateLessonDeck(lessonDeck)
+	signBody := session.Finalize(GetData("userModel.json"), "user_model")
+	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

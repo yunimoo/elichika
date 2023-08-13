@@ -2,12 +2,14 @@ package serverdb
 
 import (
 	"elichika/model"
+	"elichika/utils"
 
 	"encoding/json"
 	"strings"
 	"time"
 
 	"github.com/tidwall/gjson"
+	"xorm.io/xorm"
 )
 
 func GetOtherUserLiveRecord(otherUserID, liveDifficultyID int) model.UserLiveDifficultyRecord {
@@ -45,26 +47,18 @@ func (session *Session) UpdateLiveDifficultyRecord(record model.UserLiveDifficul
 	session.UserLiveDifficultyRecordDiffs[record.LiveDifficultyID] = record
 }
 
-func (session *Session) FinalizeLiveDifficultyRecords() []any {
+func (session *Session) FinalizeLiveDifficultyRecords(dbSession *xorm.Session) []any {
 	diffs := []any{}
 	for _, record := range session.UserLiveDifficultyRecordDiffs {
 		diffs = append(diffs, record.LiveDifficultyID)
 		diffs = append(diffs, record)
-		inserted, err := Engine.Table("s_user_live_record").
+		updated, err := dbSession.Table("s_user_live_record").
 			Where("user_id = ? AND live_difficulty_id = ?", record.UserID, record.LiveDifficultyID).
 			AllCols().Update(&record)
-		if err != nil {
-			panic(err)
-		}
-
-		if inserted == 0 { // need to insert
-			inserted, err = Engine.Table("s_user_live_record").AllCols().Insert(&record)
-			if err != nil {
-				panic(err)
-			}
-			if inserted == 0 {
-				panic("failed to insert live record")
-			}
+		utils.CheckErr(err)
+		if updated == 0 {
+			_, err = dbSession.AllCols().Table("s_user_live_record").Insert(&record)
+			utils.CheckErr(err)
 		}
 	}
 	return diffs

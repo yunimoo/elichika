@@ -187,7 +187,7 @@ func (session *Session) InsertAccount(members []model.UserMemberInfo,
 	session.InsertLiveParties(liveParties)
 	session.InsertLessonDecks(lessonDecks)
 	session.InsertCards(cards)
-	InsertUserSuits(suits)
+	InsertUserSuits(suits, nil)
 	for _, lovePanel := range lovePanels {
 		_, err := Engine.Table("s_user_member").AllCols().
 			Where("user_id = ? AND member_master_id = ?", lovePanel.UserID, lovePanel.MemberID).

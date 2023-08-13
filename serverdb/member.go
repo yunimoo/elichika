@@ -6,7 +6,7 @@ import (
 	"elichika/model"
 
 	"fmt"
-	"xorm.io/xorm"
+	"xorm.io/xorm"	
 )
 
 func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
@@ -47,12 +47,12 @@ func (session *Session) InsertMembers(members []model.UserMemberInfo) {
 	fmt.Println("Inserted ", affected, " members")
 }
 
-func (session *Session) FinalizeUserMemberDiffs() []any {
+func (session *Session) FinalizeUserMemberDiffs(dbSession *xorm.Session) []any {
 	userMemberByMemberID := []any{}
 	for memberMasterID, member := range session.UserMemberDiffs {
 		userMemberByMemberID = append(userMemberByMemberID, memberMasterID)
 		userMemberByMemberID = append(userMemberByMemberID, member)
-		affected, err := Engine.Table("s_user_member").
+		affected, err := dbSession.Table("s_user_member").
 			Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).AllCols().Update(member)
 		if (err != nil) || (affected != 1) {
 			panic(err)
