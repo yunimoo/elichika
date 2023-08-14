@@ -252,7 +252,6 @@ func LiveFinish(ctx *gin.Context) {
 			session.UpdateUserCard(userCard)
 			// update member love point
 			memberMasterID := klab.MemberMasterIDFromCardMasterID(liveFinishCard.CardMasterID)
-			addedBond = session.AddLovePoint(memberMasterID, addedBond)
 
 			pos, exists := bondCardPosition[memberMasterID]
 			// only use 1 card master id or an idol might be shown multiple times
@@ -265,6 +264,11 @@ func LiveFinish(ctx *gin.Context) {
 				(*liveResult.MemberLoveStatuses.Objects[pos]).RewardLovePoint += addedBond
 			}
 		}
+	}
+	for memberMasterID, pos := range bondCardPosition {
+		addedBond := session.AddLovePoint(memberMasterID,
+			(*liveResult.MemberLoveStatuses.Objects[pos]).RewardLovePoint)
+		(*liveResult.MemberLoveStatuses.Objects[pos]).RewardLovePoint = addedBond
 	}
 
 	liveResult.LiveResultAchievementStatus.ClearCount = liveRecord.ClearCount

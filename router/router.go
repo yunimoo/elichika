@@ -70,6 +70,7 @@ func Router(r *gin.Engine) {
 		api.POST("/trainingTree/gradeUpCard", handler.GradeUpCard)
 		api.POST("/infoTrigger/read", handler.TriggerRead)
 		api.POST("/infoTrigger/readCardGradeUp", handler.TriggerReadCardGradeUp)
+		api.POST("/infoTrigger/readMemberLoveLevelUp", handler.TriggerReadMemberLoveLevelUp)
 		api.POST("/trainingTree/activateTrainingTreeCell", handler.ActivateTrainingTreeCell)
 		api.POST("/userProfile/fetchProfile", handler.FetchProfile)
 		api.POST("/userProfile/setProfile", handler.SetProfile)

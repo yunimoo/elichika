@@ -94,6 +94,7 @@ func GradeUpCard(ctx *gin.Context) {
 	// this trigger show the pop up after limit break
 
 	session.AddTriggerCardGradeUp(0, &model.TriggerCardGradeUp{
+		UserID:               UserID,
 		TriggerID:            0,
 		CardMasterID:         userCard.CardMasterID,
 		BeforeLoveLevelLimit: currentBondLevel - klab.CardRarityFromCardMasterID(req.CardMasterID)/10,

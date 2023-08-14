@@ -68,6 +68,9 @@ func InitTables() bool {
 		SquadDict                      []any `xorm:"'squad_dict'" json:"squad_dict"`
 	}
 	isNew = InitTable("s_user_live_record", DbLiveRecord{}) || isNew
+	isNew = InitTable("s_user_trigger_basic", model.TriggerBasic{}) || isNew
+	isNew = InitTable("s_user_trigger_card_grade_up", model.TriggerCardGradeUp{}) || isNew
+	isNew = InitTable("s_user_trigger_member_love_level_up", model.TriggerMemberLoveLevelUp{}) || isNew
 	return isNew
 }
 

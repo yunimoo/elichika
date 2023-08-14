@@ -7,8 +7,8 @@ type RewardByContent struct {
 }
 
 type RewardDrop struct { // unused
-	DropColor int  `json:"drop_color"`
-	Content RewardByContent `json:"content"`
-	IsRare bool  `json:"is_rare"`
-	BonusType *int `json:"bonus_type"`
+	DropColor int             `json:"drop_color"`
+	Content   RewardByContent `json:"content"`
+	IsRare    bool            `json:"is_rare"`
+	BonusType *int            `json:"bonus_type"`
 }

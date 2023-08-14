@@ -6,7 +6,7 @@ import (
 	"elichika/model"
 
 	"fmt"
-	"xorm.io/xorm"	
+	"xorm.io/xorm"
 )
 
 func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
@@ -90,7 +90,6 @@ func (session *Session) AddLovePoint(memberID, point int) int {
 		if (currentLovePanel.LovePanelLevel < latestLovePanelLevel) && (len(currentLovePanel.LovePanelLastLevelCellIDs) == 5) {
 			currentLovePanel.LevelUp()
 			session.AddTriggerBasic(0, &model.TriggerBasic{
-				TriggerID:       0,
 				InfoTriggerType: enum.InfoTriggerTypeUnlockBondBoard,
 				LimitAt:         nil,
 				Description:     nil,
@@ -98,6 +97,11 @@ func (session *Session) AddLovePoint(memberID, point int) int {
 
 			session.UpdateMemberLovePanel(currentLovePanel)
 		}
+		session.AddTriggerMemberLoveLevelUp(0,
+			&model.TriggerMemberLoveLevelUp{
+				TriggerID:       0,
+				MemberMasterID:  memberID,
+				BeforeLoveLevel: member.LoveLevel - 1})
 
 	}
 	session.UpdateMember(member)

@@ -1,16 +1,15 @@
 package live
 
 import (
-	"elichika/serverdb"
-	"elichika/klab"
 	"elichika/config"
-	"elichika/handler"
-	"elichika/model"
 	"elichika/generic"
+	"elichika/handler"
+	"elichika/klab"
+	"elichika/model"
+	"elichika/serverdb"
 	"elichika/utils"
 
 	"encoding/json"
-	// "fmt"
 	"net/http"
 	"strings"
 
@@ -21,20 +20,20 @@ import (
 )
 
 type DropWithTypes struct {
-	StandardDrops [0]model.RewardDrop `json:"standard_drops"`
+	StandardDrops   [0]model.RewardDrop `json:"standard_drops"`
 	AdditionalDrops [0]model.RewardDrop `json:"additional_drops"`
-	GimmickDrops [0]model.RewardDrop `json:"gimmick_drops"`
+	GimmickDrops    [0]model.RewardDrop `json:"gimmick_drops"`
 }
 
 type SkipLiveResult struct {
-	LiveDifficultyMasterID int  `json:"live_difficulty_master_id"`
-	LiveDeckID int  `json:"live_deck_id"`
-	Drops []DropWithTypes `json:"drops"`
-	MemberLoveStatuses     generic.ObjectByObjectIDWrite[*MemberLoveStatus] `json:"member_love_statuses"`
-	GainUserExp int `json:"gain_user_exp"`
-	IsRewardAccessoryInPresentBox bool `json:"is_reward_accessory_in_present_box"`
-	ActiveEventResult *int `json:"active_event_result"`
-	LiveResultMemberGuild *int `json:"live_result_member_guild"`
+	LiveDifficultyMasterID        int                                              `json:"live_difficulty_master_id"`
+	LiveDeckID                    int                                              `json:"live_deck_id"`
+	Drops                         []DropWithTypes                                  `json:"drops"`
+	MemberLoveStatuses            generic.ObjectByObjectIDWrite[*MemberLoveStatus] `json:"member_love_statuses"`
+	GainUserExp                   int                                              `json:"gain_user_exp"`
+	IsRewardAccessoryInPresentBox bool                                             `json:"is_reward_accessory_in_present_box"`
+	ActiveEventResult             *int                                             `json:"active_event_result"`
+	LiveResultMemberGuild         *int                                             `json:"live_result_member_guild"`
 }
 
 func LiveSkip(ctx *gin.Context) {
@@ -50,6 +49,7 @@ func LiveSkip(ctx *gin.Context) {
 
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	session.UserStatus.LastLiveDifficultyID = req.LiveDifficultyMasterID
 	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 	info := LiveFinishLiveDifficultyInfo{}
 
@@ -66,8 +66,8 @@ func LiveSkip(ctx *gin.Context) {
 	skipLiveResult := SkipLiveResult{
 		LiveDifficultyMasterID: req.LiveDifficultyMasterID,
 		LiveDeckID:             req.DeckID,
-		GainUserExp: 			info.RewardUserExp * req.TicketUseCount}
-	
+		GainUserExp:            info.RewardUserExp * req.TicketUseCount}
+
 	for i := 1; i <= req.TicketUseCount; i++ {
 		skipLiveResult.Drops = append(skipLiveResult.Drops, DropWithTypes{})
 	}
@@ -75,7 +75,7 @@ func LiveSkip(ctx *gin.Context) {
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, _ := json.Marshal(deck)
 	cardMasterIDs := []int{}
-	gjson.Parse(string(deckJsonByte)).ForEach(func (key, value gjson.Result) bool {
+	gjson.Parse(string(deckJsonByte)).ForEach(func(key, value gjson.Result) bool {
 		if strings.Contains(key.String(), "card_master_id") {
 			cardMasterIDs = append(cardMasterIDs, int(value.Int()))
 		}
@@ -85,7 +85,7 @@ func LiveSkip(ctx *gin.Context) {
 	bondCardPosition := make(map[int]int)
 	for i, cardMasterId := range cardMasterIDs {
 		userCard := session.GetUserCard(cardMasterId)
-		userCard.LiveJoinCount+=req.TicketUseCount // count skip clear in pfp
+		userCard.LiveJoinCount += req.TicketUseCount // count skip clear in pfp
 		session.UpdateUserCard(userCard)
 		// update member love point
 		isCenter := (i+1 == centerPositions[0])
@@ -95,7 +95,6 @@ func LiveSkip(ctx *gin.Context) {
 			addedBond += info.RewardCenterLovePoint
 		}
 		memberMasterID := klab.MemberMasterIDFromCardMasterID(cardMasterId)
-		addedBond = session.AddLovePoint(memberMasterID, addedBond * req.TicketUseCount)
 
 		pos, exists := bondCardPosition[memberMasterID]
 		// only use 1 card master id or an idol might be shown multiple times
@@ -108,11 +107,17 @@ func LiveSkip(ctx *gin.Context) {
 			(*skipLiveResult.MemberLoveStatuses.Objects[pos]).RewardLovePoint += addedBond
 		}
 	}
+	for memberMasterID, pos := range bondCardPosition {
+		addedBond := session.AddLovePoint(memberMasterID,
+			req.TicketUseCount*(*skipLiveResult.MemberLoveStatuses.Objects[pos]).RewardLovePoint)
+		(*skipLiveResult.MemberLoveStatuses.Objects[pos]).RewardLovePoint = addedBond
+	}
 
 	signBody := session.Finalize(handler.GetData("userModelDiff.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "skip_live_result", skipLiveResult)
 
 	resp := handler.SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

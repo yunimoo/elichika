@@ -41,7 +41,6 @@ func OpenMemberLovePanel(ctx *gin.Context) {
 			// otherwise it will be unlocked when bond level reach the value
 			panel.LevelUp()
 			session.AddTriggerBasic(0, &model.TriggerBasic{
-				TriggerID:       0, // filled by session
 				InfoTriggerType: enum.InfoTriggerTypeUnlockBondBoard,
 				LimitAt:         nil,
 				Description:     nil,

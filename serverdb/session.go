@@ -31,6 +31,7 @@ type Session struct {
 	UserSuitDiffs                 []model.UserSuit
 	TriggerCardGradeUps           []any
 	TriggerBasics                 []any
+	TriggerMemberLoveLevelUps     []any
 }
 
 // Push update into the db and create the diff
@@ -58,6 +59,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_play_list_by_id", session.GetUserPlayList())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_card_grade_up_by_trigger_id", session.TriggerCardGradeUps)
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_basic_by_trigger_id", session.TriggerBasics)
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_member_love_level_up_by_trigger_id", session.TriggerMemberLoveLevelUps)
 
 	return jsonBody
 }
@@ -94,6 +96,7 @@ func GetSession(ctx *gin.Context, userId int) Session {
 	s.UserLiveDifficultyRecordDiffs = make(map[int]model.UserLiveDifficultyRecord)
 	s.TriggerCardGradeUps = make([]any, 0)
 	s.TriggerBasics = make([]any, 0)
+	s.TriggerMemberLoveLevelUps = make([]any, 0)
 	s.UserSuitDiffs = make([]model.UserSuit, 0)
 	s.InitUser(userId)
 	return s

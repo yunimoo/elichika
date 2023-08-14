@@ -212,6 +212,14 @@ func Login(ctx *gin.Context) {
 	loginBody, err = sjson.Set(loginBody, "user_model.user_play_list_by_id", dbPlaylist)
 	utils.CheckErr(err)
 
+	// triggers
+	triggersBasics := session.GetAllTriggerBasics()
+	loginBody, err = sjson.Set(loginBody, "user_model.user_info_trigger_basic_by_trigger_id", triggersBasics)
+	utils.CheckErr(err)
+	triggersCardGradeUps := session.GetAllTriggerCardGradeUps()
+	loginBody, err = sjson.Set(loginBody, "user_model.user_info_trigger_card_grade_up_by_trigger_id", triggersCardGradeUps)
+	utils.CheckErr(err)
+
 	/* ======== UserData ======== */
 	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
