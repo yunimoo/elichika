@@ -1,14 +1,15 @@
-package serverdb
+package db
 
 import (
 	"elichika/config"
 	"elichika/klab"
 	"elichika/model"
+	"elichika/serverdb"
 	"elichika/utils"
 
-	// "os"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	// "xorm.io/xorm"
@@ -57,7 +58,7 @@ func CreateNewUser() {
 	}
 	status.UserID = UserID
 	// insert into the db
-	_, err := Engine.Table("s_user_info").AllCols().Insert(&status)
+	_, err := serverdb.Engine.Table("s_user_info").AllCols().Insert(&status)
 	if err != nil {
 		panic(err)
 	}
@@ -173,7 +174,7 @@ func LoadSuitFromJson() []model.UserSuit {
 	return suits
 }
 
-func (session *Session) InsertAccount(members []model.UserMemberInfo,
+func InsertAccount(session *serverdb.Session, members []model.UserMemberInfo,
 	liveDecks []model.UserLiveDeck,
 	liveParties []model.UserLiveParty,
 	lessonDecks []model.UserLessonDeck,
@@ -187,9 +188,9 @@ func (session *Session) InsertAccount(members []model.UserMemberInfo,
 	session.InsertLiveParties(liveParties)
 	session.InsertLessonDecks(lessonDecks)
 	session.InsertCards(cards)
-	InsertUserSuits(suits, nil)
+	serverdb.InsertUserSuits(suits, nil)
 	for _, lovePanel := range lovePanels {
-		_, err := Engine.Table("s_user_member").AllCols().
+		_, err := serverdb.Engine.Table("s_user_member").AllCols().
 			Where("user_id = ? AND member_master_id = ?", lovePanel.UserID, lovePanel.MemberID).
 			Update(&lovePanel)
 		if err != nil {
@@ -202,7 +203,7 @@ func (session *Session) InsertAccount(members []model.UserMemberInfo,
 func ImportFromJson() {
 	fmt.Println("Importing account data from json")
 	CreateNewUser()
-	session := GetSession(nil, UserID)
+	session := serverdb.GetSession(nil, UserID)
 
 	// member data
 	members := LoadMemberFromJson()
@@ -238,7 +239,7 @@ func ImportFromJson() {
 					ActivatedAt:  int64(1688094000 + cellID)})
 		}
 	}
-	session.InsertAccount(members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
+	InsertAccount(&session, members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
 }
 
 func ImportMinimalAccount() {
@@ -251,7 +252,7 @@ func ImportMinimalAccount() {
 	// - all members have bond level 1 (no bond)
 	fmt.Println("Creating minimal data from json")
 	CreateNewUser()
-	session := GetSession(nil, UserID)
+	session := serverdb.GetSession(nil, UserID)
 
 	// member data
 	members := LoadMemberFromJson()
@@ -331,5 +332,18 @@ func ImportMinimalAccount() {
 		members[i].LovePointLimit = klab.BondRequiredTotal(maxBondLevel[i])
 	}
 
-	session.InsertAccount(members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
+	InsertAccount(&session, members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
+}
+
+func Account() {
+	if len(os.Args) != 4 {
+		fmt.Println("Invalid params:", os.Args)
+		fmt.Println("Usage:", os.Args[0], "account [gl/jp] [json/new]")
+	}
+	IsGlobal = os.Args[2] == "gl"
+	if os.Args[3] == "json" { // import from existing jsons
+		ImportFromJson()
+	} else {
+		ImportMinimalAccount() // import from
+	}
 }

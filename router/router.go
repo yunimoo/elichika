@@ -79,5 +79,7 @@ func Router(r *gin.Engine) {
 		api.POST("/userProfile/setCommboLive", handler.SetScoreOrComboLive) // setCommboLive is a typo in the client?
 		api.POST("/gdpr/updateConsentState", handler.UpdateConsentState)
 		api.POST("/member/openMemberLovePanel", handler.OpenMemberLovePanel)
+		api.POST("/gacha/fetchGachaMenu", handler.FetchGachaMenu)
+		api.POST("/gacha/draw", handler.GachaDraw)
 	}
 }

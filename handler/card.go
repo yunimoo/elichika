@@ -82,7 +82,7 @@ func GetOtherUserCard(ctx *gin.Context) {
 		panic(err)
 	}
 
-	partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetUserCard(req.UserID, req.CardMasterID))
+	partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetOtherUserCard(req.UserID, req.CardMasterID))
 	userCardResp, _ := sjson.Set("{}", "other_user_card", partnerCard)
 	resp := SignResp(ctx.GetString("ep"), userCardResp, config.SessionKey)
 	// fmt.Println(resp)

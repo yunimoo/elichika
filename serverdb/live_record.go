@@ -21,7 +21,7 @@ func GetOtherUserLiveRecord(otherUserID, liveDifficultyID int) model.UserLiveDif
 		panic(err)
 	}
 	if !exists {
-		record.UserID = UserID
+		record.UserID = otherUserID
 		record.LiveDifficultyID = liveDifficultyID
 		record.EnableAutoplay = true
 		record.IsNew = true

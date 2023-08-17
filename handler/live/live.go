@@ -127,7 +127,7 @@ func LiveStart(ctx *gin.Context) {
 
 	if req.PartnerUserID != 0 {
 		liveState.LivePartnerCard = serverdb.GetPartnerCardFromUserCard(
-			serverdb.GetUserCard(req.PartnerUserID, req.PartnerCardMasterID))
+			serverdb.GetOtherUserCard(req.PartnerUserID, req.PartnerCardMasterID))
 	}
 
 	liveStartResp := session.Finalize(handler.GetData("userModelDiff.json"), "user_model_diff")

@@ -81,9 +81,9 @@ func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
 	return partnerCard
 }
 
-func GetUserCard(userID, cardMasterID int) model.UserCard {
+func GetOtherUserCard(otherUserID, cardMasterID int) model.UserCard {
 	card := model.UserCard{}
-	exists, err := Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?", userID, cardMasterID).
+	exists, err := Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?", otherUserID, cardMasterID).
 		Get(&card)
 	if err != nil {
 		panic(err)
@@ -97,7 +97,7 @@ func GetUserCard(userID, cardMasterID int) model.UserCard {
 func (sesison *Session) GetOtherUserBasicProfile(otherUserID int) model.UserBasicInfo {
 	basicInfo := model.UserBasicInfo{}
 	FetchDBProfile(otherUserID, &basicInfo)
-	recommendCard := GetUserCard(otherUserID, basicInfo.RecommendCardMasterID)
+	recommendCard := GetOtherUserCard(otherUserID, basicInfo.RecommendCardMasterID)
 
 	basicInfo.RecommendCardLevel = recommendCard.Level
 	basicInfo.IsRecommendCardImageAwaken = recommendCard.IsAwakeningImage
@@ -141,7 +141,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	}
 
 	// recommend card
-	recommendCard := GetUserCard(otherUserID, profile.ProfileInfo.BasicInfo.RecommendCardMasterID)
+	recommendCard := GetOtherUserCard(otherUserID, profile.ProfileInfo.BasicInfo.RecommendCardMasterID)
 	if err != nil {
 		panic(err)
 	}

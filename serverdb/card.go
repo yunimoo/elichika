@@ -2,8 +2,10 @@ package serverdb
 
 import (
 	"elichika/model"
+	"elichika/utils"
 
 	"fmt"
+	"time"
 
 	"xorm.io/xorm"
 )
@@ -22,7 +24,39 @@ func (session *Session) GetUserCard(cardMasterID int) model.UserCard {
 	}
 
 	if !exists {
-		panic("no user card")
+		card = model.UserCard{
+			UserID:                     session.UserStatus.UserID,
+			CardMasterID:               cardMasterID,
+			Level:                      1,
+			Exp:                        0,
+			LovePoint:                  0,
+			IsFavorite:                 false,
+			IsAwakening:                false,
+			IsAwakeningImage:           false,
+			IsAllTrainingActivated:     false,
+			TrainingActivatedCellCount: 0,
+			MaxFreePassiveSkill:        -1,
+			Grade:                      -1, // check this for new card
+			TrainingLife:               0,
+			TrainingAttack:             0,
+			TrainingDexterity:          0,
+			ActiveSkillLevel:           1,
+			PassiveSkillALevel:         1,
+			PassiveSkillBLevel:         1,
+			PassiveSkillCLevel:         1,
+			AdditionalPassiveSkill1ID:  0,
+			AdditionalPassiveSkill2ID:  0,
+			AdditionalPassiveSkill3ID:  0,
+			AdditionalPassiveSkill4ID:  0,
+			AcquiredAt:                 time.Now().Unix(),
+			IsNew:                      true,
+			LivePartnerCategories:      0,
+			LiveJoinCount:              0,
+			ActiveSkillPlayCount:       0,
+		}
+		exists, err := session.Ctx.MustGet("masterdata.db").(*xorm.Engine).Table("m_card").Where("id = ?", cardMasterID).
+			Cols("passive_skill_slot").Get(&card.MaxFreePassiveSkill)
+		utils.CheckErrMustExist(err, exists)
 	}
 	return card
 }
