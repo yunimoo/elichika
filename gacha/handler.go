@@ -1,9 +1,9 @@
 package gacha
 
 import (
+	"elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
-	"elichika/model"
 
 	"github.com/gin-gonic/gin"
 	"xorm.io/xorm"

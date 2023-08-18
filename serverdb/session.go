@@ -41,7 +41,6 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	dbSession := Engine.NewSession()
 	err := dbSession.Begin()
 	utils.CheckErr(err)
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.FinalizeUserInfo(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_member_by_member_id", session.FinalizeUserMemberDiffs(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_lesson_deck_by_id", session.FinalizeUserLessonDeckDiffs(dbSession))
@@ -49,6 +48,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_difficulty_by_difficulty_id", session.FinalizeLiveDifficultyRecords(dbSession))
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.FinalizeUserInfo(dbSession))
 	memberLovePanels := session.FinalizeMemberLovePanelDiffs(dbSession)
 	if len(memberLovePanels) != 0 {
 		jsonBody, _ = sjson.Set(jsonBody, "member_love_panels", memberLovePanels)

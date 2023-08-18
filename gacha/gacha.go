@@ -90,16 +90,24 @@ func MakeResultCard(session *serverdb.Session, cardMasterID int, isGuaranteed bo
 			resultCard.Content.ContentAmount *= 5
 		}
 	} else {
-		if resultCard.AfterGrade == 0 { // entirely new card
-			resultCard.BeforeGrade = 0
-		}
-		card.Grade++ // new grade
 		resultCard.AfterLoveLevelLimit = resultCard.BeforeLoveLevelLimit + cardRarity/10
 		member.LovePointLimit = klab.BondRequiredTotal(resultCard.AfterLoveLevelLimit)
+		card.Grade++ // new grade,
+		if card.Grade == 0 {
+			// entirely new card
+			member.OwnedCardCount++
+			resultCard.BeforeGrade = 0
+		} else {
+			// add trigger card grade up so animation play when opening the card
+			session.AddTriggerCardGradeUp(0, &model.TriggerCardGradeUp{
+				CardMasterID:         card.CardMasterID,
+				BeforeLoveLevelLimit: resultCard.AfterLoveLevelLimit, // this is correct
+				AfterLoveLevelLimit:  resultCard.AfterLoveLevelLimit,
+			})
+		}
 		// update the card and member
 		session.UpdateUserCard(card)
 		session.UpdateMember(member)
-		// TODO: Add a card grade up trigger
 	}
 	return resultCard
 }

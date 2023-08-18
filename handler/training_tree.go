@@ -223,6 +223,9 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	if card.TrainingActivatedCellCount+1 == len(cellContents) {
 		card.IsAllTrainingActivated = true
+		member := session.GetMember(klab.MemberMasterIDFromCardMasterID(card.CardMasterID))
+		member.AllTrainingCardCount++
+		session.UpdateMember(member)
 	}
 
 	session.UpdateUserCard(card)

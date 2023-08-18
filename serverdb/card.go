@@ -79,11 +79,12 @@ func (session *Session) FinalizeCardDiffs(dbSession *xorm.Session) []any {
 	for cardMasterID, card := range session.CardDiffs {
 		userCardByCardID = append(userCardByCardID, cardMasterID)
 		userCardByCardID = append(userCardByCardID, card)
-		// .AllCols() is necessary to all field
 		affected, err := dbSession.Table("s_user_card").
 			Where("user_id = ? AND card_master_id = ?", session.UserStatus.UserID, cardMasterID).AllCols().Update(card)
-		if (err != nil) || (affected != 1) {
-			panic(err)
+		utils.CheckErr(err)
+		if affected == 0 {
+			_, err := dbSession.Table("s_user_card").AllCols().Insert(card)
+			utils.CheckErr(err)
 		}
 	}
 	return userCardByCardID

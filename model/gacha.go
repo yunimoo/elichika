@@ -112,7 +112,6 @@ type ResultCard struct {
 	AfterLoveLevelLimit  int              `json:"after_love_level_limit"`  // 0 for max level
 }
 
-
 // How this server implement (back end) gacha (for now):
 // - Each banner need to implement a set of cards, each cards have group ID.
 // - Each banner need to implement the weight of all the group ID.

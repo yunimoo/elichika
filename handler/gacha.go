@@ -3,14 +3,12 @@ package handler
 import (
 	"elichika/config"
 	"elichika/gacha"
-	// "elichika/generic"
-	// "elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
 
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

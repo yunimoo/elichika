@@ -16,7 +16,7 @@ func (obj *TriggerBasic) ID() int64 {
 type TriggerCardGradeUp struct {
 	UserID               int   `xorm:"pk 'user_id'" json:"-"`
 	TriggerID            int64 `xorm:"pk 'trigger_id'" json:"trigger_id"` // use nano timestamp
-	CardMasterID         int   `xorm:"'card_master_id'" json:"card_master_id"`
+	CardMasterID         int   `xorm:"pk 'card_master_id'" json:"card_master_id"`
 	BeforeLoveLevelLimit int   `json:"before_love_level_limit"`
 	AfterLoveLevelLimit  int   `json:"after_love_level_limit"`
 }

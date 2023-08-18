@@ -10,24 +10,61 @@ import (
 
 // card grade up trigger is responsible for showing the pop-up animation when openning a card after getting a new copy
 // or right after performing a limit break using items
+// Getting a new trigger also destroy old trigger, and we might have tp update it
 func (session *Session) AddTriggerCardGradeUp(id int64, trigger *model.TriggerCardGradeUp) {
 	if id == 0 {
 		id = time.Now().UnixNano()
 	}
 	if trigger != nil {
-		trigger.TriggerID = id
 		trigger.UserID = session.UserStatus.UserID
+		trigger.TriggerID = id
 	}
-	session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, id)
-	session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, trigger)
 	if trigger != nil {
-		dbTrigger := *trigger
+		dbTrigger := model.TriggerCardGradeUp{}
+
+		exists, err := Engine.Table("s_user_trigger_card_grade_up").
+			Where("user_id = ? AND card_master_id = ?", trigger.UserID, trigger.CardMasterID).Get(&dbTrigger)
+		utils.CheckErr(err)
+		currentPos := -1
+		if exists { // if the card has a trigger, we have to remove it
+			Engine.Table("s_user_trigger_card_grade_up").
+				Where("user_id = ? AND card_master_id = ?", trigger.UserID, trigger.CardMasterID).Delete(&dbTrigger)
+			// make the client remove the trigger
+			for i, _ := range session.TriggerCardGradeUps {
+				if i%2 == 0 {
+					if session.TriggerCardGradeUps[i].(int64) == dbTrigger.TriggerID {
+						currentPos = i
+						break
+					}
+				}
+			}
+			if currentPos == -1 { // not in the current session but at login
+				session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, dbTrigger.TriggerID)
+				session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, nil)
+			}
+		}
+		if currentPos != -1 {
+			// overwrite the current trigger, this happen when we get 2 of the same card in gacha
+			session.TriggerCardGradeUps[currentPos] = id
+			session.TriggerCardGradeUps[currentPos+1] = *trigger
+		} else {
+			// insert the trigger
+			session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, id)
+			session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, trigger)
+		}
+
+		// save the trigger in db
+		dbTrigger = *trigger
 		dbTrigger.BeforeLoveLevelLimit = dbTrigger.AfterLoveLevelLimit
 		// db trigger when login have BeforeLoveLevelLimit = AfterLoveLevelLimit
 		// if the 2 numbers are equal the level up don't show when we open the card.
-		_, err := Engine.Table("s_user_trigger_card_grade_up").Insert(&dbTrigger)
+		_, err = Engine.Table("s_user_trigger_card_grade_up").Insert(&dbTrigger)
 		utils.CheckErr(err)
 	} else {
+		// add trigger and remove from db
+		// this is only caused by a infoTrigger/read
+		session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, id)
+		session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, trigger)
 		_, err := Engine.Table("s_user_trigger_card_grade_up").Where("trigger_id = ?", id).Delete(
 			&model.TriggerCardGradeUp{})
 		utils.CheckErr(err)
