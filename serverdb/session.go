@@ -71,8 +71,9 @@ func (session *Session) InitUser(userID int) {
 	if err != nil {
 		panic(err)
 	}
-	if !exists { // create one
-		panic(fmt.Sprintf("user doesn't exist %d", userID))
+	if !exists {
+		// insert user and stuff for now
+		panic(fmt.Sprintf("user doesn't exist %d\nNote: use \"elichika make [json/new] [jp/gl]\" to init the db", userID))
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"elichika/config"
 	"elichika/model"
 	"elichika/serverdb"
+	"elichika/utils"
 
 	"encoding/json"
 	"net/http"
@@ -14,12 +15,23 @@ import (
 )
 
 func UpdateCardNewFlag(ctx *gin.Context) {
-	// reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
-	// fmt.Println(reqBody)
-	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	// mark the cards as read (is_new = false)
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	userID := ctx.GetInt("user_id")
+	session := serverdb.GetSession(ctx, userID)
+	type UpdateCardNewFlagReq struct {
+		CardMasterIDs []int `json:"card_master_ids"`
+	}
+	req := UpdateCardNewFlagReq{}
+	err := json.Unmarshal([]byte(reqBody), &req)
+	utils.CheckErr(err)
+	for _, cardMasterID := range req.CardMasterIDs {
+		card := session.GetUserCard(cardMasterID)
+		card.IsNew = false
+		session.UpdateUserCard(card)
+	}
 
-	signBody := session.Finalize(GetData("updateCardNewFlag.json"), "user_model_diff")
+	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
