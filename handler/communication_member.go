@@ -99,7 +99,6 @@ func UpdateUserLiveDifficultyNewFlag(ctx *gin.Context) {
 		Cols("mapping_id").Find(&featuredMappings)
 	utils.CheckErr(err)
 	featuredLives := []int{}
-	db.ShowSQL(true)
 	err = db.Table("m_live").In("live_member_mapping_id", featuredMappings).Cols("live_id").Find(&featuredLives)
 	utils.CheckErr(err)
 	featuredLiveDifficulties := []int{}

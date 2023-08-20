@@ -5,13 +5,13 @@
 		"gacha_type": 1,
 		"gacha_draw_type": 1,
 		"title": {
-			"dot_under_text": "µ&apos;s Only Festival Party Scouting"
+			"dot_under_text": "ï¿½&apos;s Only Festival Party Scouting"
 		},
 		"banner_image_asset": {
 			"v": "/yf"
 		},
 		"is_time_limited": true,
-		"end_at": 1688108400,
+		"end_at": 11688108400,
 		"point_master_id": null,
 		"point_exchange_expire_at": null,
 		"appeal_at": 1924873200,
@@ -35,7 +35,7 @@
 		"gacha_draws": [
 			{
 				"gacha_draw_master_id": 120061,
-				"recover_type": 3,
+				"recover_type": 1,
 				"recover_at": null,
 				"draw_count": 10,
 				"gacha_payment_type": 1,
@@ -43,20 +43,20 @@
 				"gacha_payment_amount": 100,
 				"gacha_point_amount": 0,
 				"description": {
-					"dot_under_text": "One UR Guaranteed"
+					"dot_under_text": "New cards guaranteed"
 				},
 				"is_bonus": false,
 				"bonus_appeal_text": null,
 				"retry_count": null,
 				"gacha_retry_master_rows": [],
-				"daily_limit": 1,
+				"daily_limit": 0,
 				"daily_interval": 1,
 				"term_limit": 0,
-				"remain_day_count": 0,
+				"remain_day_count": null,
 				"remain_term_count": null,
 				"performance_id": 1,
 				"is_subscription": false,
-				"guarantees": [1]
+				"guarantees": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 			},
 			{
 				"gacha_draw_master_id": 120062,
@@ -121,7 +121,7 @@
 			"v": "*KC"
 		},
 		"is_time_limited": true,
-		"end_at": 1688108400,
+		"end_at": 11688108400,
 		"point_master_id": null,
 		"point_exchange_expire_at": null,
 		"appeal_at": 1924873200,
@@ -145,7 +145,7 @@
 		"gacha_draws": [
 			{
 				"gacha_draw_master_id": 120064,
-				"recover_type": 3,
+				"recover_type": 1,
 				"recover_at": null,
 				"draw_count": 10,
 				"gacha_payment_type": 1,
@@ -153,20 +153,20 @@
 				"gacha_payment_amount": 100,
 				"gacha_point_amount": 0,
 				"description": {
-					"dot_under_text": "One UR Guaranteed"
+					"dot_under_text": "New cards guaranteed"
 				},
 				"is_bonus": false,
 				"bonus_appeal_text": null,
 				"retry_count": null,
 				"gacha_retry_master_rows": [],
-				"daily_limit": 1,
+				"daily_limit": 0,
 				"daily_interval": 1,
 				"term_limit": 0,
-				"remain_day_count": 0,
+				"remain_day_count": null,
 				"remain_term_count": null,
 				"performance_id": 1,
 				"is_subscription": false,
-				"guarantees": [1]
+				"guarantees": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 			},
 			{
 				"gacha_draw_master_id": 120065,
@@ -231,7 +231,7 @@
 			"v": "Iy!"
 		},
 		"is_time_limited": true,
-		"end_at": 1688108400,
+		"end_at": 11688108400,
 		"point_master_id": null,
 		"point_exchange_expire_at": null,
 		"appeal_at": 1924873200,
@@ -255,7 +255,7 @@
 		"gacha_draws": [
 			{
 				"gacha_draw_master_id": 120067,
-				"recover_type": 3,
+				"recover_type": 1,
 				"recover_at": null,
 				"draw_count": 10,
 				"gacha_payment_type": 1,
@@ -263,20 +263,20 @@
 				"gacha_payment_amount": 100,
 				"gacha_point_amount": 0,
 				"description": {
-					"dot_under_text": "One UR Guaranteed"
+					"dot_under_text": "New cards guaranteed"
 				},
 				"is_bonus": false,
 				"bonus_appeal_text": null,
 				"retry_count": null,
 				"gacha_retry_master_rows": [],
-				"daily_limit": 1,
+				"daily_limit": 0,
 				"daily_interval": 1,
 				"term_limit": 0,
-				"remain_day_count": 0,
+				"remain_day_count": null,
 				"remain_term_count": null,
 				"performance_id": 1,
 				"is_subscription": false,
-				"guarantees": [1]
+				"guarantees": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 			},
 			{
 				"gacha_draw_master_id": 120068,

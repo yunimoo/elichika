@@ -35,7 +35,7 @@
 			"gacha_draws": [
 				{
 					"gacha_draw_master_id": 120061,
-					"recover_type": 3,
+					"recover_type": 1,
 					"recover_at": null,
 					"draw_count": 10,
 					"gacha_payment_type": 1,
@@ -49,10 +49,10 @@
 					"bonus_appeal_text": null,
 					"retry_count": null,
 					"gacha_retry_master_rows": [],
-					"daily_limit": 1,
+					"daily_limit": 0,
 					"daily_interval": 1,
 					"term_limit": 0,
-					"remain_day_count": 0,
+					"remain_day_count": null,
 					"remain_term_count": null,
 					"performance_id": 1,
 					"is_subscription": false

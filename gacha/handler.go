@@ -34,7 +34,6 @@ func GuaranteeNewCard(ctx *gin.Context, params []string) int {
 			newCards = append(newCards, card)
 		}
 	}
-
 	return ChooseRandomCard(newCards)
 }
 

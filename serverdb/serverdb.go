@@ -69,6 +69,7 @@ func InitTables(overwrite bool) {
 	InitTable("s_user_live_record", DbLiveRecord{}, overwrite)
 	InitTable("s_user_trigger_basic", model.TriggerBasic{}, overwrite)
 	InitTable("s_user_trigger_card_grade_up", model.TriggerCardGradeUp{}, overwrite)
+	InitTable("s_user_trigger_member_love_level_up", model.TriggerMemberLoveLevelUp{}, overwrite)
 
 	InitTable("s_gacha_appeal", model.GachaAppeal{}, overwrite)
 	InitTable("s_gacha_draw", model.GachaDraw{}, overwrite)

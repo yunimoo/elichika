@@ -76,7 +76,9 @@ func MakeResultCard(session *serverdb.Session, cardMasterID int, isGuaranteed bo
 		AfterLoveLevelLimit:  0,
 	}
 	if isGuaranteed {
-		resultCard.GachaLotType = 2
+		// if more than 1 card have this then the the client might refuse to show the result.
+		// it's not doing anything visible, so might as well not set it
+		// resultCard.GachaLotType = 2
 	}
 	if resultCard.AfterGrade == 6 { // maxed out card
 		resultCard.AfterGrade = 5
@@ -112,34 +114,13 @@ func MakeResultCard(session *serverdb.Session, cardMasterID int, isGuaranteed bo
 	return resultCard
 }
 
-func GachaFromGachaMasterID(gachaMasterID int) model.Gacha {
-	gacha := model.Gacha{}
-	exists, err := serverdb.Engine.Table("s_gacha").Where("gacha_master_id = ?", gachaMasterID).Get(&gacha)
-	utils.CheckErrMustExist(err, exists)
-	for _, gachaAppealMasterID := range gacha.DbGachaAppeals {
-		gachaAppeal := model.GachaAppeal{}
-		exists, err := serverdb.Engine.Table("s_gacha_appeal").Where("gacha_appeal_master_id = ?", gachaAppealMasterID).
-			Get(&gachaAppeal)
-		utils.CheckErrMustExist(err, exists)
-		gacha.GachaAppeals = append(gacha.GachaAppeals, gachaAppeal)
-	}
-	for _, gachaDrawMasterID := range gacha.DbGachaDraws {
-		gachaDraw := model.GachaDraw{}
-		exists, err := serverdb.Engine.Table("s_gacha_draw").Where("gacha_draw_master_id = ?", gachaDrawMasterID).
-			Get(&gachaDraw)
-		utils.CheckErrMustExist(err, exists)
-		gacha.GachaDraws = append(gacha.GachaDraws, gachaDraw)
-	}
-	return gacha
-}
-
 func HandleGacha(ctx *gin.Context, req model.GachaDrawReq) (model.Gacha, []model.ResultCard) {
 	session := ctx.MustGet("session").(*serverdb.Session)
 	draw := model.GachaDraw{}
 	exists, err := serverdb.Engine.Table("s_gacha_draw").
 		Where("gacha_draw_master_id = ?", req.GachaDrawMasterID).Get(&draw)
 	utils.CheckErrMustExist(err, exists)
-	gacha := GachaFromGachaMasterID(draw.GachaMasterID)
+	gacha := session.GetGacha(draw.GachaMasterID)
 	cardPool := []model.GachaCard{}
 	for _, group := range gacha.DbGachaGroups {
 		groupPool := []model.GachaCard{}

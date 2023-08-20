@@ -2,6 +2,7 @@ package db
 
 import (
 	"elichika/config"
+	"elichika/handler"
 	"elichika/klab"
 	"elichika/model"
 	"elichika/serverdb"
@@ -11,11 +12,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
-	// "xorm.io/xorm"
+	"xorm.io/xorm"
 
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
 
 var (
@@ -49,7 +50,7 @@ func GetLiveDeckData() string {
 	return GetJsonData("liveDeck.json")
 }
 
-func CreateNewUser() {
+func ImportJsonUser() {
 	fmt.Println("Insert new user: ", UserID)
 	data := GetJsonData("userStatus.json")
 	status := model.UserStatus{}
@@ -57,6 +58,7 @@ func CreateNewUser() {
 		panic(err)
 	}
 	status.UserID = UserID
+	status.LivePointBroken = 1000 // give 1000 LP
 	// insert into the db
 	_, err := serverdb.Engine.Table("s_user_info").AllCols().Insert(&status)
 	if err != nil {
@@ -170,7 +172,6 @@ func LoadSuitFromJson() []model.UserSuit {
 			SuitMasterID: int(anys[i].(float64)),
 			IsNew:        false})
 	}
-	// fmt.Println(suits)
 	return suits
 }
 
@@ -190,11 +191,12 @@ func InsertAccount(session *serverdb.Session, members []model.UserMemberInfo,
 	session.InsertCards(cards)
 	serverdb.InsertUserSuits(suits, nil)
 	for _, lovePanel := range lovePanels {
-		_, err := serverdb.Engine.Table("s_user_member").AllCols().
+		affected, err := serverdb.Engine.Table("s_user_member").AllCols().
 			Where("user_id = ? AND member_master_id = ?", lovePanel.UserID, lovePanel.MemberID).
 			Update(&lovePanel)
-		if err != nil {
-			panic(err)
+		utils.CheckErr(err)
+		if affected == 0 {
+			panic("affected = 0")
 		}
 	}
 	session.InsertTrainingCells(&trainingTreeCells)
@@ -202,7 +204,7 @@ func InsertAccount(session *serverdb.Session, members []model.UserMemberInfo,
 
 func ImportFromJson() {
 	fmt.Println("Importing account data from json")
-	CreateNewUser()
+	ImportJsonUser()
 	session := serverdb.GetSession(nil, UserID)
 
 	// member data
@@ -210,15 +212,13 @@ func ImportFromJson() {
 	lovePanels := []model.UserMemberLovePanel{}
 	for _, member := range members {
 		lovePanel := model.UserMemberLovePanel{
-			UserID:                 member.UserID,
-			MemberID:               member.MemberMasterID,
-			MemberLovePanelCellIDs: []int{}}
-
-		for boardLevel := 0; boardLevel <= 31; boardLevel++ {
-			for tile := 1; tile <= 5; tile++ {
-				cellID := boardLevel*10000 + tile*1000 + member.MemberMasterID
-				lovePanel.MemberLovePanelCellIDs = append(lovePanel.MemberLovePanelCellIDs, cellID)
-			}
+			UserID:                    member.UserID,
+			MemberID:                  member.MemberMasterID,
+			LovePanelLevel:            32,
+			LovePanelLastLevelCellIDs: []int{}}
+		for i := 1; i <= 5; i++ {
+			lovePanel.LovePanelLastLevelCellIDs = append(lovePanel.LovePanelLastLevelCellIDs,
+				310000+i*1000+member.MemberMasterID)
 		}
 		lovePanels = append(lovePanels, lovePanel)
 	}
@@ -242,6 +242,68 @@ func ImportFromJson() {
 	InsertAccount(&session, members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
 }
 
+func CreateNewUser() {
+	fmt.Println("Insert new user: ", UserID)
+	status := model.UserStatus{
+		UserID:                                  UserID,
+		LastLoginAt:                             time.Now().Unix(),
+		Rank:                                    1,
+		Exp:                                     0,
+		RecommendCardMasterID:                   100011001, // Honoka
+		MaxFriendNum:                            99,
+		LivePointFullAt:                         time.Now().Unix(),
+		LivePointBroken:                         1000, // Start with 1000 LP
+		LivePointSubscriptionRecoveryDailyCount: 1,
+		LivePointSubscriptionRecoveryDailyResetAt: 1688137200,
+		ActivityPointCount:                        3,
+		ActivityPointResetAt:                      1688137200,
+		ActivityPointPaymentRecoveryDailyCount:    10,
+		ActivityPointPaymentRecoveryDailyResetAt:  1688137200,
+		GameMoney:                                 1000000000,
+		CardExp:                                   1000000000,
+		FreeSnsCoin:                               50000,
+		AppleSnsCoin:                              25000,
+		GoogleSnsCoin:                             25000,
+		SubscriptionCoin:                          50000,
+		BirthDate:                                 202307,
+		BirthMonth:                                7,
+		BirthDay:                                  1,
+		LatestLiveDeckID:                          1,
+		MainLessonDeckID:                          1,
+		FavoriteMemberID:                          1,
+		LastLiveDifficultyID:                      10001101,
+		LpMagnification:                           1,
+		EmblemID:                                  10500521, // new player
+		DeviceToken:                               "",
+		TutorialPhase:                             99,
+		TutorialEndAt:                             1622217482,
+		LoginDays:                                 1221,
+		NaviTapCount:                              0,
+		NaviTapRecoverAt:                          1688137200,
+		IsAutoMode:                                false,
+		MaxScoreLiveDifficultyMasterID:            10001101,
+		LiveMaxScore:                              0,
+		MaxComboLiveDifficultyMasterID:            10001101,
+		LiveMaxCombo:                              0,
+		LessonResumeStatus:                        1,
+		AccessoryBoxAdditional:                    400,
+		TermsOfUseVersion:                         2,
+		BootstrapSifidCheckAt:                     1692471111782,
+		GdprVersion:                               0,
+		MemberGuildMemberMasterID:                 1,
+		MemberGuildLastUpdatedAt:                  1659485328,
+		Cash:                                      0,
+	}
+	status.Name.DotUnderText = "Newcomer"
+	status.Nickname.DotUnderText = "Yuu"
+	status.Message.DotUnderText = "Hello"
+	// insert into the db
+	_, err := serverdb.Engine.Table("s_user_info").AllCols().Insert(&status)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func ImportMinimalAccount() {
 	// EXPERIMENTAL, for testing functionality only.
 	// insert an account that can be upgraded to maximum strength from existing functionality
@@ -254,84 +316,152 @@ func ImportMinimalAccount() {
 	CreateNewUser()
 	session := serverdb.GetSession(nil, UserID)
 
-	// member data
-	members := LoadMemberFromJson()
-	lovePanels := []model.UserMemberLovePanel{}
-	memberIDToIndex := make(map[int]int)
-	maxBondLevel := [30]int{}
-
-	for i, _ := range members {
-		memberIDToIndex[members[i].MemberMasterID] = i
-		maxBondLevel[i] = 500
-		members[i].LovePoint = 0
-		members[i].LoveLevel = 1
+	var masterdatadb *xorm.Engine 
+	if IsGlobal {
+		masterdatadb = config.MasterdataEngGl
+	} else {
+		masterdatadb = config.MasterdataEngJp
 	}
 
-	liveDecks, liveParties := LoadLiveDeckAndLivePartyFromJson()
-	lessonDecks := LoadLessonDeckFromJson()
-	cards := LoadCardFromJson()
-	suits := LoadSuitFromJson()
-	// skip the suit awarded from cards
-	// this also skip the initial suit, so probably need to read from db
-	suitCount := 0
-	for ; suits[suitCount].SuitMasterID < 1000000; suitCount++ {
-	}
-	suits = suits[:suitCount]
-	for i, _ := range members { // set default uniform and add it to the suit list
-		members[i].SuitMasterID = klab.DefaultSuitMasterIDFromMemberMasterID(members[i].MemberMasterID)
-		suits = append(suits, model.UserSuit{UserID: UserID, SuitMasterID: members[i].SuitMasterID, IsNew: false})
+	// member and card data
+	members := []model.UserMemberInfo{}
+	cards := []model.UserCard{}
+	type MemberInit struct {
+		MemberMasterID           int `xorm:"'member_m_id'"`
+		SuitMasterID             int `xorm:"'suit_m_id'"`
+		CustomBackgroundMasterID int `xorm:"'custom_background_m_id'"`
+		LovePointLimit           int `xorm:"love_point_limit"`
 	}
 
-	for i, _ := range cards {
-		memberID := klab.MemberMasterIDFromCardMasterID(cards[i].CardMasterID)
-		rarity := klab.CardRarityFromCardMasterID(cards[i].CardMasterID)
-		maxBondLevel[memberIDToIndex[memberID]] -= (rarity / 10) * 5 // 5 grade worths of limit break
-		cards[i].Level = 1
-		cards[i].IsAwakening = false
-		cards[i].IsAwakeningImage = false
-		cards[i].IsAllTrainingActivated = false
-		cards[i].TrainingActivatedCellCount = 0
-		exists, err := config.MainEng.Table("m_card").Where("id = ?", cards[i].CardMasterID).
-			Cols("passive_skill_slot").Get(&cards[i].MaxFreePassiveSkill)
-		if err != nil {
-			panic(err)
-		}
-		if !exists {
-			panic("not exist")
-		}
-		cards[i].Grade = 0
-		cards[i].TrainingLife = 0
-		cards[i].TrainingAttack = 0
-		cards[i].TrainingDexterity = 0
-		cards[i].ActiveSkillLevel = 1
-		cards[i].PassiveSkillALevel = 1
-		cards[i].AdditionalPassiveSkill1ID = 0
-		cards[i].AdditionalPassiveSkill2ID = 0
-		cards[i].AdditionalPassiveSkill3ID = 0
-		cards[i].AdditionalPassiveSkill4ID = 0
+	memberInits := []MemberInit{}
+	err := masterdatadb.Table("m_member_init").Find(&memberInits)
+	utils.CheckErr(err)
+	if len(memberInits) != 30 {
+		panic("wrong number of member")
+	}
+	for _, memberInit := range memberInits {
+		members = append(members, model.UserMemberInfo{
+			UserID:                   UserID,
+			MemberMasterID:           memberInit.MemberMasterID,
+			CustomBackgroundMasterID: memberInit.CustomBackgroundMasterID,
+			SuitMasterID:             memberInit.SuitMasterID,
+			LovePoint:                0,
+			LoveLevel:                1,
+			LovePointLimit:           memberInit.LovePointLimit,
+			ViewStatus:               1,
+			IsNew:                    false,
+			OwnedCardCount:           1,
+			AllTrainingCardCount:     0,
+		})
+		cards = append(cards, model.UserCard{
+			UserID:                     UserID,
+			CardMasterID:               memberInit.SuitMasterID,
+			Level:                      1,
+			Exp:                        0,
+			LovePoint:                  0,
+			IsFavorite:                 false,
+			IsAwakening:                false,
+			IsAwakeningImage:           false,
+			IsAllTrainingActivated:     false,
+			TrainingActivatedCellCount: 0,
+			MaxFreePassiveSkill:        1, // all R
+			Grade:                      0,
+			TrainingLife:               0,
+			TrainingAttack:             0,
+			TrainingDexterity:          0,
+			ActiveSkillLevel:           1,
+			PassiveSkillALevel:         1,
+			PassiveSkillBLevel:         1,
+			PassiveSkillCLevel:         1,
+			AdditionalPassiveSkill1ID:  0,
+			AdditionalPassiveSkill2ID:  0,
+			AdditionalPassiveSkill3ID:  0,
+			AdditionalPassiveSkill4ID:  0,
+			AcquiredAt:                 time.Now().Unix(),
+			IsNew:                      false,
+			LivePartnerCategories:      0,
+			LiveJoinCount:              0,
+			ActiveSkillPlayCount:       0,
+		})
 	}
 
-	for i, _ := range liveDecks {
-		// need to set suit master ID to valid value or it freeze
-		deckJsonByte, err := json.Marshal(liveDecks[i])
-		deckJson := string(deckJsonByte)
+	suits := []model.UserSuit{}
+	suitMasterIDs := []int{}
+	err = masterdatadb.Table("m_suit").Where("suit_release_route == 2").Cols("id").Find(&suitMasterIDs)
+	utils.CheckErr(err)
+	for _, suitMasterID := range suitMasterIDs {
+		suits = append(suits, model.UserSuit{
+			UserID: UserID,
+			SuitMasterID: suitMasterID,
+			IsNew: false,
+		})
+	}
+	lovePanels := []model.UserMemberLovePanel{}     // there's no bond board unlocked
+	trainingTreeCells := []model.TrainingTreeCell{} // there's no training cell unlocked
+
+	// live deck data
+	liveDecks := []model.UserLiveDeck{}
+	liveParties := []model.UserLiveParty{}
+	for i := 1; i <= 20; i++ {
+		cid := [10]int{}
+		// this order isn't actually correct to the official server
 		for j := 1; j <= 9; j++ {
-			cardMasterID := int(gjson.Get(deckJson, fmt.Sprintf("card_master_id_%d", j)).Int())
-			memberID := klab.MemberMasterIDFromCardMasterID(cardMasterID)
-			deckJson, _ = sjson.Set(deckJson, fmt.Sprintf("suit_master_id_%d", j),
-				klab.DefaultSuitMasterIDFromMemberMasterID(memberID))
+			cid[j] = klab.DefaultSuitMasterIDFromMemberMasterID(j + 100 * ((i - 1)%3))
 		}
-		err = json.Unmarshal([]byte(deckJson), &liveDecks[i])
-		if err != nil {
-			panic(err)
+		liveDeck := model.UserLiveDeck{
+			UserID: UserID,
+			UserLiveDeckID: i,
+			CardMasterID1: cid[1],
+			CardMasterID2: cid[2],
+			CardMasterID3: cid[3],
+			CardMasterID4: cid[4],
+			CardMasterID5: cid[5],
+			CardMasterID6: cid[6],
+			CardMasterID7: cid[7],
+			CardMasterID8: cid[8],
+			CardMasterID9: cid[9],
+			SuitMasterID1: cid[1],
+			SuitMasterID2: cid[2],
+			SuitMasterID3: cid[3],
+			SuitMasterID4: cid[4],
+			SuitMasterID5: cid[5],
+			SuitMasterID6: cid[6],
+			SuitMasterID7: cid[7],
+			SuitMasterID8: cid[8],
+			SuitMasterID9: cid[9],
+		}
+		liveDeck.Name.DotUnderText = fmt.Sprintf("Show formation %d", i)
+		liveDecks = append(liveDecks, liveDeck)
+		for j := 1; j <= 3; j++ {
+			liveParty := model.UserLiveParty {
+				UserID: UserID,
+				PartyID: i * 100 + j,
+				UserLiveDeckID: i,
+				CardMasterID1: cid[(j - 1)* 3 + 1],
+				CardMasterID2: cid[(j - 1)* 3 + 2],
+				CardMasterID3: cid[(j - 1)* 3 + 3],
+			}
+			roles := []int{}
+			err = masterdatadb.Table("m_card").
+				Where("id IN (?,?,?)", liveParty.CardMasterID1,
+					liveParty.CardMasterID2,
+					liveParty.CardMasterID3).
+				Cols("role").Find(&roles)
+			partyIcon, partyName := handler.GetPartyInfoByRoleIds(roles)
+			liveParty.IconMasterID = partyIcon
+			liveParty.Name.DotUnderText = handler.GetRealPartyName(partyName)
+			liveParties = append(liveParties, liveParty)
 		}
 	}
 
-	trainingTreeCells := []model.TrainingTreeCell{}
-	for i, _ := range members {
-		members[i].LovePointLimit = klab.BondRequiredTotal(maxBondLevel[i])
+	lessonDecks := []model.UserLessonDeck{}
+	for i := 1; i<=20; i++ {
+		lessonDecks = append(lessonDecks, model.UserLessonDeck{
+			UserID: UserID,
+			UserLessonDeckID: i,
+			Name: fmt.Sprintf("Training formation %d", i),
+		})
 	}
-
 	InsertAccount(&session, members, liveDecks, liveParties, lessonDecks, cards, suits, lovePanels, trainingTreeCells)
 }
 
@@ -344,6 +474,6 @@ func Account() {
 	if os.Args[3] == "json" { // import from existing jsons
 		ImportFromJson()
 	} else {
-		ImportMinimalAccount() // import from
+		ImportMinimalAccount() // minimal account
 	}
 }

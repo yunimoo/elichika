@@ -20,9 +20,12 @@ import (
 func FetchGachaMenu(ctx *gin.Context) {
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
-	signBody := GetData("gacha.json")
-	signBody = session.Finalize(signBody, "user_model_diff")
+	gachaList := session.GetGachaList()
+	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
+	signBody, _ = sjson.Set(signBody, "gacha_list", gachaList)
+	signBody, _ = sjson.Set(signBody, "gacha_unconfirmed", nil)
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
