@@ -1,6 +1,11 @@
 package config
 
 import (
+	"elichika/utils"
+
+	"fmt"
+	"os"
+
 	_ "modernc.org/sqlite"
 	"xorm.io/xorm"
 )
@@ -15,9 +20,12 @@ var (
 	SessionKey = "12345678123456781234567812345678"
 
 	MainDb         = "assets/main.db"
-	MasterdataDbGl = "assets/db/masterdata_gl.db"
-	MasterdataDbJp = "assets/db/masterdata_jp.db"
+	GlDatabasePath = "assets/db/gl/"
+	JpDatabasePath = "assets/db/jp/"
 	ServerdataDb   = "assets/db/serverdata.db"
+
+	MasterVersionGl = "2d61e7b4e89961c7" // read from GL database, so user can update db just by changing that
+	MasterVersionJp = "b66ec2295e9a00aa" // ditto
 
 	MainEng         *xorm.Engine
 	MasterdataEngGl *xorm.Engine
@@ -28,6 +36,20 @@ var (
 	PresetDataPath = "assets/preset/"
 	UserDataPath   = "assets/userdata/"
 )
+
+func readMasterdataManinest(path string) string {
+	file, err := os.Open(path)
+	utils.CheckErr(err)
+	buff := make([]byte, 1024)
+	count, err := file.Read(buff)
+	utils.CheckErr(err)
+	if count < 21 {
+		panic("file too short")
+	}
+	length := int(buff[20])
+	version := string(buff[21 : 21+length])
+	return version
+}
 
 func init() {
 	Conf = Load("./config.json")
@@ -44,19 +66,21 @@ func init() {
 	MainEng.SetMaxOpenConns(50)
 	MainEng.SetMaxIdleConns(10)
 
-	eng1, err := xorm.NewEngine("sqlite", MasterdataDbGl)
+	MasterdataEngGl, err = xorm.NewEngine("sqlite", GlDatabasePath+"masterdata.db")
 	if err != nil {
 		panic(err)
 	}
-	MasterdataEngGl = eng1
 	MasterdataEngGl.SetMaxOpenConns(50)
 	MasterdataEngGl.SetMaxIdleConns(10)
+	MasterVersionGl = readMasterdataManinest(GlDatabasePath + "masterdata_a_en")
 
-	eng2, err := xorm.NewEngine("sqlite", MasterdataDbJp)
+	MasterdataEngJp, err = xorm.NewEngine("sqlite", JpDatabasePath+"masterdata.db")
 	if err != nil {
 		panic(err)
 	}
-	MasterdataEngJp = eng2
 	MasterdataEngJp.SetMaxOpenConns(50)
 	MasterdataEngJp.SetMaxIdleConns(10)
+	MasterVersionJp = readMasterdataManinest(JpDatabasePath + "masterdata_a_ja")
+	fmt.Println("gl master version:", MasterVersionGl)
+	fmt.Println("jp master version:", MasterVersionJp)
 }

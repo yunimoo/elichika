@@ -9,3 +9,5 @@ assets/userdata
 config.json
 
 serverdata.db
+
+*.backup

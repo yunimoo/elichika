@@ -2,10 +2,10 @@ package main
 
 import (
 	"elichika/router"
-	
-	"os"
-	"fmt"
+
 	"elichika/cli/db"
+	"fmt"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,7 +42,6 @@ func cli() {
 	}
 	return
 }
-
 
 func main() {
 

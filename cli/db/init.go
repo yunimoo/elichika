@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func Init(args []string ) {
+func Init(args []string) {
 	// wipe the database if necessary, then insert the relevant table
 	if len(args) == 0 {
 		serverdb.InitTables(false)

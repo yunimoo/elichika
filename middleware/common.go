@@ -22,12 +22,12 @@ func Common(ctx *gin.Context) {
 	if lang == "" {
 		ctx.Set("masterdata.db", config.MasterdataEngJp)
 		handler.IsGlobal = false
-		handler.MasterVersion = "b66ec2295e9a00aa"
+		handler.MasterVersion = config.MasterVersionJp
 		handler.StartUpKey = "5f7IZY1QrAX0D49g"
 	} else {
 		ctx.Set("masterdata.db", config.MasterdataEngGl)
 		handler.IsGlobal = true
-		handler.MasterVersion = "2d61e7b4e89961c7"
+		handler.MasterVersion = config.MasterVersionGl
 		handler.StartUpKey = "TxQFwgNcKDlesb93"
 	}
 

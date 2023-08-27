@@ -304,7 +304,7 @@ func CreateNewUser() {
 }
 
 func ImportMinimalAccount() {
-	
+
 	CreateNewUser()
 	session := serverdb.GetSession(nil, UserID)
 
