@@ -1,0 +1,80 @@
+package serverdb
+
+import (
+	"elichika/model"
+	"elichika/utils"
+
+	"time"
+
+	"xorm.io/xorm"
+)
+
+func (session *Session) GetAllUserAccessories() []model.UserAccessory {
+	accessories := []model.UserAccessory{}
+	err := Engine.Table("s_user_accessory").Where("user_id = ?", session.UserStatus.UserID).
+		Find(&accessories)
+	utils.CheckErr(err)
+	return accessories
+}
+
+func (session *Session) GetUserAccessory(userAccessoryID int64) model.UserAccessory {
+	// if exists then reuse
+	accessory, exist := session.UserAccessoryDiffs[userAccessoryID]
+	if exist {
+		return accessory
+	}
+
+	// if not look in db
+	accessory = model.UserAccessory{}
+	exists, err := Engine.Table("s_user_accessory").
+		Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).Get(&accessory)
+	utils.CheckErr(err)
+	if !exists {
+		// if not exists, create new one
+		accessory = model.UserAccessory{
+			UserID:             session.UserStatus.UserID,
+			UserAccessoryID:    userAccessoryID,
+			Level:              1,
+			Exp:                0,
+			Grade:              0,
+			Attribute:          0,
+			PassiveSkill1ID:    0,
+			PassiveSkill1Level: 1,
+			PassiveSkill2ID:    nil,
+			PassiveSkill2Level: 1,
+			IsLock:             false,
+			IsNew:              true,
+			AcquiredAt:         time.Now().Unix(),
+		}
+	}
+	return accessory
+}
+
+func (session *Session) UpdateUserAccessory(accessory model.UserAccessory) {
+	session.UserAccessoryDiffs[accessory.UserAccessoryID] = accessory
+}
+
+func (session *Session) FinalizeUserAccessories(dbSession *xorm.Session) []any {
+	accessoryByUserAccessoryID := []any{}
+	for userAccessoryID, accessory := range session.UserAccessoryDiffs {
+		accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, userAccessoryID)
+		if accessory.AccessoryMasterID == 0 { // delete this accessories
+			accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, nil)
+			affected, err := dbSession.Table("s_user_accessory").
+				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).Delete(&accessory)
+			utils.CheckErr(err)
+			if affected != 1 {
+				panic("accessories doesn't exists")
+			}
+		} else {
+			affected, err := dbSession.Table("s_user_accessory").
+				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).AllCols().Update(accessory)
+			utils.CheckErr(err)
+			if affected == 0 {
+				_, err := dbSession.Table("s_user_accessory").AllCols().Insert(accessory)
+				utils.CheckErr(err)
+			}
+		}
+	}
+	return accessoryByUserAccessoryID
+}

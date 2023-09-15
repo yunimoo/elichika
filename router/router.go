@@ -81,5 +81,7 @@ func Router(r *gin.Engine) {
 		api.POST("/member/openMemberLovePanel", handler.OpenMemberLovePanel)
 		api.POST("/gacha/fetchGachaMenu", handler.FetchGachaMenu)
 		api.POST("/gacha/draw", handler.GachaDraw)
+		api.POST("/accessory/updateIsLock", handler.UpdateIsLock)
+		api.POST("/accessory/melt", handler.AccessoryMelt)
 	}
 }

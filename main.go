@@ -47,6 +47,7 @@ func main() {
 
 	if len(os.Args) > 1 {
 		cli()
+		return
 	}
 
 	gin.SetMode(gin.ReleaseMode)

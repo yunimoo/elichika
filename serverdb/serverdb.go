@@ -45,6 +45,7 @@ func InitTables(overwrite bool) {
 	InitTable("s_user_custom_set_profile", model.UserCustomSetProfile{}, overwrite)
 	InitTable("s_user_card", model.UserCard{}, overwrite)
 	InitTable("s_user_suit", model.UserSuit{}, overwrite)
+	InitTable("s_user_accessory", model.UserAccessory{}, overwrite)
 	InitTable("s_user_training_tree_cell", model.TrainingTreeCell{}, overwrite)
 
 	type DbMember struct {

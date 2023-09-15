@@ -28,6 +28,7 @@ type Session struct {
 	UserLivePartyDiffs            map[int]model.UserLiveParty
 	UserMemberLovePanelDiffs      map[int]model.UserMemberLovePanel
 	UserLiveDifficultyRecordDiffs map[int]model.UserLiveDifficultyRecord
+	UserAccessoryDiffs            map[int64]model.UserAccessory
 	UserSuitDiffs                 []model.UserSuit
 	TriggerCardGradeUps           []any
 	TriggerBasics                 []any
@@ -47,6 +48,7 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_deck_by_id", session.FinalizeUserLiveDeckDiffs(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs(dbSession))
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_accessory_by_user_accessory_id", session.FinalizeUserAccessories(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_difficulty_by_difficulty_id", session.FinalizeLiveDifficultyRecords(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.FinalizeUserInfo(dbSession))
 	memberLovePanels := session.FinalizeMemberLovePanelDiffs(dbSession)
@@ -95,6 +97,7 @@ func GetSession(ctx *gin.Context, userId int) Session {
 	s.UserLivePartyDiffs = make(map[int]model.UserLiveParty)
 	s.UserMemberLovePanelDiffs = make(map[int]model.UserMemberLovePanel)
 	s.UserLiveDifficultyRecordDiffs = make(map[int]model.UserLiveDifficultyRecord)
+	s.UserAccessoryDiffs = make(map[int64]model.UserAccessory)
 	s.TriggerCardGradeUps = make([]any, 0)
 	s.TriggerBasics = make([]any, 0)
 	s.TriggerMemberLoveLevelUps = make([]any, 0)

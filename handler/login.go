@@ -9,10 +9,10 @@ import (
 
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	// "strings"
 
 	"time"
 
@@ -187,13 +187,18 @@ func Login(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	// user accessory
-	var UserAccessory []any
-	decoder := json.NewDecoder(strings.NewReader(
-		gjson.Parse(GetUserAccessoryData()).Get("user_accessory_by_user_accessory_id").String()))
-	decoder.UseNumber()
-	err = decoder.Decode(&UserAccessory)
-	utils.CheckErr(err)
-	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", UserAccessory)
+	dbUserAccessories := session.GetAllUserAccessories()
+	userAccessories := []any{}
+	for _, userAccessory := range dbUserAccessories {
+		userAccessories = append(userAccessories, userAccessory.UserAccessoryID)
+		userAccessories = append(userAccessories, userAccessory)
+	}
+	// decoder := json.NewDecoder(strings.NewReader(
+	// 	gjson.Parse(GetUserAccessoryData()).Get("user_accessory_by_user_accessory_id").String()))
+	// decoder.UseNumber()
+	// err = decoder.Decode(&UserAccessory)
+	// utils.CheckErr(err)
+	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", userAccessories)
 
 	// song records
 	// if return empty, all the song are unlocked, except for bond episide unlocked song
