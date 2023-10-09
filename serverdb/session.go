@@ -29,6 +29,7 @@ type Session struct {
 	UserMemberLovePanelDiffs      map[int]model.UserMemberLovePanel
 	UserLiveDifficultyRecordDiffs map[int]model.UserLiveDifficultyRecord
 	UserAccessoryDiffs            map[int64]model.UserAccessory
+	UserResourceDiffs             map[int](map[int]UserResource) // content_type then content_id
 	UserSuitDiffs                 []model.UserSuit
 	TriggerCardGradeUps           []any
 	TriggerBasics                 []any
@@ -50,6 +51,10 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_accessory_by_user_accessory_id", session.FinalizeUserAccessories(dbSession))
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_difficulty_by_difficulty_id", session.FinalizeLiveDifficultyRecords(dbSession))
+	resourceKeys, resourceValues := session.FinalizeUserResources(dbSession)
+	for i, _ := range resourceKeys {
+		jsonBody, _ = sjson.SetRaw(jsonBody, mainKey+"."+resourceKeys[i], resourceValues[i])
+	}
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.FinalizeUserInfo(dbSession))
 	memberLovePanels := session.FinalizeMemberLovePanelDiffs(dbSession)
 	if len(memberLovePanels) != 0 {
@@ -102,6 +107,7 @@ func GetSession(ctx *gin.Context, userId int) Session {
 	s.TriggerBasics = make([]any, 0)
 	s.TriggerMemberLoveLevelUps = make([]any, 0)
 	s.UserSuitDiffs = make([]model.UserSuit, 0)
+	s.UserResourceDiffs = make(map[int](map[int]UserResource))
 	s.InitUser(userId)
 	return s
 }

@@ -82,7 +82,7 @@ func MakeResultCard(session *serverdb.Session, cardMasterID int, isGuaranteed bo
 	}
 	if resultCard.AfterGrade == 6 { // maxed out card
 		resultCard.AfterGrade = 5
-		resultCard.Content = &model.RewardByContent{
+		resultCard.Content = &model.Content{
 			ContentType:   13,
 			ContentID:     1800,
 			ContentAmount: 1,

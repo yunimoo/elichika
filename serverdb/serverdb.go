@@ -71,6 +71,7 @@ func InitTables(overwrite bool) {
 	InitTable("s_user_trigger_basic", model.TriggerBasic{}, overwrite)
 	InitTable("s_user_trigger_card_grade_up", model.TriggerCardGradeUp{}, overwrite)
 	InitTable("s_user_trigger_member_love_level_up", model.TriggerMemberLoveLevelUp{}, overwrite)
+	InitTable("s_user_resource", UserResource{}, overwrite)
 
 	InitTable("s_gacha_appeal", model.GachaAppeal{}, overwrite)
 	InitTable("s_gacha_draw", model.GachaDraw{}, overwrite)
@@ -78,6 +79,7 @@ func InitTables(overwrite bool) {
 	InitTable("s_gacha_group", model.GachaGroup{}, overwrite)
 	InitTable("s_gacha_card", model.GachaCard{}, overwrite)
 	InitTable("s_gacha_guarantee", model.GachaGuarantee{}, overwrite)
+
 }
 
 func init() {

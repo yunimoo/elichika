@@ -75,14 +75,14 @@ func (session *Session) AddLovePoint(memberID, point int) int {
 	if oldLoveLevel < member.LoveLevel {
 		db := session.Ctx.MustGet("masterdata.db").(*xorm.Engine)
 
-		rewards := []model.RewardByContent{}
+		rewards := []model.Content{}
 		err := db.Table("m_member_love_level_reward").Where("member_m_id = ? AND love_level > ? and love_level <= ?",
 			memberID, oldLoveLevel, member.LoveLevel).Find(&rewards)
 		if err != nil {
 			panic(err)
 		}
 		for i, _ := range rewards {
-			session.AddRewardContent(rewards[i])
+			session.AddResource(rewards[i])
 		}
 
 		latestLovePanelLevel := klab.MaxLovePanelLevelFromLoveLevel(member.LoveLevel)

@@ -125,7 +125,7 @@ type LiveFinishLiveDifficultyInfo struct {
 type LiveDifficultyMission struct {
 	Position    int
 	TargetValue int
-	Reward      model.RewardByContent `xorm:"extends"`
+	Reward      model.Content `xorm:"extends"`
 }
 
 func LiveFinish(ctx *gin.Context) {
@@ -207,7 +207,7 @@ func LiveFinish(ctx *gin.Context) {
 			if (i == 0) || (req.LiveScore.CurrentScore >= missions[i].TargetValue) {
 				(*liveResult.LiveResultAchievements.Objects[i]).IsCurrentlyAchieved = true
 				if !(*liveResult.LiveResultAchievements.Objects[i]).IsAlreadyAchieved { // new, add reward
-					session.AddRewardContent(missions[i].Reward)
+					session.AddResource(missions[i].Reward)
 					switch i {
 					case 0:
 						liveRecord.ClearedDifficultyAchievement1 = new(int)

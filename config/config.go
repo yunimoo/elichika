@@ -1,6 +1,7 @@
 package config
 
 import (
+	"elichika/masterdata"
 	"elichika/utils"
 
 	"fmt"
@@ -30,6 +31,9 @@ var (
 	MainEng         *xorm.Engine
 	MasterdataEngGl *xorm.Engine
 	MasterdataEngJp *xorm.Engine
+
+	MasterdataGl *masterdata.Masterdata
+	MasterdataJp *masterdata.Masterdata
 
 	Conf = &AppConfigs{}
 
@@ -73,6 +77,8 @@ func init() {
 	MasterdataEngGl.SetMaxOpenConns(50)
 	MasterdataEngGl.SetMaxIdleConns(10)
 	MasterVersionGl = readMasterdataManinest(GlDatabasePath + "masterdata_a_en")
+	MasterdataGl = new(masterdata.Masterdata)
+	MasterdataGl.Init(MasterdataEngGl)
 
 	MasterdataEngJp, err = xorm.NewEngine("sqlite", JpDatabasePath+"masterdata.db")
 	if err != nil {
@@ -80,6 +86,9 @@ func init() {
 	}
 	MasterdataEngJp.SetMaxOpenConns(50)
 	MasterdataEngJp.SetMaxIdleConns(10)
+	MasterdataJp = new(masterdata.Masterdata)
+	MasterdataJp.Init(MasterdataEngJp)
+
 	MasterVersionJp = readMasterdataManinest(JpDatabasePath + "masterdata_a_ja")
 	fmt.Println("gl master version:", MasterVersionGl)
 	fmt.Println("jp master version:", MasterVersionJp)

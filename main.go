@@ -32,6 +32,8 @@ func cli() {
 		db.Init(os.Args[2:])
 	case "account":
 		db.Account(os.Args[2:])
+	case "accessory":
+		db.Accessory(os.Args[2:])
 	case "gacha":
 		db.Gacha(os.Args[2:])
 	case "make": // easy import

@@ -210,13 +210,13 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	card.TrainingDexterity += increasedStats[4]
 
 	// progression reward
-	progressionRewards := []model.RewardByContent{}
+	progressionRewards := []model.Content{}
 	err = db.Table("m_training_tree_progress_reward").Where("card_master_id = ? AND activate_num > ? and activate_num <= ?",
 		card.CardMasterID, card.TrainingActivatedCellCount, card.TrainingActivatedCellCount+len(req.CellMasterIDs)).
 		Find(&progressionRewards)
 	utils.CheckErr(err)
 	for _, reward := range progressionRewards {
-		session.AddRewardContent(reward)
+		session.AddResource(reward)
 	}
 
 	card.TrainingActivatedCellCount += len(req.CellMasterIDs)

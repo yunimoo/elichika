@@ -81,7 +81,12 @@ func Router(r *gin.Engine) {
 		api.POST("/member/openMemberLovePanel", handler.OpenMemberLovePanel)
 		api.POST("/gacha/fetchGachaMenu", handler.FetchGachaMenu)
 		api.POST("/gacha/draw", handler.GachaDraw)
-		api.POST("/accessory/updateIsLock", handler.UpdateIsLock)
+
+		api.POST("/accessory/updateIsLock", handler.AccessoryUpdateIsLock)
+		api.POST("/accessory/updateIsNew", handler.AccessoryUpdateIsNew)
 		api.POST("/accessory/melt", handler.AccessoryMelt)
+		api.POST("/accessory/powerUp", handler.AccessoryPowerUp)
+		api.POST("/accessory/rarityUp", handler.AccessoryRarityUp)
+		api.POST("/accessory/allUnequip", handler.AccessoryAllUnequip)
 	}
 }

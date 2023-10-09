@@ -4,6 +4,7 @@ import (
 	"elichika/model"
 	"elichika/utils"
 
+	// "fmt"
 	"time"
 
 	"xorm.io/xorm"
@@ -60,6 +61,7 @@ func (session *Session) FinalizeUserAccessories(dbSession *xorm.Session) []any {
 		accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, userAccessoryID)
 		if accessory.AccessoryMasterID == 0 { // delete this accessories
 			accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, nil)
+			// fmt.Println(userAccessoryID)
 			affected, err := dbSession.Table("s_user_accessory").
 				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).Delete(&accessory)
 			utils.CheckErr(err)
@@ -67,6 +69,7 @@ func (session *Session) FinalizeUserAccessories(dbSession *xorm.Session) []any {
 				panic("accessories doesn't exists")
 			}
 		} else {
+			accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, accessory)
 			affected, err := dbSession.Table("s_user_accessory").
 				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).AllCols().Update(accessory)
 			utils.CheckErr(err)
