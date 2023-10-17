@@ -19,6 +19,7 @@ import (
 func LiveMvStart(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody := session.Finalize(GetData("liveMvStart.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -66,6 +67,7 @@ func LiveMvSaveDeck(ctx *gin.Context) {
 	utils.CheckErr(err)
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	for k, _ := range req.ViewStatusByPos {
 		if k%2 == 0 {
 			memberID := req.MemberMasterIDByPos[k+1]

@@ -28,6 +28,7 @@ func OpenMemberLovePanel(ctx *gin.Context) {
 	utils.CheckErr(err)
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	panel := session.GetMemberLovePanel(req.MemberID)
 
 	panel.LovePanelLastLevelCellIDs = append(panel.LovePanelLastLevelCellIDs, req.MemberLovePanelCellIDs...)

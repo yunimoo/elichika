@@ -16,6 +16,7 @@ func TriggerReadCardGradeUp(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	req := model.TriggerReadReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
@@ -33,6 +34,7 @@ func TriggerRead(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	req := model.TriggerReadReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
 		panic(err)
@@ -50,6 +52,7 @@ func TriggerReadMemberLoveLevelUp(ctx *gin.Context) {
 	// req is null, so we need to pull the triggers from db here
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 
 	triggers := session.GetAllTriggerMemberLoveLevelUps()
 	for _, trigger := range triggers.Objects {

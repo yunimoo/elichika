@@ -12,6 +12,7 @@ import (
 func FinishStory(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody := session.Finalize(GetData("finishStory.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -22,6 +23,7 @@ func FinishStory(ctx *gin.Context) {
 func FinishStoryMain(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody := session.Finalize(GetData("finishUserStoryMain.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -32,6 +34,7 @@ func FinishStoryMain(ctx *gin.Context) {
 func FinishStoryLinkage(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody := session.Finalize(GetData("finishStoryLinkage.json"), "user_model_diff")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 

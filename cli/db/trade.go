@@ -7,8 +7,6 @@ import (
 
 	"encoding/json"
 	"fmt"
-
-	"github.com/tidwall/gjson"
 )
 
 func InsertTrade(args []string) {

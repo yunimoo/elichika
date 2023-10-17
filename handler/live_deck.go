@@ -37,6 +37,7 @@ func SaveDeckAll(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	deckInfo := session.GetUserLiveDeck(req.DeckID)
 
 	for i := 0; i < 9; i++ {
@@ -120,6 +121,7 @@ func FetchLiveDeckSelect(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	deck := session.GetLastPlayLiveDifficultyDeck(req.LiveDifficultyID)
 	signBody, err := sjson.Set("{}", "last_play_live_difficulty_deck", deck)
 	// signBody := GetData("fetchLiveDeckSelect.json")
@@ -148,6 +150,7 @@ func SaveSuit(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, err := json.Marshal(deck)
 	deckJson := string(deckJsonByte)
@@ -186,6 +189,7 @@ func SaveDeck(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 
 	// fetch the deck and parties affected
 	deck := session.GetUserLiveDeck(req.DeckID)
@@ -285,6 +289,7 @@ func ChangeDeckNameLiveDeck(ctx *gin.Context) {
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	liveDeck := session.GetUserLiveDeck(req.DeckID)
 	liveDeck.Name.DotUnderText = req.DeckName
 	session.UpdateUserLiveDeck(liveDeck)

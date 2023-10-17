@@ -6,13 +6,11 @@ import (
 
 	// "fmt"
 	"time"
-
-	"xorm.io/xorm"
 )
 
 func (session *Session) GetAllUserAccessories() []model.UserAccessory {
 	accessories := []model.UserAccessory{}
-	err := Engine.Table("s_user_accessory").Where("user_id = ?", session.UserStatus.UserID).
+	err := session.Db.Table("s_user_accessory").Where("user_id = ?", session.UserStatus.UserID).
 		Find(&accessories)
 	utils.CheckErr(err)
 	return accessories
@@ -27,7 +25,7 @@ func (session *Session) GetUserAccessory(userAccessoryID int64) model.UserAccess
 
 	// if not look in db
 	accessory = model.UserAccessory{}
-	exists, err := Engine.Table("s_user_accessory").
+	exists, err := session.Db.Table("s_user_accessory").
 		Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).Get(&accessory)
 	utils.CheckErr(err)
 	if !exists {
@@ -55,14 +53,14 @@ func (session *Session) UpdateUserAccessory(accessory model.UserAccessory) {
 	session.UserAccessoryDiffs[accessory.UserAccessoryID] = accessory
 }
 
-func (session *Session) FinalizeUserAccessories(dbSession *xorm.Session) []any {
+func (session *Session) FinalizeUserAccessories() []any {
 	accessoryByUserAccessoryID := []any{}
 	for userAccessoryID, accessory := range session.UserAccessoryDiffs {
 		accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, userAccessoryID)
 		if accessory.AccessoryMasterID == 0 { // delete this accessories
 			accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, nil)
 			// fmt.Println(userAccessoryID)
-			affected, err := dbSession.Table("s_user_accessory").
+			affected, err := session.Db.Table("s_user_accessory").
 				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).Delete(&accessory)
 			utils.CheckErr(err)
 			if affected != 1 {
@@ -70,11 +68,11 @@ func (session *Session) FinalizeUserAccessories(dbSession *xorm.Session) []any {
 			}
 		} else {
 			accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, accessory)
-			affected, err := dbSession.Table("s_user_accessory").
+			affected, err := session.Db.Table("s_user_accessory").
 				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).AllCols().Update(accessory)
 			utils.CheckErr(err)
 			if affected == 0 {
-				_, err := dbSession.Table("s_user_accessory").AllCols().Insert(accessory)
+				_, err := session.Db.Table("s_user_accessory").AllCols().Insert(accessory)
 				utils.CheckErr(err)
 			}
 		}

@@ -13,6 +13,7 @@ import (
 func FetchEmblem(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody := session.Finalize(GetData("fetchEmblem.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
@@ -23,6 +24,7 @@ func ActivateEmblem(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	var emblemId int64
 	gjson.Parse(reqBody).ForEach(func(key, value gjson.Result) bool {
 		if value.Get("emblem_master_id").String() != "" {

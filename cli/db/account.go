@@ -188,7 +188,7 @@ func InsertAccount(session *serverdb.Session, members []model.UserMemberInfo,
 	session.InsertLiveParties(liveParties)
 	session.InsertLessonDecks(lessonDecks)
 	session.InsertCards(cards)
-	serverdb.InsertUserSuits(suits, nil)
+	session.InsertUserSuits(suits)
 	for _, lovePanel := range lovePanels {
 		affected, err := serverdb.Engine.Table("s_user_member").AllCols().
 			Where("user_id = ? AND member_master_id = ?", lovePanel.UserID, lovePanel.MemberID).
@@ -205,6 +205,7 @@ func ImportFromJson() {
 	fmt.Println("Importing account data from json")
 	ImportJsonUser()
 	session := serverdb.GetSession(nil, UserID)
+	defer session.Close()
 
 	// member data
 	members := LoadMemberFromJson()
@@ -307,6 +308,7 @@ func ImportMinimalAccount() {
 
 	CreateNewUser()
 	session := serverdb.GetSession(nil, UserID)
+	defer session.Close()
 
 	var masterdatadb *xorm.Engine
 	if IsGlobal {

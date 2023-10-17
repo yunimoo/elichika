@@ -49,6 +49,7 @@ func LiveSkip(ctx *gin.Context) {
 
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	session.UserStatus.LastLiveDifficultyID = req.LiveDifficultyMasterID
 	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 	info := LiveFinishLiveDifficultyInfo{}

@@ -95,6 +95,7 @@ func Login(ctx *gin.Context) {
 	// fmt.Println("Session Key:", newKey64)
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	session.UserStatus.LastLoginAt = time.Now().Unix()
 
 	loginBody := session.Finalize(GetData("login.json"), "user_model")

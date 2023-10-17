@@ -22,12 +22,12 @@ func (session *Session) AddTriggerCardGradeUp(id int64, trigger *model.TriggerCa
 	if trigger != nil {
 		dbTrigger := model.TriggerCardGradeUp{}
 
-		exists, err := Engine.Table("s_user_trigger_card_grade_up").
+		exists, err := session.Db.Table("s_user_trigger_card_grade_up").
 			Where("user_id = ? AND card_master_id = ?", trigger.UserID, trigger.CardMasterID).Get(&dbTrigger)
 		utils.CheckErr(err)
 		currentPos := -1
 		if exists { // if the card has a trigger, we have to remove it
-			Engine.Table("s_user_trigger_card_grade_up").
+			session.Db.Table("s_user_trigger_card_grade_up").
 				Where("user_id = ? AND card_master_id = ?", trigger.UserID, trigger.CardMasterID).Delete(&dbTrigger)
 			// make the client remove the trigger
 			for i, _ := range session.TriggerCardGradeUps {
@@ -58,14 +58,14 @@ func (session *Session) AddTriggerCardGradeUp(id int64, trigger *model.TriggerCa
 		dbTrigger.BeforeLoveLevelLimit = dbTrigger.AfterLoveLevelLimit
 		// db trigger when login have BeforeLoveLevelLimit = AfterLoveLevelLimit
 		// if the 2 numbers are equal the level up don't show when we open the card.
-		_, err = Engine.Table("s_user_trigger_card_grade_up").Insert(&dbTrigger)
+		_, err = session.Db.Table("s_user_trigger_card_grade_up").Insert(&dbTrigger)
 		utils.CheckErr(err)
 	} else {
 		// add trigger and remove from db
 		// this is only caused by a infoTrigger/read
 		session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, id)
 		session.TriggerCardGradeUps = append(session.TriggerCardGradeUps, trigger)
-		_, err := Engine.Table("s_user_trigger_card_grade_up").Where("trigger_id = ?", id).Delete(
+		_, err := session.Db.Table("s_user_trigger_card_grade_up").Where("trigger_id = ?", id).Delete(
 			&model.TriggerCardGradeUp{})
 		utils.CheckErr(err)
 	}
@@ -73,7 +73,7 @@ func (session *Session) AddTriggerCardGradeUp(id int64, trigger *model.TriggerCa
 
 func (session *Session) GetAllTriggerCardGradeUps() generic.ObjectByObjectIDWrite[*model.TriggerCardGradeUp] {
 	triggers := generic.ObjectByObjectIDWrite[*model.TriggerCardGradeUp]{}
-	err := Engine.Table("s_user_trigger_card_grade_up").
+	err := session.Db.Table("s_user_trigger_card_grade_up").
 		Where("user_id = ?", session.UserStatus.UserID).Find(&triggers.Objects)
 	utils.CheckErr(err)
 	triggers.Length = len(triggers.Objects)
@@ -91,10 +91,10 @@ func (session *Session) AddTriggerBasic(id int64, trigger *model.TriggerBasic) {
 	session.TriggerBasics = append(session.TriggerBasics, id)
 	session.TriggerBasics = append(session.TriggerBasics, trigger)
 	if trigger != nil {
-		_, err := Engine.Table("s_user_trigger_basic").Insert(trigger)
+		_, err := session.Db.Table("s_user_trigger_basic").Insert(trigger)
 		utils.CheckErr(err)
 	} else {
-		_, err := Engine.Table("s_user_trigger_basic").Where("trigger_id = ?", id).Delete(
+		_, err := session.Db.Table("s_user_trigger_basic").Where("trigger_id = ?", id).Delete(
 			&model.TriggerBasic{})
 		utils.CheckErr(err)
 	}
@@ -102,7 +102,7 @@ func (session *Session) AddTriggerBasic(id int64, trigger *model.TriggerBasic) {
 
 func (session *Session) GetAllTriggerBasics() generic.ObjectByObjectIDWrite[*model.TriggerBasic] {
 	triggers := generic.ObjectByObjectIDWrite[*model.TriggerBasic]{}
-	err := Engine.Table("s_user_trigger_basic").
+	err := session.Db.Table("s_user_trigger_basic").
 		Where("user_id = ?", session.UserStatus.UserID).Find(&triggers.Objects)
 	utils.CheckErr(err)
 	triggers.Length = len(triggers.Objects)
@@ -120,10 +120,10 @@ func (session *Session) AddTriggerMemberLoveLevelUp(id int64, trigger *model.Tri
 	session.TriggerMemberLoveLevelUps = append(session.TriggerMemberLoveLevelUps, id)
 	session.TriggerMemberLoveLevelUps = append(session.TriggerMemberLoveLevelUps, trigger)
 	if trigger != nil {
-		_, err := Engine.Table("s_user_trigger_member_love_level_up").Insert(trigger)
+		_, err := session.Db.Table("s_user_trigger_member_love_level_up").Insert(trigger)
 		utils.CheckErr(err)
 	} else {
-		_, err := Engine.Table("s_user_trigger_member_love_level_up").Where("trigger_id = ?", id).Delete(
+		_, err := session.Db.Table("s_user_trigger_member_love_level_up").Where("trigger_id = ?", id).Delete(
 			&model.TriggerMemberLoveLevelUp{})
 		utils.CheckErr(err)
 	}
@@ -131,7 +131,7 @@ func (session *Session) AddTriggerMemberLoveLevelUp(id int64, trigger *model.Tri
 
 func (session *Session) GetAllTriggerMemberLoveLevelUps() generic.ObjectByObjectIDWrite[*model.TriggerMemberLoveLevelUp] {
 	triggers := generic.ObjectByObjectIDWrite[*model.TriggerMemberLoveLevelUp]{}
-	err := Engine.Table("s_user_trigger_member_love_level_up").
+	err := session.Db.Table("s_user_trigger_member_love_level_up").
 		Where("user_id = ?", session.UserStatus.UserID).Find(&triggers.Objects)
 	utils.CheckErr(err)
 	triggers.Length = len(triggers.Objects)

@@ -29,6 +29,7 @@ func AccessoryUpdateIsLock(ctx *gin.Context) {
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	accessory := session.GetUserAccessory(req.UserAccessoryID)
 	accessory.IsLock = req.IsLock
 	session.UpdateUserAccessory(accessory)
@@ -44,6 +45,7 @@ func AccessoryUpdateIsNew(ctx *gin.Context) {
 	// this can probably be optimised to a single SQL but no need to be so far
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	accessories := session.GetAllUserAccessories()
 	for _, accessory := range accessories {
 		accessory.IsNew = false
@@ -66,6 +68,7 @@ func AccessoryMelt(ctx *gin.Context) {
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	for _, userAccessoryID := range req.UserAccessoryIDs {
 		accessory := session.GetUserAccessory(userAccessoryID)
@@ -99,6 +102,7 @@ func AccessoryPowerUp(ctx *gin.Context) {
 	// limit break (grade up) is processed first, then exp is processed later
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	userAccessory := session.GetUserAccessory(req.UserAccessoryID)
 	masterAccessory := gamedata.Accessory.Accessory[userAccessory.AccessoryMasterID]
@@ -185,7 +189,7 @@ func AccessoryPowerUp(ctx *gin.Context) {
 	}
 	session.UpdateUserAccessory(userAccessory)
 
-	session.RemoveGameMoney(moneyUsed)
+	session.RemoveGameMoney(int64(moneyUsed))
 
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	// not sure what this is, doesn't seem to do anything
@@ -213,6 +217,7 @@ func AccessoryRarityUp(ctx *gin.Context) {
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	userAccessory := session.GetUserAccessory(req.UserAccessoryID)
 	masterAccessory := gamedata.Accessory.Accessory[userAccessory.AccessoryMasterID]
@@ -244,7 +249,7 @@ func AccessoryRarityUp(ctx *gin.Context) {
 	session.UpdateUserAccessory(userAccessory)
 	// remove resource used
 	session.RemoveResource(gamedata.Accessory.RarityUpGroup[masterAccessory.RarityUp.AccessoryRarityUpGroupMasterID].Resource)
-	session.RemoveGameMoney(gamedata.Accessory.Rarity[masterAccessory.RarityType].RarityUpMoney)
+	session.RemoveGameMoney(int64(gamedata.Accessory.Rarity[masterAccessory.RarityType].RarityUpMoney))
 
 	// finalize and send the response
 
@@ -267,6 +272,7 @@ func AccessoryAllUnequip(ctx *gin.Context) {
 
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	liveParties := session.GetAllLiveParties()
 	for _, liveParty := range liveParties {
 		updated := false

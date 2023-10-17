@@ -123,7 +123,7 @@ func (session *Session) GetUserLiveStats() model.UserProfileLiveStats {
 }
 
 func (session *Session) UpdateUserLiveStats(stats model.UserProfileLiveStats) {
-	_, err := Engine.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).AllCols().Update(&stats)
+	_, err := session.Db.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).AllCols().Update(&stats)
 	utils.CheckErr(err)
 }
 
@@ -132,7 +132,7 @@ func (session *Session) UpdateUserLiveStats(stats model.UserProfileLiveStats) {
 func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	profile := model.Profile{}
 
-	exists, err := Engine.Table("s_user_info").Where("user_id = ?", otherUserID).Get(&profile)
+	exists, err := session.Db.Table("s_user_info").Where("user_id = ?", otherUserID).Get(&profile)
 	if err != nil {
 		panic(err)
 	}
@@ -160,7 +160,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 
 	// other user's members
 	members := []model.UserMemberInfo{}
-	err = Engine.Table("s_user_member").Where("user_id = ?", otherUserID).OrderBy("love_point DESC").Find(&members)
+	err = session.Db.Table("s_user_member").Where("user_id = ?", otherUserID).OrderBy("love_point DESC").Find(&members)
 	if err != nil {
 		panic(err)
 	}
@@ -204,9 +204,9 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 		profile.PlayInfo.LiveClearCount = append(profile.PlayInfo.LiveClearCount, liveStats.LiveClearCount[i])
 	}
 
-	Engine.Table("s_user_card").Where("user_id = ?", otherUserID).
+	session.Db.Table("s_user_card").Where("user_id = ?", otherUserID).
 		OrderBy("live_join_count DESC").Limit(3).Find(&profile.PlayInfo.JoinedLiveCardRanking)
-	Engine.Table("s_user_card").Where("user_id = ?", otherUserID).
+	session.Db.Table("s_user_card").Where("user_id = ?", otherUserID).
 		OrderBy("active_skill_play_count DESC").Limit(3).Find(&profile.PlayInfo.PlaySkillCardRanking)
 
 	// custom profile
@@ -223,7 +223,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	}
 
 	// can get from members[] to save sql
-	Engine.Table("s_user_member").Where("user_id = ?", otherUserID).Find(&profile.MemberInfo.UserMembers)
+	session.Db.Table("s_user_member").Where("user_id = ?", otherUserID).Find(&profile.MemberInfo.UserMembers)
 	return profile
 }
 
@@ -242,12 +242,12 @@ func (session *Session) GetUserCustomSetProfile() model.UserCustomSetProfile {
 }
 
 func (session *Session) SetUserCustomSetProfile(p model.UserCustomSetProfile) {
-	affected, err := Engine.Table("s_user_custom_set_profile").Where("user_id = ?", session.UserStatus.UserID).
+	affected, err := session.Db.Table("s_user_custom_set_profile").Where("user_id = ?", session.UserStatus.UserID).
 		AllCols().Update(&p)
 	utils.CheckErr(err)
 	if affected == 0 {
 		// need to insert
-		affected, err = Engine.Table("s_user_custom_set_profile").Insert(&p)
+		affected, err = session.Db.Table("s_user_custom_set_profile").Insert(&p)
 		utils.CheckErr(err)
 	}
 }

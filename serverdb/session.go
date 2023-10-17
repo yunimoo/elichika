@@ -20,6 +20,7 @@ import (
 // session can use ctx to get things like user id / master db, but it should not make any network operation
 
 type Session struct {
+	Db							  *xorm.Session
 	Ctx                           *gin.Context
 	Gamedata                      *gamedata.Gamedata
 	UserStatus                    model.UserStatus
@@ -42,41 +43,40 @@ type Session struct {
 // The actual response depend on the API, but they often contain the diff somewhere
 // The mainKey is the key to the diff
 func (session *Session) Finalize(jsonBody string, mainKey string) string {
-	dbSession := Engine.NewSession()
-	err := dbSession.Begin()
-	utils.CheckErr(err)
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_member_by_member_id", session.FinalizeUserMemberDiffs(dbSession))
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs(dbSession))
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_lesson_deck_by_id", session.FinalizeUserLessonDeckDiffs(dbSession))
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_deck_by_id", session.FinalizeUserLiveDeckDiffs(dbSession))
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs(dbSession))
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs(dbSession))
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_accessory_by_user_accessory_id", session.FinalizeUserAccessories(dbSession))
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_difficulty_by_difficulty_id", session.FinalizeLiveDifficultyRecords(dbSession))
-	resourceKeys, resourceValues := session.FinalizeUserResources(dbSession)
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_member_by_member_id", session.FinalizeUserMemberDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_card_by_card_id", session.FinalizeCardDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_lesson_deck_by_id", session.FinalizeUserLessonDeckDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_deck_by_id", session.FinalizeUserLiveDeckDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_party_by_id", session.FinalizeUserLivePartyDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_suit_by_suit_id", session.FinalizeUserSuitDiffs())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_accessory_by_user_accessory_id", session.FinalizeUserAccessories())
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_live_difficulty_by_difficulty_id", session.FinalizeLiveDifficultyRecords())
+	resourceKeys, resourceValues := session.FinalizeUserResources()
 	for i, _ := range resourceKeys {
 		jsonBody, _ = sjson.SetRaw(jsonBody, mainKey+"."+resourceKeys[i], resourceValues[i])
 	}
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.FinalizeUserInfo(dbSession))
-	memberLovePanels := session.FinalizeMemberLovePanelDiffs(dbSession)
+	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_status", session.FinalizeUserInfo())
+	memberLovePanels := session.FinalizeMemberLovePanelDiffs()
 	if len(memberLovePanels) != 0 {
 		jsonBody, _ = sjson.Set(jsonBody, "member_love_panels", memberLovePanels)
 	}
-	dbSession.Commit()
-	dbSession.Close()
+	session.Db.Commit()
 	// this could be a delta patch, but we can just send the whole thing
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_play_list_by_id", session.GetUserPlayList())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_card_grade_up_by_trigger_id", session.TriggerCardGradeUps)
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_basic_by_trigger_id", session.TriggerBasics)
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_member_love_level_up_by_trigger_id", session.TriggerMemberLoveLevelUps)
-
 	return jsonBody
+}
+
+func (session *Session) Close() {
+	session.Db.Close()
 }
 
 // fetch the user, this is always sent back to client
 func (session *Session) InitUser(userID int) {
 	session.UserStatus.UserID = userID
-	exists, err := Engine.Table("s_user_info").Where("user_id = ?", userID).Get(&session.UserStatus)
+	exists, err := session.Db.Table("s_user_info").Where("user_id = ?", userID).Get(&session.UserStatus)
 	if err != nil {
 		panic(err)
 	}
@@ -86,8 +86,8 @@ func (session *Session) InitUser(userID int) {
 	}
 }
 
-func (session *Session) FinalizeUserInfo(dbSession *xorm.Session) model.UserStatus {
-	_, err := dbSession.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).Update(&session.UserStatus)
+func (session *Session) FinalizeUserInfo() model.UserStatus {
+	_, err := session.Db.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).Update(&session.UserStatus)
 	if err != nil {
 		panic(err)
 	}
@@ -98,6 +98,9 @@ func GetSession(ctx *gin.Context, userId int) Session {
 	s := Session{}
 	s.Ctx = ctx
 	s.Gamedata = ctx.MustGet("gamedata").(*gamedata.Gamedata)
+	s.Db = Engine.NewSession()
+	err := s.Db.Begin()
+	utils.CheckErr(err)
 	s.CardDiffs = make(map[int]model.UserCard)
 	s.UserMemberDiffs = make(map[int]model.UserMemberInfo)
 	s.UserLessonDeckDiffs = make(map[int]model.UserLessonDeck)

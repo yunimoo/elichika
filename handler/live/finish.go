@@ -138,6 +138,7 @@ func LiveFinish(ctx *gin.Context) {
 	utils.MustExist(exists)
 
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	liveState.DeckID = session.UserStatus.LatestLiveDeckID
 	liveState.LiveStage.LiveDifficultyID = session.UserStatus.LastLiveDifficultyID
 

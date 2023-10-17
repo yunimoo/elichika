@@ -7,7 +7,7 @@ import (
 
 func (session *Session) GetTradeProductUser(productID int) int {
 	result := 0
-	exists, err := Engine.Table("s_trade_product_user").
+	exists, err := session.Db.Table("s_trade_product_user").
 		Where("user_id = ? AND product_id = ?", session.UserStatus.UserID, productID).
 		Cols("traded_count").Get(&result)
 	utils.CheckErr(err)
@@ -24,12 +24,12 @@ func (session *Session) SetTradeProductUser(productID, newTradedCount int) {
 		TradedCount: newTradedCount,
 	}
 
-	exists, err := Engine.Table("s_trade_product_user").
+	exists, err := session.Db.Table("s_trade_product_user").
 		Where("user_id = ? AND product_id = ?", session.UserStatus.UserID, productID).
 		Update(record)
 	utils.CheckErr(err)
 	if exists == 0 {
-		_, err := Engine.Table("s_trade_product_user").Insert(record)
+		_, err := session.Db.Table("s_trade_product_user").Insert(record)
 		utils.CheckErr(err)
 	}
 }

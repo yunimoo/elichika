@@ -25,6 +25,7 @@ func LiveUpdatePlayList(ctx *gin.Context) {
 
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	mul := 0
 	if req.IsSet {
 		mul = 1

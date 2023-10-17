@@ -19,6 +19,7 @@ func UpdateCardNewFlag(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	type UpdateCardNewFlagReq struct {
 		CardMasterIDs []int `json:"card_master_ids"`
 	}
@@ -48,6 +49,7 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsAwakeningImage = req.IsAwakeningImage
 	session.UpdateUserCard(userCard)
@@ -70,6 +72,7 @@ func ChangeFavorite(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsFavorite = req.IsFavorite
 	session.UpdateUserCard(userCard)

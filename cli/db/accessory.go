@@ -26,6 +26,7 @@ func InsertAll(args []string) {
 		userID = uid
 	}
 	session := serverdb.GetSession(nil, userID)
+	defer session.Close()
 
 	for i, a := range gamedata.Accessory.Accessory {
 		accessory := session.GetUserAccessory(time.Now().UnixNano() + int64(i))

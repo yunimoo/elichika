@@ -11,7 +11,6 @@ import (
 	"fmt"
 
 	"github.com/tidwall/sjson"
-	"xorm.io/xorm"
 )
 
 type UserResource struct {
@@ -23,17 +22,25 @@ type UserResource struct {
 
 var (
 	ResourceHandler   map[int]func(*Session, int, int, int64)
-	ResourceFinalizer map[int]func(*Session, *xorm.Session, int, map[int]UserResource) (string, string)
+	ResourceFinalizer map[int]func(*Session, int, map[int]UserResource) (string, string)
 	ResourceGroupKey  map[int]string
 	ResourceItemKey   map[int]string
 )
 
-func (session *Session) AddGameMoney(money int) {
-	fmt.Println("TODO: Add money:", money)
+func (session *Session) AddGameMoney(money int64) {
+	session.AddResource(model.Content{
+		ContentType: 10,
+		ContentID: 0,
+		ContentAmount: money,
+	})
 }
 
-func (session *Session) RemoveGameMoney(money int) {
-	fmt.Println("TODO: Remove money:", money)
+func (session *Session) RemoveGameMoney(money int64) {
+	session.RemoveResource(model.Content{
+		ContentType: 10,
+		ContentID: 0,
+		ContentAmount: money,
+	})
 }
 
 func (session *Session) GetUserResource(contentType, contentID int) UserResource {
@@ -46,7 +53,7 @@ func (session *Session) GetUserResource(contentType, contentID int) UserResource
 		return resource
 	}
 	// load from db
-	exists, err := Engine.Table("s_user_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
+	exists, err := session.Db.Table("s_user_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
 		session.UserStatus.UserID, contentType, contentID).Get(&resource)
 	utils.CheckErr(err)
 	if !exists {
@@ -91,11 +98,11 @@ func (session *Session) RemoveResource(resource model.Content) {
 // return an array of pair of key / content to set that key to
 // this key start from user_model / user_model_diff (so add that to the front)
 // the value inside []any are PREMARSHALED json, so use sjson.SetRaw
-func (session *Session) FinalizeUserResources(dbSession *xorm.Session) ([]string, []string) {
+func (session *Session) FinalizeUserResources() ([]string, []string) {
 	keys := []string{}
 	values := []string{}
 	for contentType, resourceDiffByContentID := range session.UserResourceDiffs {
-		key, value := ResourceFinalizer[contentType](session, dbSession, contentType, resourceDiffByContentID)
+		key, value := ResourceFinalizer[contentType](session, contentType, resourceDiffByContentID)
 		keys = append(keys, key)
 		values = append(values, value)
 	}
@@ -112,7 +119,7 @@ func init() {
 
 	ResourceHandler[7] = SuitResourceHandler
 
-	ResourceFinalizer = make(map[int]func(*Session, *xorm.Session, int, map[int]UserResource) (string, string))
+	ResourceFinalizer = make(map[int]func(*Session, int, map[int]UserResource) (string, string))
 	ResourceGroupKey = make(map[int]string)
 	ResourceItemKey = make(map[int]string)
 
@@ -180,7 +187,7 @@ func GenericResourceHandler(session *Session, contentType, contentID int, conten
 	session.UpdateUserResource(resource)
 }
 
-func GenericResourceFinalizer(session *Session, dbSession *xorm.Session, contentType int,
+func GenericResourceFinalizer(session *Session, contentType int,
 	resourceDiffByContentID map[int]UserResource) (string, string) {
 	groupKey := ResourceGroupKey[contentType]
 	itemKey := ResourceItemKey[contentType]
@@ -188,11 +195,11 @@ func GenericResourceFinalizer(session *Session, dbSession *xorm.Session, content
 	index := 0
 	for contentID, resource := range resourceDiffByContentID {
 		// update or insert the resource
-		affected, err := dbSession.Table("s_user_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
+		affected, err := session.Db.Table("s_user_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
 			session.UserStatus.UserID, contentType, contentID).Update(resource)
 		utils.CheckErr(err)
 		if affected == 0 { // doesn't exists, insert
-			dbSession.Table("s_user_resource").Insert(resource)
+		session.Db.Table("s_user_resource").Insert(resource)
 		}
 
 		// set the json

@@ -15,6 +15,7 @@ func UpdateConsentState(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	session.UserStatus.GdprVersion = int(reqBody.Get("version").Int())
 	session.Finalize(GetData("userModel.json"), "user_model")
 	// Don't know the format of this response, but we can set gdpr version to 4 to skip it.

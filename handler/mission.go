@@ -12,6 +12,7 @@ import (
 func FetchMission(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody := session.Finalize(GetData("fetchMission.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -22,6 +23,7 @@ func FetchMission(ctx *gin.Context) {
 func ClearMissionBadge(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody := session.Finalize(GetData("clearMissionBadge.json"), "user_model")
 	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 

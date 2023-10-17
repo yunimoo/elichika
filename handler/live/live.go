@@ -42,6 +42,7 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "live_daily_list", liveDailyList)
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	signBody = session.Finalize(signBody, "user_model_diff")
 	resp := handler.SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
 
@@ -95,6 +96,7 @@ func LiveStart(ctx *gin.Context) {
 	}
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 
 	session.UserStatus.LastLiveDifficultyID = req.LiveDifficultyID
 	session.UserStatus.LatestLiveDeckID = req.DeckID

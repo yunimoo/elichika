@@ -14,7 +14,7 @@ func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
 	if exist {
 		return member
 	}
-	exists, err := Engine.Table("s_user_member").
+	exists, err := session.Db.Table("s_user_member").
 		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).Get(&member)
 	// inserted at login if not exist
 	if err != nil {
@@ -28,7 +28,7 @@ func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
 
 func (session *Session) GetAllMembers() []model.UserMemberInfo {
 	members := []model.UserMemberInfo{}
-	err := Engine.Table("s_user_member").Where("user_id = ?", session.UserStatus.UserID).Find(&members)
+	err := session.Db.Table("s_user_member").Where("user_id = ?", session.UserStatus.UserID).Find(&members)
 	if err != nil {
 		panic(err)
 	}
@@ -40,19 +40,19 @@ func (session *Session) UpdateMember(member model.UserMemberInfo) {
 }
 
 func (session *Session) InsertMembers(members []model.UserMemberInfo) {
-	affected, err := Engine.Table("s_user_member").Insert(&members)
+	affected, err := session.Db.Table("s_user_member").Insert(&members)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Inserted ", affected, " members")
 }
 
-func (session *Session) FinalizeUserMemberDiffs(dbSession *xorm.Session) []any {
+func (session *Session) FinalizeUserMemberDiffs() []any {
 	userMemberByMemberID := []any{}
 	for memberMasterID, member := range session.UserMemberDiffs {
 		userMemberByMemberID = append(userMemberByMemberID, memberMasterID)
 		userMemberByMemberID = append(userMemberByMemberID, member)
-		affected, err := dbSession.Table("s_user_member").
+		affected, err := session.Db.Table("s_user_member").
 			Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).AllCols().Update(member)
 		if (err != nil) || (affected != 1) {
 			panic(err)

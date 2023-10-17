@@ -25,6 +25,7 @@ func FetchProfile(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	profile := session.FetchProfile(req.UserID)
 
 	signBody, err := json.Marshal(profile)
@@ -43,6 +44,7 @@ func SetProfile(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	// fmt.Println(reqBody)
 
 	req := gjson.Parse(reqBody).Array()[0]
@@ -66,6 +68,7 @@ func SetRecommendCard(ctx *gin.Context) {
 	// fmt.Println(reqBody)
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	cardMasterId := int(gjson.Parse(reqBody).Array()[0].Get("card_master_id").Int())
 	session.UserStatus.RecommendCardMasterID = cardMasterId
 
@@ -90,6 +93,7 @@ func SetLivePartner(ctx *gin.Context) {
 	// set the bit on the correct card
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	newCard := session.GetUserCard(req.CardMasterID)
 	newCard.LivePartnerCategories |= (1 << req.LivePartnerCategoryID)
 	session.UpdateUserCard(newCard)
@@ -125,6 +129,7 @@ func SetScoreOrComboLive(ctx *gin.Context) {
 
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	customSetProfile := session.GetUserCustomSetProfile()
 	if ctx.Request.URL.Path == "/userProfile/setScoreLive" {
 		customSetProfile.VoltageLiveDifficultyID = req.LiveDifficultyMasterID

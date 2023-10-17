@@ -28,6 +28,7 @@ func FetchTrade(ctx *gin.Context) {
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	trades := session.GetTrades(req.TradeType)
 
 	signBody, _ := sjson.Set("{}", "trades", trades)
@@ -48,6 +49,7 @@ func ExecuteTrade(ctx *gin.Context) {
 
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 
 	sentToPresentBox := session.ExecuteTrade(req.ProductID, req.TradeCount)
@@ -78,6 +80,7 @@ func ExecuteMultiTrade(ctx *gin.Context) {
 
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
+	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 
 	sentToPresentBox := false

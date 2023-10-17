@@ -27,6 +27,7 @@ func FetchBootstrap(ctx *gin.Context) {
 
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
+	defer session.Close()
 	session.UserStatus.BootstrapSifidCheckAt = time.Now().UnixMilli()
 	session.UserStatus.DeviceToken = req.DeviceToken
 	signBody := session.Finalize(GetData("fetchBootstrap.json"), "user_model_diff")

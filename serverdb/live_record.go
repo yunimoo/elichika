@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/tidwall/gjson"
-	"xorm.io/xorm"
 )
 
 func GetOtherUserLiveRecord(otherUserID, liveDifficultyID int) model.UserLiveDifficultyRecord {
@@ -35,7 +34,7 @@ func (session *Session) GetLiveDifficultyRecord(liveDifficultyID int) model.User
 
 func (session *Session) GetAllLiveRecords() []model.UserLiveDifficultyRecord {
 	records := []model.UserLiveDifficultyRecord{}
-	err := Engine.Table("s_user_live_record").Where("user_id = ?", session.UserStatus.UserID).
+	err := session.Db.Table("s_user_live_record").Where("user_id = ?", session.UserStatus.UserID).
 		Find(&records)
 	if err != nil {
 		panic(err)
@@ -47,17 +46,17 @@ func (session *Session) UpdateLiveDifficultyRecord(record model.UserLiveDifficul
 	session.UserLiveDifficultyRecordDiffs[record.LiveDifficultyID] = record
 }
 
-func (session *Session) FinalizeLiveDifficultyRecords(dbSession *xorm.Session) []any {
+func (session *Session) FinalizeLiveDifficultyRecords() []any {
 	diffs := []any{}
 	for _, record := range session.UserLiveDifficultyRecordDiffs {
 		diffs = append(diffs, record.LiveDifficultyID)
 		diffs = append(diffs, record)
-		updated, err := dbSession.Table("s_user_live_record").
+		updated, err := session.Db.Table("s_user_live_record").
 			Where("user_id = ? AND live_difficulty_id = ?", record.UserID, record.LiveDifficultyID).
 			AllCols().Update(&record)
 		utils.CheckErr(err)
 		if updated == 0 {
-			_, err = dbSession.AllCols().Table("s_user_live_record").Insert(&record)
+			_, err = session.Db.AllCols().Table("s_user_live_record").Insert(&record)
 			utils.CheckErr(err)
 		}
 	}
@@ -66,7 +65,7 @@ func (session *Session) FinalizeLiveDifficultyRecords(dbSession *xorm.Session) [
 
 func (session *Session) GetLastPlayLiveDifficultyDeck(liveDifficultyID int) *model.LastPlayLiveDifficultyDeck {
 	lastPlayDeck := model.LastPlayLiveDifficultyDeck{}
-	exists, err := Engine.Table("s_user_live_record").
+	exists, err := session.Db.Table("s_user_live_record").
 		Where("user_id = ? AND live_difficulty_id = ?", session.UserStatus.UserID, liveDifficultyID).
 		Get(&lastPlayDeck)
 	if err != nil {
@@ -126,7 +125,7 @@ func (session *Session) BuildLastPlayLiveDifficultyDeck(deckID, liveDifficultyID
 
 func (session *Session) SetLastPlayLiveDifficultyDeck(deck model.LastPlayLiveDifficultyDeck) {
 	// always call after inserting the actual live play, so we can just update
-	_, err := Engine.Table("s_user_live_record").Where("user_id = ? and live_difficulty_id = ?", deck.UserID, deck.LiveDifficultyID).
+	_, err := session.Db.Table("s_user_live_record").Where("user_id = ? and live_difficulty_id = ?", deck.UserID, deck.LiveDifficultyID).
 		AllCols().Update(&deck)
 	if err != nil {
 		panic(err)
