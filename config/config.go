@@ -1,7 +1,7 @@
 package config
 
 import (
-	"elichika/masterdata"
+	"elichika/gamedata"
 	"elichika/utils"
 
 	"fmt"
@@ -23,7 +23,8 @@ var (
 	MainDb         = "assets/main.db"
 	GlDatabasePath = "assets/db/gl/"
 	JpDatabasePath = "assets/db/jp/"
-	ServerdataDb   = "assets/db/serverdata.db"
+	// TODO: split into userdata.db and serverdata.db for gl / jp
+	ServerdataDb = "assets/db/serverdata.db"
 
 	MasterVersionGl = "2d61e7b4e89961c7" // read from GL database, so user can update db just by changing that
 	MasterVersionJp = "b66ec2295e9a00aa" // ditto
@@ -32,8 +33,8 @@ var (
 	MasterdataEngGl *xorm.Engine
 	MasterdataEngJp *xorm.Engine
 
-	MasterdataGl *masterdata.Masterdata
-	MasterdataJp *masterdata.Masterdata
+	GamedataGl *gamedata.Gamedata
+	GamedataJp *gamedata.Gamedata
 
 	Conf = &AppConfigs{}
 
@@ -59,37 +60,34 @@ func init() {
 	Conf = Load("./config.json")
 
 	eng, err := xorm.NewEngine("sqlite", MainDb)
-	if err != nil {
-		panic(err)
-	}
+	utils.CheckErr(err)
 	err = eng.Ping()
-	if err != nil {
-		panic(err)
-	}
+	utils.CheckErr(err)
 	MainEng = eng
 	MainEng.SetMaxOpenConns(50)
 	MainEng.SetMaxIdleConns(10)
 
+	ServerdataEng, err := xorm.NewEngine("sqlite", ServerdataDb)
+	utils.CheckErr(err)
+	ServerdataEng.SetMaxOpenConns(50)
+	ServerdataEng.SetMaxIdleConns(10)
+
 	MasterdataEngGl, err = xorm.NewEngine("sqlite", GlDatabasePath+"masterdata.db")
-	if err != nil {
-		panic(err)
-	}
+	utils.CheckErr(err)
 	MasterdataEngGl.SetMaxOpenConns(50)
 	MasterdataEngGl.SetMaxIdleConns(10)
 	MasterVersionGl = readMasterdataManinest(GlDatabasePath + "masterdata_a_en")
-	MasterdataGl = new(masterdata.Masterdata)
-	MasterdataGl.Init(MasterdataEngGl)
+	GamedataGl = new(gamedata.Gamedata)
+	GamedataGl.Init(MasterdataEngGl, ServerdataEng)
 
 	MasterdataEngJp, err = xorm.NewEngine("sqlite", JpDatabasePath+"masterdata.db")
-	if err != nil {
-		panic(err)
-	}
+	utils.CheckErr(err)
 	MasterdataEngJp.SetMaxOpenConns(50)
 	MasterdataEngJp.SetMaxIdleConns(10)
-	MasterdataJp = new(masterdata.Masterdata)
-	MasterdataJp.Init(MasterdataEngJp)
-
 	MasterVersionJp = readMasterdataManinest(JpDatabasePath + "masterdata_a_ja")
+	GamedataJp = new(gamedata.Gamedata)
+	GamedataJp.Init(MasterdataEngJp, ServerdataEng)
+
 	fmt.Println("gl master version:", MasterVersionGl)
 	fmt.Println("jp master version:", MasterVersionJp)
 }

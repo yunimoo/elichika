@@ -36,6 +36,8 @@ func cli() {
 		db.Accessory(os.Args[2:])
 	case "gacha":
 		db.Gacha(os.Args[2:])
+	case "trade":
+		db.Trade(os.Args[2:])
 	case "make": // easy import
 		make(os.Args[2:])
 	default:

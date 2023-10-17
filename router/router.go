@@ -88,5 +88,10 @@ func Router(r *gin.Engine) {
 		api.POST("/accessory/powerUp", handler.AccessoryPowerUp)
 		api.POST("/accessory/rarityUp", handler.AccessoryRarityUp)
 		api.POST("/accessory/allUnequip", handler.AccessoryAllUnequip)
+
+		api.POST("/trade/fetchTrade", handler.FetchTrade)
+		api.POST("/trade/executeTrade", handler.ExecuteTrade)
+		api.POST("/trade/executeMultiTrade", handler.ExecuteMultiTrade)
+
 	}
 }

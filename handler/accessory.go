@@ -2,13 +2,13 @@ package handler
 
 import (
 	"elichika/config"
-	"elichika/masterdata"
+	"elichika/gamedata"
 	"elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
 
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -66,11 +66,11 @@ func AccessoryMelt(ctx *gin.Context) {
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
-	masterdata := ctx.MustGet("masterdata").(*masterdata.Masterdata)
+	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	for _, userAccessoryID := range req.UserAccessoryIDs {
 		accessory := session.GetUserAccessory(userAccessoryID)
-		meltGroupID := masterdata.Accessory.Accessory[accessory.AccessoryMasterID].Grade[accessory.Grade].MeltGroupMasterID
-		session.AddResource(masterdata.Accessory.MeltGroup[meltGroupID].Resource)
+		meltGroupID := gamedata.Accessory.Accessory[accessory.AccessoryMasterID].Grade[accessory.Grade].MeltGroupMasterID
+		session.AddResource(gamedata.Accessory.MeltGroup[meltGroupID].Resource)
 		accessory.AccessoryMasterID = 0 // marked for delete
 		session.UpdateUserAccessory(accessory)
 	}
@@ -99,9 +99,9 @@ func AccessoryPowerUp(ctx *gin.Context) {
 	// limit break (grade up) is processed first, then exp is processed later
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
-	masterdata := ctx.MustGet("masterdata").(*masterdata.Masterdata)
+	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	userAccessory := session.GetUserAccessory(req.UserAccessoryID)
-	masterAccessory := masterdata.Accessory.Accessory[userAccessory.AccessoryMasterID]
+	masterAccessory := gamedata.Accessory.Accessory[userAccessory.AccessoryMasterID]
 
 	skillPlusPercent := 0
 	moneyUsed := 0
@@ -118,7 +118,7 @@ func AccessoryPowerUp(ctx *gin.Context) {
 	// so different order of accessory can result in different result
 	for _, powerUpAccessoryID := range req.PowerUpAccessoryIDs {
 		powerUpAccessory := session.GetUserAccessory(powerUpAccessoryID)
-		powerUpRarity := masterdata.Accessory.Accessory[powerUpAccessory.AccessoryMasterID].RarityType
+		powerUpRarity := gamedata.Accessory.Accessory[powerUpAccessory.AccessoryMasterID].RarityType
 
 		if (userAccessory.Grade < 5) && (powerUpAccessory.AccessoryMasterID == userAccessory.AccessoryMasterID) {
 			// limit increase
@@ -126,7 +126,7 @@ func AccessoryPowerUp(ctx *gin.Context) {
 			if userAccessory.Grade > 5 {
 				userAccessory.Grade = 5
 			}
-			moneyUsed += masterdata.Accessory.Rarity[powerUpRarity].Grade[powerUpAccessory.Grade].GradeUpMoney
+			moneyUsed += gamedata.Accessory.Rarity[powerUpRarity].Grade[powerUpAccessory.Grade].GradeUpMoney
 
 			// some limit increase change the skills
 			if masterAccessory.Grade[userAccessory.Grade].PassiveSkill1MasterID != nil {
@@ -138,9 +138,9 @@ func AccessoryPowerUp(ctx *gin.Context) {
 			}
 			doPowerUp.DoGradeUp = true
 		} else {
-			userAccessory.Exp += masterdata.Accessory.Rarity[powerUpRarity].Level[powerUpAccessory.Level].PlusExp
-			moneyUsed += masterdata.Accessory.Rarity[powerUpRarity].Level[powerUpAccessory.Level].GameMoney
-			skillPlusPercent += masterdata.Accessory.Rarity[powerUpRarity].SkillLevel[powerUpAccessory.PassiveSkill1Level].PlusPercent
+			userAccessory.Exp += gamedata.Accessory.Rarity[powerUpRarity].Level[powerUpAccessory.Level].PlusExp
+			moneyUsed += gamedata.Accessory.Rarity[powerUpRarity].Level[powerUpAccessory.Level].GameMoney
+			skillPlusPercent += gamedata.Accessory.Rarity[powerUpRarity].SkillLevel[powerUpAccessory.PassiveSkill1Level].PlusPercent
 		}
 		powerUpAccessory.AccessoryMasterID = 0 // mark for delete
 		session.UpdateUserAccessory(powerUpAccessory)
@@ -153,8 +153,8 @@ func AccessoryPowerUp(ctx *gin.Context) {
 			ContentID:     itemID,
 			ContentAmount: int64(item.Amount),
 		})
-		userAccessory.Exp += item.Amount * masterdata.Accessory.LevelUpItem[itemID].PlusExp
-		moneyUsed += item.Amount * masterdata.Accessory.LevelUpItem[itemID].GameMoney
+		userAccessory.Exp += item.Amount * gamedata.Accessory.LevelUpItem[itemID].PlusExp
+		moneyUsed += item.Amount * gamedata.Accessory.LevelUpItem[itemID].GameMoney
 	}
 
 	// calculate new level
@@ -173,8 +173,8 @@ func AccessoryPowerUp(ctx *gin.Context) {
 	}
 
 	// calculate new skill level
-	if userAccessory.PassiveSkill1Level < masterdata.Accessory.Rarity[masterAccessory.RarityType].Grade[userAccessory.Grade].SkillMaxLevel {
-		denominator := masterdata.Accessory.Rarity[masterAccessory.RarityType].Grade[userAccessory.Grade].SkillLevelUpDenominator
+	if userAccessory.PassiveSkill1Level < gamedata.Accessory.Rarity[masterAccessory.RarityType].Grade[userAccessory.Grade].SkillMaxLevel {
+		denominator := gamedata.Accessory.Rarity[masterAccessory.RarityType].Grade[userAccessory.Grade].SkillLevelUpDenominator
 		chance := skillPlusPercent / denominator[userAccessory.PassiveSkill1Level]
 		// probability is chance / 10000
 		if chance > rand.Intn(10000) {
@@ -213,11 +213,11 @@ func AccessoryRarityUp(ctx *gin.Context) {
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
-	masterdata := ctx.MustGet("masterdata").(*masterdata.Masterdata)
+	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	userAccessory := session.GetUserAccessory(req.UserAccessoryID)
-	masterAccessory := masterdata.Accessory.Accessory[userAccessory.AccessoryMasterID]
+	masterAccessory := gamedata.Accessory.Accessory[userAccessory.AccessoryMasterID]
 
-	masterAfterAccessory := masterdata.Accessory.Accessory[masterAccessory.RarityUp.AfterAccessoryMasterID]
+	masterAfterAccessory := gamedata.Accessory.Accessory[masterAccessory.RarityUp.AfterAccessoryMasterID]
 
 	type AccessoryDoRarityUp struct {
 		BeforeAccessoryRarity int  `json:"before_accessory_rarity"`
@@ -243,8 +243,8 @@ func AccessoryRarityUp(ctx *gin.Context) {
 	userAccessory.AcquiredAt = time.Now().Unix()
 	session.UpdateUserAccessory(userAccessory)
 	// remove resource used
-	session.RemoveResource(masterdata.Accessory.RarityUpGroup[masterAccessory.RarityUp.AccessoryRarityUpGroupMasterID].Resource)
-	session.RemoveGameMoney(masterdata.Accessory.Rarity[masterAccessory.RarityType].RarityUpMoney)
+	session.RemoveResource(gamedata.Accessory.RarityUpGroup[masterAccessory.RarityUp.AccessoryRarityUpGroupMasterID].Resource)
+	session.RemoveGameMoney(gamedata.Accessory.Rarity[masterAccessory.RarityType].RarityUpMoney)
 
 	// finalize and send the response
 

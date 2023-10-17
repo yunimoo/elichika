@@ -11,13 +11,13 @@ import (
 )
 
 func InsertAll(args []string) {
-	masterdata := config.MasterdataGl
+	gamedata := config.GamedataGl
 	if len(args) < 1 {
 		fmt.Println("Invalid params:", args)
 		fmt.Println("Required: gl/jp [optional user_id]")
 	}
 	if args[0] == "jp" {
-		masterdata = config.MasterdataJp
+		gamedata = config.GamedataJp
 	}
 	userID := 588296696
 	if len(args) > 1 {
@@ -27,7 +27,7 @@ func InsertAll(args []string) {
 	}
 	session := serverdb.GetSession(nil, userID)
 
-	for i, a := range masterdata.Accessory.Accessory {
+	for i, a := range gamedata.Accessory.Accessory {
 		accessory := session.GetUserAccessory(time.Now().UnixNano() + int64(i))
 		accessory.AccessoryMasterID = a.MasterID
 		accessory.Level = 1

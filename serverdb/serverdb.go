@@ -80,6 +80,10 @@ func InitTables(overwrite bool) {
 	InitTable("s_gacha_card", model.GachaCard{}, overwrite)
 	InitTable("s_gacha_guarantee", model.GachaGuarantee{}, overwrite)
 
+	InitTable("s_trade", model.Trade{}, overwrite)
+	InitTable("s_trade_product", model.TradeProduct{}, overwrite)
+	InitTable("s_trade_product_user", model.TradeProductUser{}, overwrite)
+
 }
 
 func init() {

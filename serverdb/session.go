@@ -1,6 +1,7 @@
 package serverdb
 
 import (
+	"elichika/gamedata"
 	"elichika/model"
 	"elichika/utils"
 
@@ -20,6 +21,7 @@ import (
 
 type Session struct {
 	Ctx                           *gin.Context
+	Gamedata                      *gamedata.Gamedata
 	UserStatus                    model.UserStatus
 	CardDiffs                     map[int]model.UserCard
 	UserMemberDiffs               map[int]model.UserMemberInfo
@@ -95,6 +97,7 @@ func (session *Session) FinalizeUserInfo(dbSession *xorm.Session) model.UserStat
 func GetSession(ctx *gin.Context, userId int) Session {
 	s := Session{}
 	s.Ctx = ctx
+	s.Gamedata = ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	s.CardDiffs = make(map[int]model.UserCard)
 	s.UserMemberDiffs = make(map[int]model.UserMemberInfo)
 	s.UserLessonDeckDiffs = make(map[int]model.UserLessonDeck)
