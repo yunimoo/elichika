@@ -93,5 +93,10 @@ func Router(r *gin.Engine) {
 		api.POST("/trade/executeTrade", handler.ExecuteTrade)
 		api.POST("/trade/executeMultiTrade", handler.ExecuteMultiTrade)
 
+		api.POST("/takeOver/checkTakeOver", handler.CheckTakeOver)
+		api.POST("/takeOver/setTakeOver", handler.SetTakeOver)
+		api.POST("/takeOver/updatePassWord", handler.UpdatePassWord)
+		api.POST("/dataLink/fetchDataLinks", handler.FetchDataLinks)
+
 	}
 }

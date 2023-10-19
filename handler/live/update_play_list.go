@@ -12,7 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
-	// "github.com/tidwall/sjson"
+	"github.com/tidwall/sjson"
 	// "xorm.io/xorm"
 )
 
@@ -36,18 +36,9 @@ func LiveUpdatePlayList(ctx *gin.Context) {
 		GroupNum:       req.GroupNum * mul,
 		LiveID:         req.LiveMasterID * mul})
 
-	// not sure what this response is, but "" works
-	// this mean that the client is not checking for the response
-	// and thus it doesn't send another request when we click on the button again
-	// it will also not remove the song when we turn off, the filter will also not work instantly
-	// any action that fetch user status will update this
-
-	// not sure if the client can even update after this point, the following and some other like it doesn't seem to work:
-	// signBody, _ := json.Marshal(session.GetUserPlayList())
-	// maybe if someone can look into how the game handle this function, we can know for sure
-	signBody := ""
-	resp := handler.SignResp(ctx.GetString("ep"), string(signBody), config.SessionKey)
+	signBody := session.Finalize(handler.GetData("userModelDiff.json"), "user_model_diff")
+	signBody, _ = sjson.Set(signBody, "is_success", true)
+	resp := handler.SignResp(ctx, string(signBody), config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
-	// fmt.Println(resp)
 }

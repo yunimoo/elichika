@@ -103,7 +103,7 @@ func SaveDeckAll(ctx *gin.Context) {
 	}
 
 	respBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), respBody, config.SessionKey)
+	resp := SignResp(ctx, respBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -128,7 +128,7 @@ func FetchLiveDeckSelect(ctx *gin.Context) {
 
 	// utils.CheckErr(err)
 
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -166,7 +166,7 @@ func SaveSuit(ctx *gin.Context) {
 	}
 
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -271,7 +271,7 @@ func SaveDeck(ctx *gin.Context) {
 	}
 
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
@@ -294,7 +294,7 @@ func ChangeDeckNameLiveDeck(ctx *gin.Context) {
 	liveDeck.Name.DotUnderText = req.DeckName
 	session.UpdateUserLiveDeck(liveDeck)
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

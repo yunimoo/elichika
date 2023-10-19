@@ -24,7 +24,7 @@ func TriggerReadCardGradeUp(ctx *gin.Context) {
 
 	session.AddTriggerCardGradeUp(req.TriggerID, nil)
 	resp := session.Finalize(GetData("userModel.json"), "user_model")
-	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
+	resp = SignResp(ctx, resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 	// fmt.Println(resp)
@@ -42,7 +42,7 @@ func TriggerRead(ctx *gin.Context) {
 
 	session.AddTriggerBasic(req.TriggerID, nil)
 	resp := session.Finalize(GetData("userModel.json"), "user_model")
-	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
+	resp = SignResp(ctx, resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 	// fmt.Println(resp)
@@ -60,7 +60,7 @@ func TriggerReadMemberLoveLevelUp(ctx *gin.Context) {
 	}
 
 	resp := session.Finalize(GetData("userModel.json"), "user_model")
-	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
+	resp = SignResp(ctx, resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 	// fmt.Println(resp)

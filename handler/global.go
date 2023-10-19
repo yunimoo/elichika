@@ -3,6 +3,7 @@ package handler
 import (
 	"elichika/config"
 	"elichika/encrypt"
+	"elichika/locale"
 	"elichika/model"
 	"elichika/utils"
 
@@ -13,14 +14,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"xorm.io/xorm"
 )
 
 var (
-	IsGlobal      = false
-	MasterVersion = "b66ec2295e9a00aa"
-	StartUpKey    = "5f7IZY1QrAX0D49g"
+	// MasterVersion = "b66ec2295e9a00aa"
+	// StartUpKey    = "5f7IZY1QrAX0D49g"
 
 	MainEng *xorm.Engine
 
@@ -34,8 +35,10 @@ func init() {
 	os.Mkdir(userDataPath, 0755)
 }
 
-func SignResp(ep, body, key string) (resp string) {
-	signBody := fmt.Sprintf("%d,\"%s\",0,%s", time.Now().UnixMilli(), MasterVersion, body)
+func SignResp(ctx *gin.Context, body, key string) (resp string) {
+	ep := ctx.MustGet("ep").(string)
+	masterVersion := ctx.MustGet("locale").(*locale.Locale).MasterVersion
+	signBody := fmt.Sprintf("%d,\"%s\",0,%s", time.Now().UnixMilli(), masterVersion, body)
 	sign := encrypt.HMAC_SHA1_Encrypt([]byte(ep+" "+signBody), []byte(key))
 	// fmt.Println(sign)
 
@@ -69,12 +72,12 @@ func GetUserData(fileName string) string {
 	return userData
 }
 
-func GetUserAccessoryData() string {
-	if IsGlobal {
-		return GetData("userAccessory_gl.json")
-	}
-	return GetData("userAccessory.json")
-}
+// func GetUserAccessoryData() string {
+// 	if IsGlobal {
+// 		return GetData("userAccessory_gl.json")
+// 	}
+// 	return GetData("userAccessory.json")
+// }
 
 func GetPartyInfoByRoleIds(roleIds []int) (partyIcon int, partyName string) {
 	// 脑残逻辑部分

@@ -12,6 +12,7 @@
 package gamedata
 
 import (
+	"elichika/dictionary"
 	"elichika/model"
 	"elichika/utils"
 
@@ -27,7 +28,7 @@ type Trade struct {
 	Products     map[int]model.TradeProduct
 }
 
-func (trade *Trade) Load(masterdata_db, serverdata_db *xorm.Session) {
+func (trade *Trade) Load(masterdata_db, serverdata_db *xorm.Session, dictionary *dictionary.Dictionary) {
 	if len(os.Args) > 1 && os.Args[1] == "init" {
 		return
 	}
@@ -61,7 +62,7 @@ func (trade *Trade) Load(masterdata_db, serverdata_db *xorm.Session) {
 				model.TradeProduct{
 					TradeID:      tradeID,
 					SourceAmount: 1,
-					StockAmount: nil,
+					StockAmount:  nil,
 					ActualContent: model.Content{
 						ContentType:   10,
 						ContentID:     0,

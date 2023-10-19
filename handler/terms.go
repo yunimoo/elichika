@@ -9,7 +9,7 @@ import (
 
 func Agreement(ctx *gin.Context) {
 	signBody := GetData("agreement.json")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

@@ -9,7 +9,7 @@ import (
 
 func FetchNotice(ctx *gin.Context) {
 	signBody := GetData("fetchNotice.json")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

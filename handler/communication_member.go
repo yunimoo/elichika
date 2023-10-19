@@ -45,7 +45,7 @@ func FetchCommunicationMemberDetail(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "member_love_panels.0.member_love_panel_cell_ids", lovePanelCellIds)
 	signBody, _ = sjson.Set(signBody, "weekday_state.weekday", weekday)
 	signBody, _ = sjson.Set(signBody, "weekday_state.next_weekday_at", tomorrow)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -74,7 +74,7 @@ func UpdateUserCommunicationMemberDetailBadge(ctx *gin.Context) {
 	// signBody := GetData("updateUserCommunicationMemberDetailBadge.json")
 	// signBody, _ = sjson.Set(signBody, "user_model.user_status", GetUserStatus())
 	// signBody, _ = sjson.Set(signBody, "user_model.user_communication_member_detail_badge_by_id", userDetail)
-	// resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	// resp := SignResp(ctx, signBody, config.SessionKey)
 
 	// ctx.Header("Content-Type", "application/json")
 	// ctx.String(http.StatusOK, resp)
@@ -119,7 +119,7 @@ func UpdateUserLiveDifficultyNewFlag(ctx *gin.Context) {
 	}
 
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -130,7 +130,7 @@ func FinishUserStorySide(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("finishUserStorySide.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -142,7 +142,7 @@ func FinishUserStoryMember(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("finishUserStoryMember.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -181,7 +181,7 @@ func SetTheme(ctx *gin.Context) {
 
 	signBody := session.Finalize(GetData("setTheme.json"), "user_model")
 	signBody, _ = sjson.Set(signBody, "user_model.user_suit_by_suit_id", userSuitRes)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -193,7 +193,7 @@ func SetFavoriteMember(ctx *gin.Context) {
 	defer session.Close()
 	session.UserStatus.FavoriteMemberID = int(gjson.Parse(reqBody).Array()[0].Get("member_master_id").Int())
 	signBody := session.Finalize(GetData("setFavoriteMember.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

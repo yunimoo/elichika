@@ -284,7 +284,7 @@ func LiveFinish(ctx *gin.Context) {
 	liveFinishResp := session.Finalize(handler.GetUserData("userModelDiff.json"), "user_model_diff")
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result", liveResult)
 
-	resp := handler.SignResp(ctx.GetString("ep"), liveFinishResp, config.SessionKey)
+	resp := handler.SignResp(ctx, liveFinishResp, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

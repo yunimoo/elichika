@@ -32,7 +32,7 @@ func FetchTrainingTree(ctx *gin.Context) {
 	defer session.Close()
 	signBody := `"{}"`
 	signBody, _ = sjson.Set(signBody, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -58,7 +58,7 @@ func LevelUpCard(ctx *gin.Context) {
 	userCard.Level += req.AdditionalLevel
 	session.UpdateUserCard(userCard)
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -104,7 +104,7 @@ func GradeUpCard(ctx *gin.Context) {
 		AfterLoveLevelLimit:  currentBondLevel})
 
 	resp := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
-	resp = SignResp(ctx.GetString("ep"), resp, config.SessionKey)
+	resp = SignResp(ctx, resp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 	// fmt.Println(resp)
@@ -250,7 +250,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	jsonResp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
 	jsonResp, _ = sjson.Set(jsonResp, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
-	resp := SignResp(ctx.GetString("ep"), jsonResp, config.SessionKey)
+	resp := SignResp(ctx, jsonResp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

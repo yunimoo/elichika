@@ -25,7 +25,7 @@ func FetchGachaMenu(ctx *gin.Context) {
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "gacha_list", gachaList)
 	signBody, _ = sjson.Set(signBody, "gacha_unconfirmed", nil)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -39,7 +39,7 @@ func GachaDraw(ctx *gin.Context) {
 	userID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, userID)
 	defer session.Close()
-	ctx.Set("session", &session)
+	ctx.Set("session", session)
 	gacha, resultCards := gacha.HandleGacha(ctx, req)
 
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
@@ -49,7 +49,7 @@ func GachaDraw(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "retry_gacha", nil)
 	signBody, _ = sjson.Set(signBody, "stepup_next_step", nil)
 
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

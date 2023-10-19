@@ -6,7 +6,7 @@ import (
 	"elichika/utils"
 
 	// "encoding/json"
-	"fmt"
+	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/tidwall/gjson"
@@ -20,7 +20,7 @@ import (
 // session can use ctx to get things like user id / master db, but it should not make any network operation
 
 type Session struct {
-	Db							  *xorm.Session
+	Db                            *xorm.Session
 	Ctx                           *gin.Context
 	Gamedata                      *gamedata.Gamedata
 	UserStatus                    model.UserStatus
@@ -61,8 +61,6 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 		jsonBody, _ = sjson.Set(jsonBody, "member_love_panels", memberLovePanels)
 	}
 	session.Db.Commit()
-	// this could be a delta patch, but we can just send the whole thing
-	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_play_list_by_id", session.GetUserPlayList())
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_card_grade_up_by_trigger_id", session.TriggerCardGradeUps)
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_basic_by_trigger_id", session.TriggerBasics)
 	jsonBody, _ = sjson.Set(jsonBody, mainKey+".user_info_trigger_member_love_level_up_by_trigger_id", session.TriggerMemberLoveLevelUps)
@@ -70,20 +68,11 @@ func (session *Session) Finalize(jsonBody string, mainKey string) string {
 }
 
 func (session *Session) Close() {
+	// fmt.Printf("close: %p\n", session)
+	if session == nil {
+		return
+	}
 	session.Db.Close()
-}
-
-// fetch the user, this is always sent back to client
-func (session *Session) InitUser(userID int) {
-	session.UserStatus.UserID = userID
-	exists, err := session.Db.Table("s_user_info").Where("user_id = ?", userID).Get(&session.UserStatus)
-	if err != nil {
-		panic(err)
-	}
-	if !exists {
-		// insert user and stuff for now
-		panic(fmt.Sprintf("user doesn't exist %d\nNote: use \"elichika make [json/new] [jp/gl]\" to init the db", userID))
-	}
 }
 
 func (session *Session) FinalizeUserInfo() model.UserStatus {
@@ -94,13 +83,22 @@ func (session *Session) FinalizeUserInfo() model.UserStatus {
 	return session.UserStatus
 }
 
-func GetSession(ctx *gin.Context, userId int) Session {
+func GetSession(ctx *gin.Context, userID int) *Session {
 	s := Session{}
 	s.Ctx = ctx
 	s.Gamedata = ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	s.Db = Engine.NewSession()
 	err := s.Db.Begin()
 	utils.CheckErr(err)
+	// fmt.Printf("session: %p\n", &s)
+	s.UserStatus.UserID = userID
+	exists, err := s.Db.Table("s_user_info").Where("user_id = ?", userID).Get(&s.UserStatus)
+	utils.CheckErr(err)
+	if !exists {
+		s.Close()
+		return nil
+	}
+
 	s.CardDiffs = make(map[int]model.UserCard)
 	s.UserMemberDiffs = make(map[int]model.UserMemberInfo)
 	s.UserLessonDeckDiffs = make(map[int]model.UserLessonDeck)
@@ -114,6 +112,5 @@ func GetSession(ctx *gin.Context, userId int) Session {
 	s.TriggerMemberLoveLevelUps = make([]any, 0)
 	s.UserSuitDiffs = make([]model.UserSuit, 0)
 	s.UserResourceDiffs = make(map[int](map[int]UserResource))
-	s.InitUser(userId)
-	return s
+	return &s
 }

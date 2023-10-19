@@ -35,7 +35,7 @@ func AccessoryUpdateIsLock(ctx *gin.Context) {
 	session.UpdateUserAccessory(accessory)
 
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -52,7 +52,7 @@ func AccessoryUpdateIsNew(ctx *gin.Context) {
 		session.UpdateUserAccessory(accessory)
 	}
 	session.Finalize("", "")
-	resp := SignResp(ctx.GetString("ep"), "{}", config.SessionKey)
+	resp := SignResp(ctx, "{}", config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -79,7 +79,7 @@ func AccessoryMelt(ctx *gin.Context) {
 	}
 
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -202,7 +202,7 @@ func AccessoryPowerUp(ctx *gin.Context) {
 	// fmt.Println("Money used: ", moneyUsed, "Skill plus percent: ", skillPlusPercent)
 	// fmt.Println("New level: ", userAccessory.Level, "New exp: ", userAccessory.Exp)
 	// fmt.Println(signBody)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -255,7 +255,7 @@ func AccessoryRarityUp(ctx *gin.Context) {
 
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "do_rarity_up", doRarityUp)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -293,7 +293,7 @@ func AccessoryAllUnequip(ctx *gin.Context) {
 		}
 	}
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

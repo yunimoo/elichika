@@ -4,12 +4,13 @@ import (
 	"elichika/config"
 	"elichika/encrypt"
 	// "elichika/model"
+	"elichika/locale"
 	"elichika/serverdb"
 	"elichika/utils"
 
 	"encoding/base64"
 	"encoding/hex"
-	// "encoding/json"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	// "strings"
@@ -21,37 +22,53 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-func StartUp(ctx *gin.Context) {
-	reqBody := ctx.GetString("reqBody")
-
-	var mask64 string
-	req := gjson.Parse(reqBody)
-	req.ForEach(func(key, value gjson.Result) bool {
-		if value.Get("mask").String() != "" {
-			mask64 = value.Get("mask").String()
-			return false
-		}
-		return true
-	})
-	// fmt.Println("Request data:", req.String())
-	// fmt.Println("Mask:", mask64)
-
+func StartUpAuthorizationKey(mask64 string) string {
 	mask, err := base64.StdEncoding.DecodeString(mask64)
 	if err != nil {
 		panic(err)
 	}
 	randomBytes := encrypt.RSA_DecryptOAEP(mask, "privatekey.pem")
-	// fmt.Println("Random Bytes:", randomBytes)
-
 	newKey := utils.Xor(randomBytes, []byte(config.SessionKey))
 	newKey64 := base64.StdEncoding.EncodeToString(newKey)
-	// fmt.Println("Session Key:", newKey64)
+	return newKey64
+}
 
-	startupBody := GetData("startup.json")
-	startupBody, _ = sjson.Set(startupBody, "authorization_key", newKey64)
-	resp := SignResp(ctx.GetString("ep"), startupBody, StartUpKey)
-	// fmt.Println("Response:", resp)
+func LoginSessionKey(mask64 string) string {
+	mask, err := base64.StdEncoding.DecodeString(mask64)
+	utils.CheckErr(err)
+	randomBytes := encrypt.RSA_DecryptOAEP(mask, "privatekey.pem")
+	serverEventReceiverKey, err := hex.DecodeString(config.ServerEventReceiverKey)
+	utils.CheckErr(err)
+	jaKey, err := hex.DecodeString(config.JaKey)
+	utils.CheckErr(err)
+	newKey := utils.Xor(randomBytes, []byte(config.SessionKey))
+	newKey = utils.Xor(newKey, serverEventReceiverKey)
+	newKey = utils.Xor(newKey, jaKey)
+	newKey64 := base64.StdEncoding.EncodeToString(newKey)
+	return newKey64
+}
 
+func StartUp(ctx *gin.Context) {
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	// fmt.Println(reqBody)
+	type StartUpReq struct {
+		Mask string `json:"mask"`
+		ResemaraDetectionIdentifier string `json:"resemara_detection_identifier"` // reset marathon (reroll)
+		TimeDifference int `json:"time_difference"` // second different from utc + 0
+		RecaptchaToken string `json:"recaptcha_token"` // not necessary
+	}
+	req := StartUpReq{}
+	err := json.Unmarshal([]byte(reqBody), &req)
+	utils.CheckErr(err)
+	type StartUpResp struct {
+		UserID int `json:"user_id"`
+		AuthorizationKey string `json:"authorization_key"`
+	}
+	respObj := StartUpResp{}
+	respObj.UserID = serverdb.CreateNewAccount(ctx, -1, "")
+	respObj.AuthorizationKey = StartUpAuthorizationKey(req.Mask)
+	startupBody, _ := json.Marshal(respObj)
+	resp := SignResp(ctx, string(startupBody), ctx.MustGet("locale").(*locale.Locale).StartUpKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -60,6 +77,7 @@ func Login(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 
 	var mask64 string
+	var err error
 	req := gjson.Parse(reqBody)
 	req.ForEach(func(key, value gjson.Result) bool {
 		if value.Get("mask").String() != "" {
@@ -68,38 +86,18 @@ func Login(ctx *gin.Context) {
 		}
 		return true
 	})
-	// fmt.Println("Request data:", req.String())
-	// fmt.Println("Mask:", mask64)
-
-	mask, err := base64.StdEncoding.DecodeString(mask64)
-	if err != nil {
-		panic(err)
-	}
-	randomBytes := encrypt.RSA_DecryptOAEP(mask, "privatekey.pem")
-	// fmt.Println("Random Bytes:", randomBytes)
-
-	serverEventReceiverKey, err := hex.DecodeString(config.ServerEventReceiverKey)
-	if err != nil {
-		panic(err)
-	}
-
-	jaKey, err := hex.DecodeString(config.JaKey)
-	if err != nil {
-		panic(err)
-	}
-
-	newKey := utils.Xor(randomBytes, []byte(config.SessionKey))
-	newKey = utils.Xor(newKey, serverEventReceiverKey)
-	newKey = utils.Xor(newKey, jaKey)
-	newKey64 := base64.StdEncoding.EncodeToString(newKey)
-	// fmt.Println("Session Key:", newKey64)
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
+	if session == nil {
+		serverdb.CreateNewAccount(ctx, UserID, "")
+		session = serverdb.GetSession(ctx, UserID)
+		defer session.Close()
+	}
 	session.UserStatus.LastLoginAt = time.Now().Unix()
 
 	loginBody := session.Finalize(GetData("login.json"), "user_model")
-	loginBody, _ = sjson.Set(loginBody, "session_key", newKey64)
+	loginBody, _ = sjson.Set(loginBody, "session_key", LoginSessionKey(mask64))
 	loginBody, _ = sjson.Set(loginBody, "last_timestamp", time.Now().UnixMilli())
 
 	/* ======== UserData ======== */
@@ -226,7 +224,7 @@ func Login(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	/* ======== UserData ======== */
-	resp := SignResp(ctx.GetString("ep"), loginBody, config.SessionKey)
+	resp := SignResp(ctx, loginBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

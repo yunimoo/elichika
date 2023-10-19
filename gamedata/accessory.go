@@ -1,6 +1,7 @@
 package gamedata
 
 import (
+	"elichika/dictionary"
 	"elichika/model"
 	"elichika/utils"
 
@@ -123,7 +124,7 @@ type Accessory struct {
 	RarityUpGroup map[int]AccessoryRarityUpGroup
 }
 
-func (accessory *Accessory) Load(db, _ *xorm.Session) {
+func (accessory *Accessory) Load(db, _ *xorm.Session, dictionary *dictionary.Dictionary) {
 	var err error
 	var exists bool
 

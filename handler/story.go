@@ -14,7 +14,7 @@ func FinishStory(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("finishStory.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -25,7 +25,7 @@ func FinishStoryMain(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("finishUserStoryMain.json"), "user_model_diff")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -36,7 +36,7 @@ func FinishStoryLinkage(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("finishStoryLinkage.json"), "user_model_diff")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

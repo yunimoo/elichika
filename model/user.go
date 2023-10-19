@@ -1,8 +1,9 @@
 package model
 
 type UserStatus struct {
-	UserID int `xorm:"pk 'user_id'" json:"-"`
-	Name   struct {
+	UserID   int    `xorm:"pk 'user_id'" json:"-"`
+	PassWord string `xorm:"'pass_word'" json:"-"`
+	Name     struct {
 		DotUnderText string `xorm:"name" json:"dot_under_text"`
 	} `xorm:"extends" json:"name"` // player name
 	Nickname struct {

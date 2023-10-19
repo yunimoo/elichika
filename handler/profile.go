@@ -33,7 +33,7 @@ func FetchProfile(ctx *gin.Context) {
 		panic(err)
 	}
 
-	resp := SignResp(ctx.GetString("ep"), string(signBody), config.SessionKey)
+	resp := SignResp(ctx, string(signBody), config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -57,7 +57,7 @@ func SetProfile(ctx *gin.Context) {
 	}
 
 	signBody := session.Finalize(GetData("setProfile.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -73,7 +73,7 @@ func SetRecommendCard(ctx *gin.Context) {
 	session.UserStatus.RecommendCardMasterID = cardMasterId
 
 	signBody := session.Finalize(GetData("setRecommendCard.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -112,7 +112,7 @@ func SetLivePartner(ctx *gin.Context) {
 
 	session.Finalize("{}", "")
 	// this is correct, the server send {}
-	resp := SignResp(ctx.GetString("ep"), "{}", config.SessionKey)
+	resp := SignResp(ctx, "{}", config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -137,7 +137,7 @@ func SetScoreOrComboLive(ctx *gin.Context) {
 		customSetProfile.ComboLiveDifficultyID = req.LiveDifficultyMasterID
 	}
 	session.SetUserCustomSetProfile(customSetProfile)
-	resp := SignResp(ctx.GetString("ep"), reqBody, config.SessionKey)
+	resp := SignResp(ctx, reqBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

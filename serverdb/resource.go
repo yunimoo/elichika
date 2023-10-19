@@ -29,16 +29,16 @@ var (
 
 func (session *Session) AddGameMoney(money int64) {
 	session.AddResource(model.Content{
-		ContentType: 10,
-		ContentID: 0,
+		ContentType:   10,
+		ContentID:     0,
 		ContentAmount: money,
 	})
 }
 
 func (session *Session) RemoveGameMoney(money int64) {
 	session.RemoveResource(model.Content{
-		ContentType: 10,
-		ContentID: 0,
+		ContentType:   10,
+		ContentID:     0,
 		ContentAmount: money,
 	})
 }
@@ -199,7 +199,7 @@ func GenericResourceFinalizer(session *Session, contentType int,
 			session.UserStatus.UserID, contentType, contentID).Update(resource)
 		utils.CheckErr(err)
 		if affected == 0 { // doesn't exists, insert
-		session.Db.Table("s_user_resource").Insert(resource)
+			session.Db.Table("s_user_resource").Insert(resource)
 		}
 
 		// set the json

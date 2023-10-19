@@ -14,7 +14,7 @@ func FetchMission(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("fetchMission.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -25,7 +25,7 @@ func ClearMissionBadge(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("clearMissionBadge.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

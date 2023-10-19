@@ -14,19 +14,23 @@
 package gamedata
 
 import (
+	"elichika/dictionary"
+
 	"xorm.io/xorm"
 )
 
 type Gamedata struct {
 	Accessory Accessory
 	Trade     Trade
+	LiveParty LiveParty
 }
 
-func (Gamedata *Gamedata) Init(masterdata *xorm.Engine, serverdata *xorm.Engine) {
+func (Gamedata *Gamedata) Init(masterdata *xorm.Engine, serverdata *xorm.Engine, dictionary *dictionary.Dictionary) {
 	masterdata_session := masterdata.NewSession()
 	serverdata_session := serverdata.NewSession()
 	defer masterdata_session.Close()
 	defer serverdata_session.Close()
-	Gamedata.Accessory.Load(masterdata_session, serverdata_session)
-	Gamedata.Trade.Load(masterdata_session, serverdata_session)
+	Gamedata.Accessory.Load(masterdata_session, serverdata_session, dictionary)
+	Gamedata.Trade.Load(masterdata_session, serverdata_session, dictionary)
+	Gamedata.LiveParty.Load(masterdata_session, serverdata_session, dictionary)
 }

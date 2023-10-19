@@ -60,7 +60,7 @@ func ExecuteLesson(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.5", actionList)
 	signBody, _ = sjson.Set(signBody, "lesson_menu_actions.7", actionList)
 
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -72,7 +72,7 @@ func ResultLesson(ctx *gin.Context) {
 	defer session.Close()
 	signBody := session.Finalize(GetData("resultLesson.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "selected_deck_id", session.UserStatus.MainLessonDeckID)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
@@ -108,7 +108,7 @@ func SkillEditResult(ctx *gin.Context) {
 		return true
 	})
 	signBody := session.Finalize(GetData("skillEditResult.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
@@ -141,7 +141,7 @@ func SaveDeckLesson(ctx *gin.Context) {
 	}
 	session.UpdateLessonDeck(userLessonDeck)
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")
@@ -164,7 +164,7 @@ func ChangeDeckNameLessonDeck(ctx *gin.Context) {
 	lessonDeck.Name = req.DeckName
 	session.UpdateLessonDeck(lessonDeck)
 	signBody := session.Finalize(GetData("userModel.json"), "user_model")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

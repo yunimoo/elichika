@@ -32,7 +32,7 @@ func FetchTrade(ctx *gin.Context) {
 	trades := session.GetTrades(req.TradeType)
 
 	signBody, _ := sjson.Set("{}", "trades", trades)
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -61,7 +61,7 @@ func ExecuteTrade(ctx *gin.Context) {
 	tradeType := gamedata.Trade.Trades[gamedata.Trade.Products[req.ProductID].TradeID].TradeType
 	signBody, _ = sjson.Set(signBody, "trades", session.GetTrades(tradeType))
 
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -97,7 +97,7 @@ func ExecuteMultiTrade(ctx *gin.Context) {
 	tradeType := gamedata.Trade.Trades[gamedata.Trade.Products[req.TradeOrders[0].ProductID].TradeID].TradeType
 	signBody, _ = sjson.Set(signBody, "trades", session.GetTrades(tradeType))
 
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 

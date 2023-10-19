@@ -33,7 +33,7 @@ func UpdateCardNewFlag(ctx *gin.Context) {
 	}
 
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -55,7 +55,7 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 	session.UpdateUserCard(userCard)
 
 	cardResp := session.Finalize(GetData("changeIsAwakeningImage.json"), "user_model_diff")
-	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
+	resp := SignResp(ctx, cardResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -78,7 +78,7 @@ func ChangeFavorite(ctx *gin.Context) {
 	session.UpdateUserCard(userCard)
 
 	cardResp := session.Finalize(GetData("changeFavorite.json"), "user_model_diff")
-	resp := SignResp(ctx.GetString("ep"), cardResp, config.SessionKey)
+	resp := SignResp(ctx, cardResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -99,7 +99,7 @@ func GetOtherUserCard(ctx *gin.Context) {
 
 	partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetOtherUserCard(req.UserID, req.CardMasterID))
 	userCardResp, _ := sjson.Set("{}", "other_user_card", partnerCard)
-	resp := SignResp(ctx.GetString("ep"), userCardResp, config.SessionKey)
+	resp := SignResp(ctx, userCardResp, config.SessionKey)
 	// fmt.Println(resp)
 
 	ctx.Header("Content-Type", "application/json")

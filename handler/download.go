@@ -2,6 +2,8 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/locale"
+
 	"encoding/json"
 	"net/http"
 
@@ -27,7 +29,7 @@ func GetPackUrl(ctx *gin.Context) {
 
 	var packUrls []string
 	cdnMasterVersion := "2d61e7b4e89961c7"
-	if MasterVersion == config.MasterVersionJp {
+	if ctx.MustGet("locale").(*locale.Locale).MasterVersion == config.MasterVersionJp {
 		cdnMasterVersion = "b66ec2295e9a00aa"
 	}
 	for _, pack := range packNames {
@@ -36,7 +38,7 @@ func GetPackUrl(ctx *gin.Context) {
 	}
 
 	packBody, _ := sjson.Set("{}", "url_list", packUrls)
-	resp := SignResp(ctx.GetString("ep"), packBody, config.SessionKey)
+	resp := SignResp(ctx, packBody, config.SessionKey)
 	// fmt.Println("Response:", resp)
 
 	ctx.Header("Content-Type", "application/json")

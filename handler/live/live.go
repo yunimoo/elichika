@@ -44,7 +44,7 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody = session.Finalize(signBody, "user_model_diff")
-	resp := handler.SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := handler.SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -82,7 +82,7 @@ func FetchLivePartners(ctx *gin.Context) {
 	signBody := "{}"
 	signBody, _ = sjson.Set(signBody, "partner_select_state.live_partners", livePartners)
 	signBody, _ = sjson.Set(signBody, "partner_select_state.friend_count", len(livePartners))
-	resp := handler.SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := handler.SignResp(ctx, signBody, config.SessionKey)
 	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
@@ -138,7 +138,7 @@ func LiveStart(ctx *gin.Context) {
 		liveStartResp, _ = sjson.Set(liveStartResp, "live.live_partner_card", nil)
 	}
 	serverdb.SaveLiveState(liveState)
-	resp := handler.SignResp(ctx.GetString("ep"), liveStartResp, config.SessionKey)
+	resp := handler.SignResp(ctx, liveStartResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)

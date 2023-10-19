@@ -14,7 +14,7 @@ type TradeProduct struct {
 	// TradeID inside db is the actual TradeID that this product belong to
 	TradeID       int       `xorm:"'trade_id'" json:"-"`
 	SourceAmount  int       `json:"source_amount"`         // cost
-	StockAmount   *int       `json:"stock_amount"`          // max exchange time, set to null for unlimited
+	StockAmount   *int      `json:"stock_amount"`          // max exchange time, set to null for unlimited
 	TradedCount   int       `xorm:"-" json:"traded_count"` // amount traded, store per user
 	Contents      []Content `xorm:"-" json:"contents"`     // array but the length is always 1
 	ActualContent Content   `xorm:"extends" json:"-" `     // actual content

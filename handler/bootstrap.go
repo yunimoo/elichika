@@ -31,7 +31,7 @@ func FetchBootstrap(ctx *gin.Context) {
 	session.UserStatus.BootstrapSifidCheckAt = time.Now().UnixMilli()
 	session.UserStatus.DeviceToken = req.DeviceToken
 	signBody := session.Finalize(GetData("fetchBootstrap.json"), "user_model_diff")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 	// fmt.Println(resp)
@@ -39,7 +39,7 @@ func FetchBootstrap(ctx *gin.Context) {
 
 func GetClearedPlatformAchievement(ctx *gin.Context) {
 	signBody := GetData("getClearedPlatformAchievement.json")
-	resp := SignResp(ctx.GetString("ep"), signBody, config.SessionKey)
+	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
