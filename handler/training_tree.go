@@ -8,7 +8,6 @@ import (
 	"elichika/utils"
 
 	"encoding/json"
-	// "fmt"
 	"net/http"
 	"time"
 
@@ -82,7 +81,7 @@ func GradeUpCard(ctx *gin.Context) {
 	defer session.Close()
 
 	userCard := session.GetUserCard(req.CardMasterID)
-	memberInfo := session.GetMember(GetMemberMasterIdByCardMasterId(req.CardMasterID))
+	memberInfo := session.GetMember(klab.MemberMasterIDFromCardMasterID(req.CardMasterID))
 	userCard.Grade += 1
 	currentBondLevel := klab.BondLevelFromBondValue(memberInfo.LovePointLimit)
 	currentBondLevel += klab.CardRarityFromCardMasterID(req.CardMasterID) / 10
@@ -248,7 +247,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	session.InsertTrainingCells(&unlockedCells)
 
-	jsonResp := session.Finalize(GetUserData("userModelDiff.json"), "user_model_diff")
+	jsonResp := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
 	jsonResp, _ = sjson.Set(jsonResp, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
 	resp := SignResp(ctx, jsonResp, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")

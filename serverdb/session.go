@@ -5,11 +5,7 @@ import (
 	"elichika/model"
 	"elichika/utils"
 
-	// "encoding/json"
-	// "fmt"
-
 	"github.com/gin-gonic/gin"
-	// "github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"xorm.io/xorm"
 )

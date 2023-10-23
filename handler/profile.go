@@ -37,7 +37,6 @@ func FetchProfile(ctx *gin.Context) {
 
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
-	// fmt.Println(resp)
 }
 
 func SetProfile(ctx *gin.Context) {
@@ -45,7 +44,6 @@ func SetProfile(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
-	// fmt.Println(reqBody)
 
 	req := gjson.Parse(reqBody).Array()[0]
 	if req.Get("name").String() != "" {
@@ -65,7 +63,6 @@ func SetProfile(ctx *gin.Context) {
 
 func SetRecommendCard(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
-	// fmt.Println(reqBody)
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()

@@ -15,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	// "xorm.io/xorm"
+	"xorm.io/xorm"
 )
 
 func FetchLiveMusicSelect(ctx *gin.Context) {
@@ -26,9 +26,9 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	if weekday == 0 {
 		weekday = 7
 	}
-
+	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 	liveDailyList := []model.LiveDaily{}
-	err := handler.MainEng.Table("m_live_daily").Where("weekday = ?", weekday).Cols("id,live_id").Find(&liveDailyList)
+	err := db.Table("m_live_daily").Where("weekday = ?", weekday).Cols("id,live_id").Find(&liveDailyList)
 	utils.CheckErr(err)
 	for k := range liveDailyList {
 		liveDailyList[k].EndAt = int(tomorrow)

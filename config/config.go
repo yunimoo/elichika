@@ -20,7 +20,6 @@ var (
 
 	SessionKey = "12345678123456781234567812345678"
 
-	MainDb         = "assets/main.db"
 	GlDatabasePath = "assets/db/gl/"
 	JpDatabasePath = "assets/db/jp/"
 	// TODO: split into userdata.db and serverdata.db for gl / jp
@@ -29,7 +28,6 @@ var (
 	MasterVersionGl = "2d61e7b4e89961c7" // read from GL database, so user can update db just by changing that
 	MasterVersionJp = "b66ec2295e9a00aa" // ditto
 
-	MainEng         *xorm.Engine
 	MasterdataEngGl *xorm.Engine
 	MasterdataEngJp *xorm.Engine
 	Locales         map[string](*locale.Locale)
@@ -68,14 +66,6 @@ func addLocale(path, language, masterVersion, startUpKey string, serverdataEngin
 
 func init() {
 	Conf = Load("./config.json")
-
-	eng, err := xorm.NewEngine("sqlite", MainDb)
-	utils.CheckErr(err)
-	err = eng.Ping()
-	utils.CheckErr(err)
-	MainEng = eng
-	MainEng.SetMaxOpenConns(50)
-	MainEng.SetMaxIdleConns(10)
 
 	ServerdataEng, err := xorm.NewEngine("sqlite", ServerdataDb)
 	utils.CheckErr(err)

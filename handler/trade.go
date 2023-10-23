@@ -7,10 +7,7 @@ import (
 	"elichika/utils"
 
 	"encoding/json"
-	// "fmt"
-	// "math/rand"
 	"net/http"
-	// "time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"

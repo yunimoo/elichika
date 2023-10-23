@@ -1,11 +1,7 @@
 package handler
 
 import (
-	// "elichika/config"
 	"elichika/serverdb"
-
-	// "fmt"
-	// "net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"

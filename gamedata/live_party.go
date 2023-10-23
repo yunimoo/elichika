@@ -9,7 +9,7 @@ import (
 
 type LiveParty struct {
 	// only relevant data for now, full move later on
-	PartyInfoByRoleIds [5][5][5]struct {
+	PartyInfoByRoleIDs [5][5][5]struct {
 		PartyIcon int
 		PartyName string
 	}
@@ -39,30 +39,10 @@ func (livePartyData *LiveParty) Load(masterdata_db, serverdata_db *xorm.Session,
 				if i == j {
 					continue
 					k := 3 - i - j
-					livePartyData.PartyInfoByRoleIds[r[i]][r[j]][r[k]].PartyIcon = party.LivePartyIcon
-					livePartyData.PartyInfoByRoleIds[r[i]][r[j]][r[k]].PartyName = party.Name
+					livePartyData.PartyInfoByRoleIDs[r[i]][r[j]][r[k]].PartyIcon = party.LivePartyIcon
+					livePartyData.PartyInfoByRoleIDs[r[i]][r[j]][r[k]].PartyName = party.Name
 				}
 			}
 		}
 	}
 }
-
-// func GetPartyInfoByRoleIds(roleIds []int) (partyIcon int, partyName string) {
-// 	// 脑残逻辑部分
-// 	for i := 0; i < 3; i++ {
-// 		for j := 0; j < 3; j++ {
-// 			if i == j {
-// 				continue
-// 			}
-// 			exists, err := MainEng.Table("m_live_party_name").
-// 				Where("role_1 = ? AND role_2 = ? AND role_3 = ?", roleIds[i], roleIds[j], roleIds[3-i-j]).
-// 				Cols("name,live_party_icon").Get(&partyName, &partyIcon)
-// 			utils.CheckErr(err)
-// 			if exists {
-// 				return
-// 			}
-// 		}
-// 	}
-// 	panic("not found")
-// 	return
-// }

@@ -224,7 +224,7 @@ func CreateNewAccount(ctx *gin.Context, userID int, passWord string) int {
 						liveParty.CardMasterID3).
 					Cols("role").Find(&roles)
 				utils.CheckErr(err)
-				partyInfo := gamedata.LiveParty.PartyInfoByRoleIds[roles[0]][roles[1]][roles[2]]
+				partyInfo := gamedata.LiveParty.PartyInfoByRoleIDs[roles[0]][roles[1]][roles[2]]
 				liveParty.IconMasterID = partyInfo.PartyIcon
 				liveParty.Name.DotUnderText = partyInfo.PartyName
 				liveParties = append(liveParties, liveParty)

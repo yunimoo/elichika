@@ -4,7 +4,7 @@ import (
 	"elichika/router"
 
 	"elichika/cli/db"
-	// "fmt"
+	"fmt"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -28,6 +28,7 @@ import (
 
 func cli() {
 	switch os.Args[1] {
+	
 	case "init":
 		db.Init(os.Args[2:])
 	// case "account":
@@ -50,6 +51,7 @@ func cli() {
 func main() {
 
 	if len(os.Args) > 1 {
+		fmt.Println("Note: cli is not stable and should only be used for testing, use at your own risk!")
 		cli()
 		return
 	}

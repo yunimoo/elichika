@@ -8,13 +8,11 @@ import (
 	"elichika/utils"
 
 	"encoding/json"
-	// "fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	// "xorm.io/xorm"
 )
 
 func FetchGachaMenu(ctx *gin.Context) {

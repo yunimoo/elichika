@@ -281,7 +281,7 @@ func LiveFinish(ctx *gin.Context) {
 	}
 	session.UpdateLiveDifficultyRecord(liveRecord)
 	session.SetLastPlayLiveDifficultyDeck(lastPlayDeck)
-	liveFinishResp := session.Finalize(handler.GetUserData("userModelDiff.json"), "user_model_diff")
+	liveFinishResp := session.Finalize(handler.GetData("userModelDiff.json"), "user_model_diff")
 	liveFinishResp, _ = sjson.Set(liveFinishResp, "live_result", liveResult)
 
 	resp := handler.SignResp(ctx, liveFinishResp, config.SessionKey)

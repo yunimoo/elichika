@@ -3,7 +3,6 @@ package handler
 import (
 	"elichika/config"
 	"elichika/encrypt"
-	// "elichika/model"
 	"elichika/locale"
 	"elichika/serverdb"
 	"elichika/utils"
@@ -13,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	// "strings"
 
 	"time"
 
@@ -192,11 +190,6 @@ func Login(ctx *gin.Context) {
 		userAccessories = append(userAccessories, userAccessory.UserAccessoryID)
 		userAccessories = append(userAccessories, userAccessory)
 	}
-	// decoder := json.NewDecoder(strings.NewReader(
-	// 	gjson.Parse(GetUserAccessoryData()).Get("user_accessory_by_user_accessory_id").String()))
-	// decoder.UseNumber()
-	// err = decoder.Decode(&UserAccessory)
-	// utils.CheckErr(err)
 	loginBody, _ = sjson.Set(loginBody, "user_model.user_accessory_by_user_accessory_id", userAccessories)
 
 	// song records

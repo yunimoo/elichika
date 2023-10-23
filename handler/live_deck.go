@@ -8,16 +8,17 @@ import (
 	"elichika/model"
 	"elichika/serverdb"
 	"elichika/utils"
+	"elichika/gamedata"
 
 	"encoding/json"
 	"fmt"
 	"net/http"
-	// "strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"xorm.io/xorm"
 )
 
 func SaveDeckAll(ctx *gin.Context) {
@@ -39,10 +40,12 @@ func SaveDeckAll(ctx *gin.Context) {
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
 	deckInfo := session.GetUserLiveDeck(req.DeckID)
-
+	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
+	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 	for i := 0; i < 9; i++ {
 		if req.CardWithSuit[i*2+1] == 0 {
-			req.CardWithSuit[i*2+1] = GetMemberDefaultSuitByCardMasterId(req.CardWithSuit[i*2])
+			req.CardWithSuit[i*2+1] = klab.DefaultSuitMasterIDFromMemberMasterID(
+				klab.MemberMasterIDFromCardMasterID(req.CardWithSuit[i*2]))
 		}
 	}
 
@@ -78,20 +81,18 @@ func SaveDeckAll(ctx *gin.Context) {
 			utils.CheckErr(err)
 			// fmt.Println("Party Info:", dictInfo)
 
-			roleIds := []int{}
-			err = MainEng.Table("m_card").
+			roles := []int{}
+			err = db.Table("m_card").
 				Where("id IN (?,?,?)", dictInfo.CardMasterIDs[0], dictInfo.CardMasterIDs[1], dictInfo.CardMasterIDs[2]).
-				Cols("role").Find(&roleIds)
+				Cols("role").Find(&roles)
 			utils.CheckErr(err)
-			// fmt.Println("roleIds:", roleIds)
 
 			partyInfo := model.UserLiveParty{}
 			partyInfo.UserID = UserID
 			partyInfo.PartyID = int(partyId)
-			partyIcon, partyName := GetPartyInfoByRoleIds(roleIds)
-			partyInfo.Name.DotUnderText = GetRealPartyName(partyName)
+			partyInfo.Name.DotUnderText = gamedata.LiveParty.PartyInfoByRoleIDs[roles[0]][roles[1]][roles[2]].PartyName
 			partyInfo.UserLiveDeckID = req.DeckID
-			partyInfo.IconMasterID = partyIcon
+			partyInfo.IconMasterID = gamedata.LiveParty.PartyInfoByRoleIDs[roles[0]][roles[1]][roles[2]].PartyIcon
 			partyInfo.CardMasterID1 = dictInfo.CardMasterIDs[0]
 			partyInfo.CardMasterID2 = dictInfo.CardMasterIDs[1]
 			partyInfo.CardMasterID3 = dictInfo.CardMasterIDs[2]
@@ -124,7 +125,6 @@ func FetchLiveDeckSelect(ctx *gin.Context) {
 	defer session.Close()
 	deck := session.GetLastPlayLiveDifficultyDeck(req.LiveDifficultyID)
 	signBody, err := sjson.Set("{}", "last_play_live_difficulty_deck", deck)
-	// signBody := GetData("fetchLiveDeckSelect.json")
 
 	// utils.CheckErr(err)
 
@@ -142,7 +142,6 @@ func SaveSuit(ctx *gin.Context) {
 		SuitMasterID int `json:"suit_master_id"`
 		ViewStatus   int `json:"view_status"` // 2 for Rina-chan board off, 1 for everyone else
 	}
-	// fmt.Println(reqBody)
 
 	req := SaveSuitReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
@@ -190,6 +189,8 @@ func SaveDeck(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
 	session := serverdb.GetSession(ctx, UserID)
 	defer session.Close()
+	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
+	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
 
 	// fetch the deck and parties affected
 	deck := session.GetUserLiveDeck(req.DeckID)
@@ -254,16 +255,18 @@ func SaveDeck(ctx *gin.Context) {
 		})
 
 		partyInfo := gjson.Parse(partyJson)
-		roleIds := []int{}
-		err = MainEng.Table("m_card").
+		
+		roles := []int{}
+		err = db.Table("m_card").
 			Where("id IN (?,?,?)", partyInfo.Get("card_master_id_1").Int(),
 				partyInfo.Get("card_master_id_2").Int(),
 				partyInfo.Get("card_master_id_3").Int()).
-			Cols("role").Find(&roleIds)
+			Cols("role").Find(&roles)
 		utils.CheckErr(err)
-		partyIcon, partyName := GetPartyInfoByRoleIds(roleIds)
-		realPartyName := GetRealPartyName(partyName)
-		partyJson, _ = sjson.Set(partyJson, "name.dot_under_text", realPartyName)
+		
+		partyIcon := gamedata.LiveParty.PartyInfoByRoleIDs[roles[0]][roles[1]][roles[2]].PartyIcon
+		partyName := gamedata.LiveParty.PartyInfoByRoleIDs[roles[0]][roles[1]][roles[2]].PartyName
+		partyJson, _ = sjson.Set(partyJson, "name.dot_under_text", partyName)
 		partyJson, _ = sjson.Set(partyJson, "icon_master_id", partyIcon)
 		err = json.Unmarshal([]byte(partyJson), &party)
 		utils.CheckErr(err)

@@ -6,11 +6,9 @@ import (
 
 	"encoding/json"
 	"net/http"
-	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
-	// "github.com/tidwall/sjson"
 )
 
 func SaveUserNaviVoice(ctx *gin.Context) {
