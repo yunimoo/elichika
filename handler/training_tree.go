@@ -4,7 +4,7 @@ import (
 	"elichika/config"
 	"elichika/klab"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -27,7 +27,7 @@ func FetchTrainingTree(ctx *gin.Context) {
 		panic(err)
 	}
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := `"{}"`
 	signBody, _ = sjson.Set(signBody, "user_card_training_tree_cell_list", session.GetTrainingTree(req.CardMasterID))
@@ -38,7 +38,7 @@ func FetchTrainingTree(ctx *gin.Context) {
 
 func LevelUpCard(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
@@ -77,7 +77,7 @@ func GradeUpCard(ctx *gin.Context) {
 	}
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 
 	userCard := session.GetUserCard(req.CardMasterID)
@@ -122,7 +122,7 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	}
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 
 	db := ctx.MustGet("masterdata.db").(*xorm.Engine)

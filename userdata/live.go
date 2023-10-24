@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/model"
@@ -6,11 +6,11 @@ import (
 
 func SaveLiveState(live model.LiveState) {
 	// delete whatever is there
-	affected, err := Engine.Table("s_user_live_state").Where("user_id = ?", live.UserID).Delete(&model.LiveState{})
+	affected, err := Engine.Table("u_live_state").Where("user_id = ?", live.UserID).Delete(&model.LiveState{})
 	if err != nil {
 		panic(err)
 	}
-	affected, err = Engine.Table("s_user_live_state").AllCols().Insert(live)
+	affected, err = Engine.Table("u_live_state").AllCols().Insert(live)
 	if err != nil {
 		panic(err)
 	}
@@ -21,12 +21,12 @@ func SaveLiveState(live model.LiveState) {
 
 func LoadLiveState(userID int) (bool, model.LiveState) {
 	live := model.LiveState{}
-	exists, err := Engine.Table("s_user_live_state").Where("user_id = ?", userID).Get(&live)
+	exists, err := Engine.Table("u_live_state").Where("user_id = ?", userID).Get(&live)
 	if err != nil {
 		panic(err)
 	}
 	if exists {
-		_, err = Engine.Table("s_user_live_state").Where("user_id = ?", userID).Delete(&model.LiveState{})
+		_, err = Engine.Table("u_live_state").Where("user_id = ?", userID).Delete(&model.LiveState{})
 		if err != nil {
 			panic(err)
 		}

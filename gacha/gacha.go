@@ -3,7 +3,8 @@ package gacha
 import (
 	"elichika/klab"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
+	"elichika/serverdata"
 	"elichika/utils"
 
 	"math/rand"
@@ -25,7 +26,7 @@ func GetGroupWeight(groupID int) int64 {
 	if !exists {
 		// fetch all from db
 		groups := []model.GachaGroup{}
-		err := serverdb.Engine.Table("s_gacha_group").Find(&groups)
+		err := serverdata.Engine.Table("s_gacha_group").Find(&groups)
 		utils.CheckErr(err)
 		for _, group := range groups {
 			cachedGroupWeight[group.GroupMasterID] = group.GroupWeight
@@ -60,7 +61,7 @@ func ChooseRandomCard(cards []model.GachaCard) int {
 	panic("this shouldn't happen")
 }
 
-func MakeResultCard(session *serverdb.Session, cardMasterID int, isGuaranteed bool) model.ResultCard {
+func MakeResultCard(session *userdata.Session, cardMasterID int, isGuaranteed bool) model.ResultCard {
 	card := session.GetUserCard(cardMasterID)
 	cardRarity := klab.CardRarityFromCardMasterID(cardMasterID)
 	member := session.GetMember(klab.MemberMasterIDFromCardMasterID(cardMasterID))
@@ -115,16 +116,16 @@ func MakeResultCard(session *serverdb.Session, cardMasterID int, isGuaranteed bo
 }
 
 func HandleGacha(ctx *gin.Context, req model.GachaDrawReq) (model.Gacha, []model.ResultCard) {
-	session := ctx.MustGet("session").(*serverdb.Session)
+	session := ctx.MustGet("session").(*userdata.Session)
 	draw := model.GachaDraw{}
-	exists, err := serverdb.Engine.Table("s_gacha_draw").
+	exists, err := serverdata.Engine.Table("s_gacha_draw").
 		Where("gacha_draw_master_id = ?", req.GachaDrawMasterID).Get(&draw)
 	utils.CheckErrMustExist(err, exists)
 	gacha := session.GetGacha(draw.GachaMasterID)
 	cardPool := []model.GachaCard{}
 	for _, group := range gacha.DbGachaGroups {
 		groupPool := []model.GachaCard{}
-		err := serverdb.Engine.Table("s_gacha_card").Where("group_master_id = ?", group).Find(&groupPool)
+		err := serverdata.Engine.Table("s_gacha_card").Where("group_master_id = ?", group).Find(&groupPool)
 		utils.CheckErr(err)
 		cardPool = append(cardPool, groupPool...)
 		// allow 1 card to be in multiple group
@@ -136,7 +137,7 @@ func HandleGacha(ctx *gin.Context, req model.GachaDrawReq) (model.Gacha, []model
 	resultCards := []model.ResultCard{}
 	for _, guranteeID := range draw.Guarantees {
 		gachaGuarantee := model.GachaGuarantee{}
-		exists, err := serverdb.Engine.Table("s_gacha_guarantee").
+		exists, err := serverdata.Engine.Table("s_gacha_guarantee").
 			Where("gacha_guarantee_master_id = ?", guranteeID).Get(&gachaGuarantee)
 		utils.CheckErrMustExist(err, exists)
 		cardMasterID := GuaranteeHandlers[gachaGuarantee.GuaranteeHandler](ctx, gachaGuarantee.GuaranteeParams)

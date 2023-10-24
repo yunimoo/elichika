@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/enum"
@@ -10,7 +10,7 @@ import (
 )
 
 func FetchDBProfile(userID int, result interface{}) {
-	exists, err := Engine.Table("s_user_info").Where("user_id = ?", userID).Get(result)
+	exists, err := Engine.Table("u_info").Where("user_id = ?", userID).Get(result)
 	if err != nil {
 		panic(err)
 	}
@@ -21,7 +21,7 @@ func FetchDBProfile(userID int, result interface{}) {
 
 func FetchPartnerCards(otherUserID int) []model.UserCard {
 	partnerCards := []model.UserCard{}
-	err := Engine.Table("s_user_card").
+	err := Engine.Table("u_card").
 		Where("user_id = ? AND live_partner_categories != 0", otherUserID).
 		Find(&partnerCards)
 	if err != nil {
@@ -44,7 +44,7 @@ func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
 		panic(err)
 	}
 
-	exists, err := Engine.Table("s_user_member").Where("user_id = ? AND member_master_id = ?", card.UserID, memberId).
+	exists, err := Engine.Table("u_member").Where("user_id = ? AND member_master_id = ?", card.UserID, memberId).
 		Cols("love_level").Get(&partnerCard.LoveLevel)
 	if err != nil {
 		panic(err)
@@ -68,7 +68,7 @@ func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
 	// TODO: revisit after implmenting friends
 
 	// lovePanel := model.UserMemberLovePanel{}
-	// exists, err = Engine.Table("s_user_member").
+	// exists, err = Engine.Table("u_member").
 	// 	Where("user_id = ? AND member_master_id = ?", card.UserID, memberId).Get(&lovePanel)
 	// if err != nil {
 	// 	panic(err)
@@ -83,7 +83,7 @@ func GetPartnerCardFromUserCard(card model.UserCard) model.PartnerCardInfo {
 
 func GetOtherUserCard(otherUserID, cardMasterID int) model.UserCard {
 	card := model.UserCard{}
-	exists, err := Engine.Table("s_user_card").Where("user_id = ? AND card_master_id = ?", otherUserID, cardMasterID).
+	exists, err := Engine.Table("u_card").Where("user_id = ? AND card_master_id = ?", otherUserID, cardMasterID).
 		Get(&card)
 	if err != nil {
 		panic(err)
@@ -113,7 +113,7 @@ func (sesison *Session) GetOtherUserBasicProfile(otherUserID int) model.UserBasi
 
 func GetOtherUserLiveStats(otherUserID int) model.UserProfileLiveStats {
 	stats := model.UserProfileLiveStats{}
-	_, err := Engine.Table("s_user_info").Where("user_id = ?", otherUserID).Get(&stats)
+	_, err := Engine.Table("u_info").Where("user_id = ?", otherUserID).Get(&stats)
 	utils.CheckErr(err)
 	return stats
 }
@@ -123,7 +123,7 @@ func (session *Session) GetUserLiveStats() model.UserProfileLiveStats {
 }
 
 func (session *Session) UpdateUserLiveStats(stats model.UserProfileLiveStats) {
-	_, err := session.Db.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).AllCols().Update(&stats)
+	_, err := session.Db.Table("u_info").Where("user_id = ?", session.UserStatus.UserID).AllCols().Update(&stats)
 	utils.CheckErr(err)
 }
 
@@ -132,7 +132,7 @@ func (session *Session) UpdateUserLiveStats(stats model.UserProfileLiveStats) {
 func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	profile := model.Profile{}
 
-	exists, err := session.Db.Table("s_user_info").Where("user_id = ?", otherUserID).Get(&profile)
+	exists, err := session.Db.Table("u_info").Where("user_id = ?", otherUserID).Get(&profile)
 	if err != nil {
 		panic(err)
 	}
@@ -160,7 +160,7 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 
 	// other user's members
 	members := []model.UserMemberInfo{}
-	err = session.Db.Table("s_user_member").Where("user_id = ?", otherUserID).OrderBy("love_point DESC").Find(&members)
+	err = session.Db.Table("u_member").Where("user_id = ?", otherUserID).OrderBy("love_point DESC").Find(&members)
 	if err != nil {
 		panic(err)
 	}
@@ -204,9 +204,9 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 		profile.PlayInfo.LiveClearCount = append(profile.PlayInfo.LiveClearCount, liveStats.LiveClearCount[i])
 	}
 
-	session.Db.Table("s_user_card").Where("user_id = ?", otherUserID).
+	session.Db.Table("u_card").Where("user_id = ?", otherUserID).
 		OrderBy("live_join_count DESC").Limit(3).Find(&profile.PlayInfo.JoinedLiveCardRanking)
-	session.Db.Table("s_user_card").Where("user_id = ?", otherUserID).
+	session.Db.Table("u_card").Where("user_id = ?", otherUserID).
 		OrderBy("active_skill_play_count DESC").Limit(3).Find(&profile.PlayInfo.PlaySkillCardRanking)
 
 	// custom profile
@@ -223,13 +223,13 @@ func (session *Session) FetchProfile(otherUserID int) model.Profile {
 	}
 
 	// can get from members[] to save sql
-	session.Db.Table("s_user_member").Where("user_id = ?", otherUserID).Find(&profile.MemberInfo.UserMembers)
+	session.Db.Table("u_member").Where("user_id = ?", otherUserID).Find(&profile.MemberInfo.UserMembers)
 	return profile
 }
 
 func GetOtherUserCustomSetProfile(otherUserID int) model.UserCustomSetProfile {
 	p := model.UserCustomSetProfile{}
-	exists, err := Engine.Table("s_user_custom_set_profile").Where("user_id = ?", otherUserID).Get(&p)
+	exists, err := Engine.Table("u_custom_set_profile").Where("user_id = ?", otherUserID).Get(&p)
 	utils.CheckErr(err)
 	if !exists {
 		p.UserID = otherUserID
@@ -242,12 +242,12 @@ func (session *Session) GetUserCustomSetProfile() model.UserCustomSetProfile {
 }
 
 func (session *Session) SetUserCustomSetProfile(p model.UserCustomSetProfile) {
-	affected, err := session.Db.Table("s_user_custom_set_profile").Where("user_id = ?", session.UserStatus.UserID).
+	affected, err := session.Db.Table("u_custom_set_profile").Where("user_id = ?", session.UserStatus.UserID).
 		AllCols().Update(&p)
 	utils.CheckErr(err)
 	if affected == 0 {
 		// need to insert
-		affected, err = session.Db.Table("s_user_custom_set_profile").Insert(&p)
+		affected, err = session.Db.Table("u_custom_set_profile").Insert(&p)
 		utils.CheckErr(err)
 	}
 }

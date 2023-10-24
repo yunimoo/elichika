@@ -3,7 +3,7 @@ package handler
 import (
 	"elichika/config"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 	"fmt"
 	"net/http"
@@ -30,7 +30,7 @@ func ExecuteLesson(ctx *gin.Context) {
 	}
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	deckBytes, _ := json.Marshal(session.GetLessonDeck(req.SelectedDeckID))
 	deckInfo := string(deckBytes)
@@ -68,7 +68,7 @@ func ExecuteLesson(ctx *gin.Context) {
 
 func ResultLesson(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("resultLesson.json"), "user_model_diff")
 	signBody, _ = sjson.Set(signBody, "selected_deck_id", session.UserStatus.MainLessonDeckID)
@@ -86,7 +86,7 @@ func SkillEditResult(ctx *gin.Context) {
 	req := gjson.Parse(reqBody).Array()[0]
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	skillList := req.Get("selected_skill_ids")
 	skillList.ForEach(func(key, cardId gjson.Result) bool {
@@ -128,7 +128,7 @@ func SaveDeckLesson(ctx *gin.Context) {
 	}
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	userLessonDeck := session.GetLessonDeck(req.DeckID)
 	deckByte, _ := json.Marshal(userLessonDeck)
@@ -158,7 +158,7 @@ func ChangeDeckNameLessonDeck(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	lessonDeck := session.GetLessonDeck(req.DeckID)
 	lessonDeck.Name = req.DeckName

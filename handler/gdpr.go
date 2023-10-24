@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"elichika/serverdb"
+	"elichika/userdata"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -10,7 +10,7 @@ import (
 func UpdateConsentState(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0]
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	session.UserStatus.GdprVersion = int(reqBody.Get("version").Int())
 	session.Finalize(GetData("userModel.json"), "user_model")

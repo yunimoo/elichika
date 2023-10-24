@@ -1,8 +1,10 @@
 package locale
 
 import (
+	"elichika/config"
 	"elichika/dictionary"
 	"elichika/gamedata"
+	"elichika/serverdata"
 	"elichika/utils"
 
 	"xorm.io/xorm"
@@ -30,4 +32,30 @@ func (locale *Locale) Load() {
 	locale.Dictionary.Init(locale.Path, locale.Language)
 	locale.Gamedata = new(gamedata.Gamedata)
 	locale.Gamedata.Init(locale.MasterdataEngine, locale.ServerdataEngine, locale.Dictionary)
+}
+
+var (
+	Locales         map[string](*Locale)
+	sharedServerdataEngine *xorm.Engine
+)
+
+
+func addLocale(path, language, masterVersion, startUpKey string) {
+	locale := Locale{
+		Path:             path,
+		Language:         language,
+		MasterVersion:    masterVersion,
+		StartUpKey:       startUpKey,
+		ServerdataEngine: serverdata.Engine,
+	}
+	locale.Load()
+	Locales[language] = &locale
+}
+
+func init() {
+	Locales = make(map[string](*Locale))
+	addLocale(config.GlDatabasePath, "en", config.MasterVersionGl, config.GlStartUpKey)
+	addLocale(config.GlDatabasePath, "zh", config.MasterVersionGl, config.GlStartUpKey)
+	addLocale(config.GlDatabasePath, "ko", config.MasterVersionGl, config.GlStartUpKey)
+	addLocale(config.JpDatabasePath, "ja", config.MasterVersionJp, config.JpStartUpKey)
 }

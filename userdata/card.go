@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/model"
@@ -17,7 +17,7 @@ func (session *Session) GetUserCard(cardMasterID int) model.UserCard {
 		return card
 	}
 	card = model.UserCard{}
-	exists, err := session.Db.Table("s_user_card").
+	exists, err := session.Db.Table("u_card").
 		Where("user_id = ? AND card_master_id = ?", session.UserStatus.UserID, cardMasterID).Get(&card)
 	if err != nil {
 		panic(err)
@@ -63,7 +63,7 @@ func (session *Session) GetUserCard(cardMasterID int) model.UserCard {
 
 func (session *Session) GetAllCards() []model.UserCard {
 	var cards []model.UserCard
-	err := session.Db.Table("s_user_card").Where("user_id = ?", session.UserStatus.UserID).Find(&cards)
+	err := session.Db.Table("u_card").Where("user_id = ?", session.UserStatus.UserID).Find(&cards)
 	if err != nil {
 		panic(err)
 	}
@@ -79,11 +79,11 @@ func (session *Session) FinalizeCardDiffs() []any {
 	for cardMasterID, card := range session.CardDiffs {
 		userCardByCardID = append(userCardByCardID, cardMasterID)
 		userCardByCardID = append(userCardByCardID, card)
-		affected, err := session.Db.Table("s_user_card").
+		affected, err := session.Db.Table("u_card").
 			Where("user_id = ? AND card_master_id = ?", session.UserStatus.UserID, cardMasterID).AllCols().Update(card)
 		utils.CheckErr(err)
 		if affected == 0 {
-			_, err := session.Db.Table("s_user_card").AllCols().Insert(card)
+			_, err := session.Db.Table("u_card").AllCols().Insert(card)
 			utils.CheckErr(err)
 		}
 	}
@@ -92,7 +92,7 @@ func (session *Session) FinalizeCardDiffs() []any {
 
 // insert all the cards
 func (session *Session) InsertCards(cards []model.UserCard) {
-	affected, err := session.Db.Table("s_user_card").Insert(&cards)
+	affected, err := session.Db.Table("u_card").Insert(&cards)
 	if err != nil {
 		panic(err)
 	}

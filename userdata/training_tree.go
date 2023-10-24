@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/model"
@@ -9,7 +9,7 @@ import (
 // return the training tree for a card
 func (session *Session) GetTrainingTree(cardMasterID int) []model.TrainingTreeCell {
 	cells := []model.TrainingTreeCell{}
-	err := session.Db.Table("s_user_training_tree_cell").
+	err := session.Db.Table("u_training_tree_cell").
 		Where("user_id = ? AND card_master_id = ?", session.UserStatus.UserID, cardMasterID).Find(&cells)
 	if err != nil {
 		panic(err)
@@ -26,7 +26,7 @@ func (session *Session) InsertTrainingCells(cells *[]model.TrainingTreeCell) {
 		if end > n {
 			end = n
 		}
-		affected, err := session.Db.Table("s_user_training_tree_cell").AllCols().Insert((*cells)[begin:end])
+		affected, err := session.Db.Table("u_training_tree_cell").AllCols().Insert((*cells)[begin:end])
 		if err != nil {
 			panic(err)
 		}

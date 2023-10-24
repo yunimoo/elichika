@@ -4,7 +4,7 @@ import (
 	"elichika/config"
 	"elichika/gacha"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -17,7 +17,7 @@ import (
 
 func FetchGachaMenu(ctx *gin.Context) {
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	gachaList := session.GetGachaList()
 	signBody := session.Finalize(GetData("userModelDiff.json"), "user_model_diff")
@@ -35,7 +35,7 @@ func GachaDraw(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	ctx.Set("session", session)
 	gacha, resultCards := gacha.HandleGacha(ctx, req)

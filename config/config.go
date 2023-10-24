@@ -1,14 +1,12 @@
 package config
 
 import (
-	"elichika/locale"
 	"elichika/utils"
 
 	"fmt"
 	"os"
 
 	_ "modernc.org/sqlite"
-	"xorm.io/xorm"
 )
 
 var (
@@ -22,20 +20,22 @@ var (
 
 	GlDatabasePath = "assets/db/gl/"
 	JpDatabasePath = "assets/db/jp/"
-	// TODO: split into userdata.db and serverdata.db for gl / jp
-	ServerdataDb = "assets/db/serverdata.db"
+	
+	ServerdataDbPath = "assets/db/serverdata.db"
+	UserdataDbPath = "assets/db/userdata.db"
+
+	PresetDataPath = "assets/preset/"
+	UserDataPath   = "assets/userdata/"
 
 	MasterVersionGl = "2d61e7b4e89961c7" // read from GL database, so user can update db just by changing that
 	MasterVersionJp = "b66ec2295e9a00aa" // ditto
 
-	MasterdataEngGl *xorm.Engine
-	MasterdataEngJp *xorm.Engine
-	Locales         map[string](*locale.Locale)
+	GlStartUpKey = "TxQFwgNcKDlesb93"
+	JpStartUpKey = "5f7IZY1QrAX0D49g"
 
+	ServerInitJsons = "server init jsons/"
 	Conf = &AppConfigs{}
 
-	PresetDataPath = "assets/preset/"
-	UserDataPath   = "assets/userdata/"
 )
 
 func readMasterdataManinest(path string) string {
@@ -52,32 +52,11 @@ func readMasterdataManinest(path string) string {
 	return version
 }
 
-func addLocale(path, language, masterVersion, startUpKey string, serverdataEngine *xorm.Engine) {
-	locale := locale.Locale{
-		Path:             path,
-		Language:         language,
-		MasterVersion:    masterVersion,
-		StartUpKey:       startUpKey,
-		ServerdataEngine: serverdataEngine,
-	}
-	locale.Load()
-	Locales[language] = &locale
-}
-
 func init() {
 	Conf = Load("./config.json")
 
-	ServerdataEng, err := xorm.NewEngine("sqlite", ServerdataDb)
-	utils.CheckErr(err)
-
 	MasterVersionGl = readMasterdataManinest(GlDatabasePath + "masterdata_a_en")
 	MasterVersionJp = readMasterdataManinest(JpDatabasePath + "masterdata_a_ja")
-
-	Locales = make(map[string](*locale.Locale))
-	addLocale(GlDatabasePath, "en", MasterVersionGl, "TxQFwgNcKDlesb93", ServerdataEng)
-	addLocale(GlDatabasePath, "zh", MasterVersionGl, "TxQFwgNcKDlesb93", ServerdataEng)
-	addLocale(GlDatabasePath, "ko", MasterVersionGl, "TxQFwgNcKDlesb93", ServerdataEng)
-	addLocale(JpDatabasePath, "ja", MasterVersionJp, "5f7IZY1QrAX0D49g", ServerdataEng)
 
 	fmt.Println("gl master version:", MasterVersionGl)
 	fmt.Println("jp master version:", MasterVersionJp)

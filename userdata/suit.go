@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/model"
@@ -9,7 +9,7 @@ import (
 
 func (session *Session) GetAllSuits() []model.UserSuit {
 	suits := []model.UserSuit{}
-	err := session.Db.Table("s_user_suit").Where("user_id = ?", session.UserStatus.UserID).Find(&suits)
+	err := session.Db.Table("u_suit").Where("user_id = ?", session.UserStatus.UserID).Find(&suits)
 	if err != nil {
 		panic(err)
 	}
@@ -20,7 +20,7 @@ func (session *Session) InsertUserSuits(suits []model.UserSuit) {
 	if len(suits) == 0 {
 		return
 	}
-	count, err := session.Db.Table("s_user_suit").AllCols().Insert(suits)
+	count, err := session.Db.Table("u_suit").AllCols().Insert(suits)
 	utils.CheckErr(err)
 	if err != nil {
 		panic(err)

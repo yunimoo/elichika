@@ -4,10 +4,13 @@ elichika
 data
 static
 
-assets/userdata
+assets
 
 config.json
 
+userdata.db
 serverdata.db
 
 *.backup
+
+.vscode/

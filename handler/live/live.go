@@ -4,7 +4,7 @@ import (
 	"elichika/config"
 	"elichika/handler"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -41,7 +41,7 @@ func FetchLiveMusicSelect(ctx *gin.Context) {
 	signBody, _ = sjson.Set(signBody, "weekday_state.next_weekday_at", tomorrow)
 	signBody, _ = sjson.Set(signBody, "live_daily_list", liveDailyList)
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody = session.Finalize(signBody, "user_model_diff")
 	resp := handler.SignResp(ctx, signBody, config.SessionKey)
@@ -62,15 +62,15 @@ func FetchLivePartners(ctx *gin.Context) {
 	for _, partnerID := range partnerIDs {
 		partner := model.LiveStartLivePartner{}
 		partner.IsFriend = true
-		serverdb.FetchDBProfile(partnerID, &partner)
-		partnerCards := serverdb.FetchPartnerCards(partnerID) // model.UserCard
+		userdata.FetchDBProfile(partnerID, &partner)
+		partnerCards := userdata.FetchPartnerCards(partnerID) // model.UserCard
 		if len(partnerCards) == 0 {
 			continue
 		}
 		for _, card := range partnerCards {
 			for i := 1; i <= 7; i++ {
 				if (card.LivePartnerCategories & (1 << i)) != 0 {
-					partnerCardInfo := serverdb.GetPartnerCardFromUserCard(card)
+					partnerCardInfo := userdata.GetPartnerCardFromUserCard(card)
 					partner.CardByCategory = append(partner.CardByCategory, i)
 					partner.CardByCategory = append(partner.CardByCategory, partnerCardInfo)
 				}
@@ -95,7 +95,7 @@ func LiveStart(ctx *gin.Context) {
 		panic(err)
 	}
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 
 	session.UserStatus.LastLiveDifficultyID = req.LiveDifficultyID
@@ -128,8 +128,8 @@ func LiveStart(ctx *gin.Context) {
 	}
 
 	if req.PartnerUserID != 0 {
-		liveState.LivePartnerCard = serverdb.GetPartnerCardFromUserCard(
-			serverdb.GetOtherUserCard(req.PartnerUserID, req.PartnerCardMasterID))
+		liveState.LivePartnerCard = userdata.GetPartnerCardFromUserCard(
+			userdata.GetOtherUserCard(req.PartnerUserID, req.PartnerCardMasterID))
 	}
 
 	liveStartResp := session.Finalize(handler.GetData("userModelDiff.json"), "user_model_diff")
@@ -137,7 +137,7 @@ func LiveStart(ctx *gin.Context) {
 	if req.PartnerUserID == 0 {
 		liveStartResp, _ = sjson.Set(liveStartResp, "live.live_partner_card", nil)
 	}
-	serverdb.SaveLiveState(liveState)
+	userdata.SaveLiveState(liveState)
 	resp := handler.SignResp(ctx, liveStartResp, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")

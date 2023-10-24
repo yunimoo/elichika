@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 // this file contain all the logic for actually changing what an user own
 // more precisely, it handle things found in m_content_route_guide
@@ -53,7 +53,7 @@ func (session *Session) GetUserResource(contentType, contentID int) UserResource
 		return resource
 	}
 	// load from db
-	exists, err := session.Db.Table("s_user_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
+	exists, err := session.Db.Table("u_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
 		session.UserStatus.UserID, contentType, contentID).Get(&resource)
 	utils.CheckErr(err)
 	if !exists {
@@ -195,11 +195,11 @@ func GenericResourceFinalizer(session *Session, contentType int,
 	index := 0
 	for contentID, resource := range resourceDiffByContentID {
 		// update or insert the resource
-		affected, err := session.Db.Table("s_user_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
+		affected, err := session.Db.Table("u_resource").Where("user_id = ? AND content_type = ? AND content_id = ?",
 			session.UserStatus.UserID, contentType, contentID).Update(resource)
 		utils.CheckErr(err)
 		if affected == 0 { // doesn't exists, insert
-			session.Db.Table("s_user_resource").Insert(resource)
+			session.Db.Table("u_resource").Insert(resource)
 		}
 
 		// set the json

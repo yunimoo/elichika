@@ -6,7 +6,7 @@ import (
 	"elichika/handler"
 	"elichika/klab"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -48,7 +48,7 @@ func LiveSkip(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	session.UserStatus.LastLiveDifficultyID = req.LiveDifficultyMasterID
 	db := ctx.MustGet("masterdata.db").(*xorm.Engine)

@@ -5,7 +5,7 @@ import (
 	"elichika/enum"
 	"elichika/klab"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -26,7 +26,7 @@ func OpenMemberLovePanel(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	panel := session.GetMemberLovePanel(req.MemberID)
 

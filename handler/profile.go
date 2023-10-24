@@ -2,7 +2,7 @@ package handler
 
 import (
 	"elichika/config"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -24,7 +24,7 @@ func FetchProfile(ctx *gin.Context) {
 	}
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	profile := session.FetchProfile(req.UserID)
 
@@ -42,7 +42,7 @@ func FetchProfile(ctx *gin.Context) {
 func SetProfile(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 
 	req := gjson.Parse(reqBody).Array()[0]
@@ -64,7 +64,7 @@ func SetProfile(ctx *gin.Context) {
 func SetRecommendCard(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	cardMasterId := int(gjson.Parse(reqBody).Array()[0].Get("card_master_id").Int())
 	session.UserStatus.RecommendCardMasterID = cardMasterId
@@ -89,14 +89,14 @@ func SetLivePartner(ctx *gin.Context) {
 
 	// set the bit on the correct card
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	newCard := session.GetUserCard(req.CardMasterID)
 	newCard.LivePartnerCategories |= (1 << req.LivePartnerCategoryID)
 	session.UpdateUserCard(newCard)
 
 	// remove the bit on the other cards
-	partnerCards := serverdb.FetchPartnerCards(UserID)
+	partnerCards := userdata.FetchPartnerCards(UserID)
 	for _, card := range partnerCards {
 		if card.CardMasterID == req.CardMasterID {
 			continue
@@ -125,7 +125,7 @@ func SetScoreOrComboLive(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	customSetProfile := session.GetUserCustomSetProfile()
 	if ctx.Request.URL.Path == "/userProfile/setScoreLive" {

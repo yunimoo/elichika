@@ -3,7 +3,7 @@ package handler
 import (
 	"elichika/config"
 	"elichika/gamedata"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -24,7 +24,7 @@ func FetchTrade(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	trades := session.GetTrades(req.TradeType)
 
@@ -45,7 +45,7 @@ func ExecuteTrade(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 
@@ -76,7 +76,7 @@ func ExecuteMultiTrade(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 

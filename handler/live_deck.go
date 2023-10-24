@@ -6,7 +6,7 @@ import (
 	"elichika/enum"
 	"elichika/klab"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 	"elichika/gamedata"
 
@@ -37,7 +37,7 @@ func SaveDeckAll(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	deckInfo := session.GetUserLiveDeck(req.DeckID)
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
@@ -121,7 +121,7 @@ func FetchLiveDeckSelect(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	deck := session.GetLastPlayLiveDifficultyDeck(req.LiveDifficultyID)
 	signBody, err := sjson.Set("{}", "last_play_live_difficulty_deck", deck)
@@ -148,7 +148,7 @@ func SaveSuit(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, err := json.Marshal(deck)
@@ -187,7 +187,7 @@ func SaveDeck(ctx *gin.Context) {
 	newSuitMasterID := newCardMasterID
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	db := ctx.MustGet("masterdata.db").(*xorm.Engine)
@@ -291,7 +291,7 @@ func ChangeDeckNameLiveDeck(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	liveDeck := session.GetUserLiveDeck(req.DeckID)
 	liveDeck.Name.DotUnderText = req.DeckName

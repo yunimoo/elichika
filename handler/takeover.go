@@ -5,7 +5,7 @@ import (
 	"elichika/utils"
 	// "elichika/encrypt"
 	"elichika/locale"
-	"elichika/serverdb"
+	"elichika/userdata"
 
 	"fmt"
 	"net/http"
@@ -64,16 +64,16 @@ func CheckTakeOver(ctx *gin.Context) {
 	}
 	resp := TakeOverResp{}
 	resp.IsNotTakeOver = false
-	var currentSession, linkedSession (*serverdb.Session)
+	var currentSession, linkedSession (*userdata.Session)
 	linkedUserID, err := strconv.Atoi(req.TakeOverID)
 	if (err != nil) || (len(req.TakeOverID) > 9) {
 		resp.IsNotTakeOver = true
 		goto FINISH_RESPONSE
 	}
 
-	currentSession = serverdb.GetSession(ctx, req.CurrentUserID)
+	currentSession = userdata.GetSession(ctx, req.CurrentUserID)
 	defer currentSession.Close()
-	linkedSession = serverdb.GetSession(ctx, linkedUserID)
+	linkedSession = userdata.GetSession(ctx, linkedUserID)
 	defer linkedSession.Close()
 
 	if currentSession != nil { // has current session, fill in current user
@@ -128,11 +128,11 @@ func SetTakeOver(ctx *gin.Context) {
 	utils.CheckErr(err)
 	linkedUserID, err := strconv.Atoi(req.TakeOverID)
 	utils.CheckErr(err)
-	linkedSession := serverdb.GetSession(ctx, linkedUserID)
+	linkedSession := userdata.GetSession(ctx, linkedUserID)
 	defer linkedSession.Close()
 	if linkedSession == nil { // new account
-		serverdb.CreateNewAccount(ctx, linkedUserID, req.PassWord) 
-		linkedSession = serverdb.GetSession(ctx, linkedUserID)
+		userdata.CreateNewAccount(ctx, linkedUserID, req.PassWord) 
+		linkedSession = userdata.GetSession(ctx, linkedUserID)
 		defer linkedSession.Close()
 	} else { // existing account, have to check password
 		if linkedSession.UserStatus.PassWord != req.PassWord {
@@ -168,7 +168,7 @@ func UpdatePassWord(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	
 

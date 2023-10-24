@@ -2,7 +2,7 @@ package handler
 
 import (
 	"elichika/config"
-	"elichika/serverdb"
+	"elichika/userdata"
 
 	"net/http"
 
@@ -12,7 +12,7 @@ import (
 
 func FetchEmblem(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("fetchEmblem.json"), "user_model")
 	resp := SignResp(ctx, signBody, config.SessionKey)
@@ -23,7 +23,7 @@ func FetchEmblem(ctx *gin.Context) {
 func ActivateEmblem(ctx *gin.Context) {
 	reqBody := ctx.GetString("reqBody")
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	var emblemId int64
 	gjson.Parse(reqBody).ForEach(func(key, value gjson.Result) bool {

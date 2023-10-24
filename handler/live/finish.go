@@ -7,7 +7,7 @@ import (
 	"elichika/handler"
 	"elichika/klab"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -134,10 +134,10 @@ func LiveFinish(ctx *gin.Context) {
 	req := LiveFinishReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
-	exists, liveState := serverdb.LoadLiveState(UserID)
+	exists, liveState := userdata.LoadLiveState(UserID)
 	utils.MustExist(exists)
 
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	liveState.DeckID = session.UserStatus.LatestLiveDeckID
 	liveState.LiveStage.LiveDifficultyID = session.UserStatus.LastLiveDifficultyID

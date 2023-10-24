@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/model"
@@ -10,7 +10,7 @@ import (
 
 func (session *Session) GetAllUserAccessories() []model.UserAccessory {
 	accessories := []model.UserAccessory{}
-	err := session.Db.Table("s_user_accessory").Where("user_id = ?", session.UserStatus.UserID).
+	err := session.Db.Table("u_accessory").Where("user_id = ?", session.UserStatus.UserID).
 		Find(&accessories)
 	utils.CheckErr(err)
 	return accessories
@@ -25,7 +25,7 @@ func (session *Session) GetUserAccessory(userAccessoryID int64) model.UserAccess
 
 	// if not look in db
 	accessory = model.UserAccessory{}
-	exists, err := session.Db.Table("s_user_accessory").
+	exists, err := session.Db.Table("u_accessory").
 		Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).Get(&accessory)
 	utils.CheckErr(err)
 	if !exists {
@@ -60,7 +60,7 @@ func (session *Session) FinalizeUserAccessories() []any {
 		if accessory.AccessoryMasterID == 0 { // delete this accessories
 			accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, nil)
 			// fmt.Println(userAccessoryID)
-			affected, err := session.Db.Table("s_user_accessory").
+			affected, err := session.Db.Table("u_accessory").
 				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).Delete(&accessory)
 			utils.CheckErr(err)
 			if affected != 1 {
@@ -68,11 +68,11 @@ func (session *Session) FinalizeUserAccessories() []any {
 			}
 		} else {
 			accessoryByUserAccessoryID = append(accessoryByUserAccessoryID, accessory)
-			affected, err := session.Db.Table("s_user_accessory").
+			affected, err := session.Db.Table("u_accessory").
 				Where("user_id = ? AND user_accessory_id = ?", session.UserStatus.UserID, userAccessoryID).AllCols().Update(accessory)
 			utils.CheckErr(err)
 			if affected == 0 {
-				_, err := session.Db.Table("s_user_accessory").AllCols().Insert(accessory)
+				_, err := session.Db.Table("u_accessory").AllCols().Insert(accessory)
 				utils.CheckErr(err)
 			}
 		}

@@ -3,7 +3,7 @@ package handler
 import (
 	"elichika/config"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -18,7 +18,7 @@ func UpdateCardNewFlag(ctx *gin.Context) {
 	// mark the cards as read (is_new = false)
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	type UpdateCardNewFlagReq struct {
 		CardMasterIDs []int `json:"card_master_ids"`
@@ -48,7 +48,7 @@ func ChangeIsAwakeningImage(ctx *gin.Context) {
 	}
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsAwakeningImage = req.IsAwakeningImage
@@ -71,7 +71,7 @@ func ChangeFavorite(ctx *gin.Context) {
 	}
 
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	userCard := session.GetUserCard(req.CardMasterID)
 	userCard.IsFavorite = req.IsFavorite
@@ -97,7 +97,7 @@ func GetOtherUserCard(ctx *gin.Context) {
 		panic(err)
 	}
 
-	partnerCard := serverdb.GetPartnerCardFromUserCard(serverdb.GetOtherUserCard(req.UserID, req.CardMasterID))
+	partnerCard := userdata.GetPartnerCardFromUserCard(userdata.GetOtherUserCard(req.UserID, req.CardMasterID))
 	userCardResp, _ := sjson.Set("{}", "other_user_card", partnerCard)
 	resp := SignResp(ctx, userCardResp, config.SessionKey)
 	// fmt.Println(resp)

@@ -1,27 +1,25 @@
-package db
+package serverdata
 
 import (
 	"elichika/config"
 	"elichika/model"
-	"elichika/serverdb"
 	"elichika/utils"
 
 	"encoding/json"
 	"fmt"
 
 	"github.com/tidwall/gjson"
+	"xorm.io/xorm"
 )
 
-func InitGacha(args []string) {
+func InitGacha(session *xorm.Session, args []string) {
 	// insert some relevant gacha group, gacha card, and gacha guarantee
-	masterdata := config.MasterdataEngGl
 
+	// this is the same for everything
+	masterdata, err := xorm.NewEngine("sqlite", config.GlDatabasePath + "masterdata.db")
+	utils.CheckErr(err)
 	// 9 groups for now:
 	// (R, SR, UR) * (muse, aqours, niji)
-	dbSession := serverdb.Engine.NewSession()
-	err := dbSession.Begin()
-	utils.CheckErr(err)
-	defer dbSession.Close()
 	weight := make(map[int]int64)
 	weight[10] = 85
 	weight[20] = 10
@@ -34,13 +32,13 @@ func InitGacha(args []string) {
 				Cols("id").Find(&cardMasterIDs)
 			utils.CheckErr(err)
 			for _, cardMasterID := range cardMasterIDs {
-				_, err := dbSession.Table("s_gacha_card").Insert(model.GachaCard{
+				_, err := session.Table("s_gacha_card").Insert(model.GachaCard{
 					GroupMasterID: groupMasterID,
 					CardMasterID:  cardMasterID,
 				})
 				utils.CheckErr(err)
 			}
-			dbSession.Table("s_gacha_group").Insert(model.GachaGroup{
+			session.Table("s_gacha_group").Insert(model.GachaGroup{
 				GroupMasterID: groupMasterID,
 				GroupWeight:   weight[rarity],
 			})
@@ -48,33 +46,32 @@ func InitGacha(args []string) {
 	}
 
 	// gacha guarantee: new card
-	dbSession.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
+	session.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
 		GachaGuaranteeMasterID: 0,
 		GuaranteeHandler:       "guarantee_new_card",
 		GuaranteeParams:        []string{},
 	})
 	// gacha guarantee: UR card
-	dbSession.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
+	session.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
 		GachaGuaranteeMasterID: 1,
 		GuaranteeHandler:       "guarantee_card_in_set",
 		GuaranteeParams:        []string{"card_rarity_type = 30"},
 	})
 	// gacha guarantee: SR+ card
-	dbSession.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
+	session.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
 		GachaGuaranteeMasterID: 2,
 		GuaranteeHandler:       "guarantee_card_in_set",
 		GuaranteeParams:        []string{"card_rarity_type >= 20"},
 	})
 	// gacha guarantee: festival / party card
-	dbSession.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
+	session.Table("s_gacha_guarantee").Insert(model.GachaGuarantee{
 		GachaGuaranteeMasterID: 3,
 		GuaranteeHandler:       "guarantee_card_in_set",
 		GuaranteeParams:        []string{"passive_skill_slot == 2"},
 	})
-	dbSession.Commit()
 }
 
-func InsertGacha(args []string) {
+func InsertGacha(session *xorm.Session, args []string) {
 	if len(args) == 0 {
 		fmt.Println("Invalid params:", args)
 		return
@@ -90,7 +87,7 @@ func InsertGacha(args []string) {
 		for i, appeal := range gacha.GachaAppeals {
 			appeal.GachaAppealMasterID = gacha.GachaMasterID*10 + i
 			gacha.DbGachaAppeals = append(gacha.DbGachaAppeals, appeal.GachaAppealMasterID)
-			_, err := serverdb.Engine.Table("s_gacha_appeal").Insert(appeal)
+			_, err := session.Table("s_gacha_appeal").Insert(appeal)
 			utils.CheckErr(err)
 		}
 		for i, draw := range gacha.GachaDraws {
@@ -101,7 +98,7 @@ func InsertGacha(args []string) {
 					draw.Guarantees = append(draw.Guarantees, int(value.Int()))
 					return true
 				})
-			_, err := serverdb.Engine.Table("s_gacha_draw").Insert(draw)
+			_, err := session.Table("s_gacha_draw").Insert(draw)
 			utils.CheckErr(err)
 		}
 		gjson.Get(gachaJsons, fmt.Sprintf("%d.gacha_groups", pos)).ForEach(
@@ -110,20 +107,20 @@ func InsertGacha(args []string) {
 				return true
 			})
 
-		_, err := serverdb.Engine.Table("s_gacha").Insert(gacha)
+		_, err := session.Table("s_gacha").Insert(gacha)
 		utils.CheckErr(err)
 	}
 }
 
-func Gacha(args []string) {
+func GachaCli(session *xorm.Session, args []string) {
 	if len(args) == 0 {
 		fmt.Println("Invalid params:", args)
 		return
 	}
 	switch args[0] {
 	case "init":
-		InitGacha(args[1:])
+		InitGacha(session, args[1:])
 	case "insert":
-		InsertGacha(args[1:])
+		InsertGacha(session, args[1:])
 	}
 }

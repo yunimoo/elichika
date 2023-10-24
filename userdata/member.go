@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/enum"
@@ -14,7 +14,7 @@ func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
 	if exist {
 		return member
 	}
-	exists, err := session.Db.Table("s_user_member").
+	exists, err := session.Db.Table("u_member").
 		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).Get(&member)
 	// inserted at login if not exist
 	if err != nil {
@@ -28,7 +28,7 @@ func (session *Session) GetMember(memberMasterID int) model.UserMemberInfo {
 
 func (session *Session) GetAllMembers() []model.UserMemberInfo {
 	members := []model.UserMemberInfo{}
-	err := session.Db.Table("s_user_member").Where("user_id = ?", session.UserStatus.UserID).Find(&members)
+	err := session.Db.Table("u_member").Where("user_id = ?", session.UserStatus.UserID).Find(&members)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func (session *Session) UpdateMember(member model.UserMemberInfo) {
 }
 
 func (session *Session) InsertMembers(members []model.UserMemberInfo) {
-	affected, err := session.Db.Table("s_user_member").Insert(&members)
+	affected, err := session.Db.Table("u_member").Insert(&members)
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +52,7 @@ func (session *Session) FinalizeUserMemberDiffs() []any {
 	for memberMasterID, member := range session.UserMemberDiffs {
 		userMemberByMemberID = append(userMemberByMemberID, memberMasterID)
 		userMemberByMemberID = append(userMemberByMemberID, member)
-		affected, err := session.Db.Table("s_user_member").
+		affected, err := session.Db.Table("u_member").
 			Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).AllCols().Update(member)
 		if (err != nil) || (affected != 1) {
 			panic(err)

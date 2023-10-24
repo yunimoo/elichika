@@ -3,7 +3,7 @@ package handler
 import (
 	"elichika/config"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 
 	"encoding/json"
 	"net/http"
@@ -15,7 +15,7 @@ import (
 func TriggerReadCardGradeUp(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	req := model.TriggerReadReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
@@ -33,7 +33,7 @@ func TriggerReadCardGradeUp(ctx *gin.Context) {
 func TriggerRead(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	req := model.TriggerReadReq{}
 	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
@@ -51,7 +51,7 @@ func TriggerRead(ctx *gin.Context) {
 func TriggerReadMemberLoveLevelUp(ctx *gin.Context) {
 	// req is null, so we need to pull the triggers from db here
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 
 	triggers := session.GetAllTriggerMemberLoveLevelUps()

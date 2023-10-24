@@ -3,7 +3,6 @@ package main
 import (
 	"elichika/router"
 
-	"elichika/cli/db"
 	"fmt"
 	"os"
 
@@ -29,8 +28,8 @@ import (
 func cli() {
 	switch os.Args[1] {
 	
-	case "init":
-		db.Init(os.Args[2:])
+	// case "init":
+	// 	db.Init(os.Args[2:])
 	// case "account":
 	// 	db.Account(os.Args[2:])
 	// case "accessory":

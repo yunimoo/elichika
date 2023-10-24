@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/model"
@@ -8,7 +8,7 @@ import (
 
 func (session *Session) GetUserLiveDeck(userLiveDeckID int) model.UserLiveDeck {
 	liveDeck := model.UserLiveDeck{}
-	exists, err := session.Db.Table("s_user_live_deck").
+	exists, err := session.Db.Table("u_live_deck").
 		Where("user_id = ? AND user_live_deck_id = ?", session.UserStatus.UserID, userLiveDeckID).
 		Get(&liveDeck)
 	if err != nil {
@@ -29,7 +29,7 @@ func (session *Session) FinalizeUserLiveDeckDiffs() []any {
 	for userLiveDeckId, userLiveDeck := range session.UserLiveDeckDiffs {
 		userLiveDeckByID = append(userLiveDeckByID, userLiveDeckId)
 		userLiveDeckByID = append(userLiveDeckByID, userLiveDeck)
-		affected, err := session.Db.Table("s_user_live_deck").
+		affected, err := session.Db.Table("u_live_deck").
 			Where("user_id = ? AND user_live_deck_id = ?", session.UserStatus.UserID, userLiveDeckId).
 			AllCols().Update(userLiveDeck)
 		if (err != nil) || (affected != 1) {
@@ -41,7 +41,7 @@ func (session *Session) FinalizeUserLiveDeckDiffs() []any {
 
 func (session *Session) GetAllLiveDecks() []model.UserLiveDeck {
 	decks := []model.UserLiveDeck{}
-	err := session.Db.Table("s_user_live_deck").Where("user_id = ?", session.UserStatus.UserID).Find(&decks)
+	err := session.Db.Table("u_live_deck").Where("user_id = ?", session.UserStatus.UserID).Find(&decks)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func (session *Session) GetAllLiveDecks() []model.UserLiveDeck {
 }
 
 func (session *Session) InsertLiveDecks(decks []model.UserLiveDeck) {
-	count, err := session.Db.Table("s_user_live_deck").Insert(&decks)
+	count, err := session.Db.Table("u_live_deck").Insert(&decks)
 	if err != nil {
 		panic(err)
 	}

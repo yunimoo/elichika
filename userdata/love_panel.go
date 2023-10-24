@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/model"
@@ -7,7 +7,7 @@ import (
 
 func (session *Session) GetAllMemberLovePanels() []model.UserMemberLovePanel {
 	lovePanels := []model.UserMemberLovePanel{}
-	err := session.Db.Table("s_user_member").
+	err := session.Db.Table("u_member").
 		Where("user_id = ?", session.UserStatus.UserID).Find(&lovePanels)
 	if err != nil {
 		panic(err)
@@ -23,7 +23,7 @@ func (session *Session) GetMemberLovePanel(memberMasterID int) model.UserMemberL
 	if exists {
 		return panel
 	}
-	exists, err := session.Db.Table("s_user_member").
+	exists, err := session.Db.Table("u_member").
 		Where("user_id = ? AND member_master_id = ?", session.UserStatus.UserID, memberMasterID).
 		Get(&panel)
 	if err != nil {
@@ -49,7 +49,7 @@ func (session *Session) UpdateMemberLovePanel(panel model.UserMemberLovePanel) {
 func (session *Session) FinalizeMemberLovePanelDiffs() []model.UserMemberLovePanel {
 	panels := []model.UserMemberLovePanel{}
 	for _, panel := range session.UserMemberLovePanelDiffs {
-		_, err := session.Db.Table("s_user_member").
+		_, err := session.Db.Table("u_member").
 			Where("user_id = ? AND member_master_id = ?", panel.UserID, panel.MemberID).
 			AllCols().Update(panel)
 		if err != nil {

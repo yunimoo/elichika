@@ -4,7 +4,7 @@ import (
 	"elichika/config"
 	"elichika/handler"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -23,7 +23,7 @@ func LiveUpdatePlayList(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	mul := 0
 	if req.IsSet {

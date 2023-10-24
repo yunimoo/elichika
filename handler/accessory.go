@@ -4,7 +4,7 @@ import (
 	"elichika/config"
 	"elichika/gamedata"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -28,7 +28,7 @@ func AccessoryUpdateIsLock(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	accessory := session.GetUserAccessory(req.UserAccessoryID)
 	accessory.IsLock = req.IsLock
@@ -44,7 +44,7 @@ func AccessoryUpdateIsNew(ctx *gin.Context) {
 	// this has no body or response, we just need to update every new accessory as not so
 	// this can probably be optimised to a single SQL but no need to be so far
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	accessories := session.GetAllUserAccessories()
 	for _, accessory := range accessories {
@@ -67,7 +67,7 @@ func AccessoryMelt(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	for _, userAccessoryID := range req.UserAccessoryIDs {
@@ -101,7 +101,7 @@ func AccessoryPowerUp(ctx *gin.Context) {
 	utils.CheckErr(err)
 	// limit break (grade up) is processed first, then exp is processed later
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	userAccessory := session.GetUserAccessory(req.UserAccessoryID)
@@ -216,7 +216,7 @@ func AccessoryRarityUp(ctx *gin.Context) {
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	userAccessory := session.GetUserAccessory(req.UserAccessoryID)
@@ -271,7 +271,7 @@ func AccessoryAllUnequip(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	userID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, userID)
+	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	liveParties := session.GetAllLiveParties()
 	for _, liveParty := range liveParties {

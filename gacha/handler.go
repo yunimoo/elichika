@@ -2,7 +2,7 @@ package gacha
 
 import (
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +20,7 @@ var (
 func GuaranteeNewCard(ctx *gin.Context, params []string) int {
 	cardPool := ctx.MustGet("gacha_card_pool").([]model.GachaCard)
 	userCards := []int{}
-	err := serverdb.Engine.Table("s_user_card").Where("user_id = ?", ctx.GetInt("user_id")).Cols("card_master_id").
+	err := userdata.Engine.Table("u_card").Where("user_id = ?", ctx.GetInt("user_id")).Cols("card_master_id").
 		Find(&userCards)
 	utils.CheckErr(err)
 	cardSet := map[int]bool{}

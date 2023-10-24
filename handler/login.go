@@ -4,7 +4,7 @@ import (
 	"elichika/config"
 	"elichika/encrypt"
 	"elichika/locale"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/base64"
@@ -63,7 +63,7 @@ func StartUp(ctx *gin.Context) {
 		AuthorizationKey string `json:"authorization_key"`
 	}
 	respObj := StartUpResp{}
-	respObj.UserID = serverdb.CreateNewAccount(ctx, -1, "")
+	respObj.UserID = userdata.CreateNewAccount(ctx, -1, "")
 	respObj.AuthorizationKey = StartUpAuthorizationKey(req.Mask)
 	startupBody, _ := json.Marshal(respObj)
 	resp := SignResp(ctx, string(startupBody), ctx.MustGet("locale").(*locale.Locale).StartUpKey)
@@ -85,11 +85,11 @@ func Login(ctx *gin.Context) {
 		return true
 	})
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	if session == nil {
-		serverdb.CreateNewAccount(ctx, UserID, "")
-		session = serverdb.GetSession(ctx, UserID)
+		userdata.CreateNewAccount(ctx, UserID, "")
+		session = userdata.GetSession(ctx, UserID)
 		defer session.Close()
 	}
 	session.UserStatus.LastLoginAt = time.Now().Unix()

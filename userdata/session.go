@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/gamedata"
@@ -72,7 +72,7 @@ func (session *Session) Close() {
 }
 
 func (session *Session) FinalizeUserInfo() model.UserStatus {
-	_, err := session.Db.Table("s_user_info").Where("user_id = ?", session.UserStatus.UserID).Update(&session.UserStatus)
+	_, err := session.Db.Table("u_info").Where("user_id = ?", session.UserStatus.UserID).Update(&session.UserStatus)
 	if err != nil {
 		panic(err)
 	}
@@ -88,7 +88,7 @@ func GetSession(ctx *gin.Context, userID int) *Session {
 	utils.CheckErr(err)
 	// fmt.Printf("session: %p\n", &s)
 	s.UserStatus.UserID = userID
-	exists, err := s.Db.Table("s_user_info").Where("user_id = ?", userID).Get(&s.UserStatus)
+	exists, err := s.Db.Table("u_info").Where("user_id = ?", userID).Get(&s.UserStatus)
 	utils.CheckErr(err)
 	if !exists {
 		s.Close()

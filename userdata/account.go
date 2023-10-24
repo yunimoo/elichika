@@ -1,4 +1,4 @@
-package serverdb
+package userdata
 
 import (
 	"elichika/gamedata"
@@ -84,11 +84,11 @@ func CreateNewAccount(ctx *gin.Context, userID int, passWord string) int {
 		status.Nickname.DotUnderText = "Newcomer"
 		status.Message.DotUnderText = "Hello!"
 		// insert into the db
-		_, err = db.Table("s_user_info").AllCols().Insert(&status)
+		_, err = db.Table("u_info").AllCols().Insert(&status)
 		if (err != nil) && (isRandomID) { // reroll once for random userID
 			userID = rand.Intn(1000000000)
 			status.UserID = userID
-			_, err = db.Table("s_user_info").AllCols().Insert(&status)
+			_, err = db.Table("u_info").AllCols().Insert(&status)
 		}
 		utils.CheckErr(err)
 		db.Commit()

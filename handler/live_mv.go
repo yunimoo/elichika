@@ -4,7 +4,7 @@ import (
 	"elichika/config"
 	"elichika/enum"
 	"elichika/model"
-	"elichika/serverdb"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"encoding/json"
@@ -18,7 +18,7 @@ import (
 
 func LiveMvStart(ctx *gin.Context) {
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	signBody := session.Finalize(GetData("liveMvStart.json"), "user_model_diff")
 	resp := SignResp(ctx, signBody, config.SessionKey)
@@ -66,7 +66,7 @@ func LiveMvSaveDeck(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(deckJson), &userLiveMvDeckInfo)
 	utils.CheckErr(err)
 	UserID := ctx.GetInt("user_id")
-	session := serverdb.GetSession(ctx, UserID)
+	session := userdata.GetSession(ctx, UserID)
 	defer session.Close()
 	for k, _ := range req.ViewStatusByPos {
 		if k%2 == 0 {
