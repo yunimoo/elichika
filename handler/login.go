@@ -50,16 +50,16 @@ func StartUp(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	// fmt.Println(reqBody)
 	type StartUpReq struct {
-		Mask string `json:"mask"`
+		Mask                        string `json:"mask"`
 		ResemaraDetectionIdentifier string `json:"resemara_detection_identifier"` // reset marathon (reroll)
-		TimeDifference int `json:"time_difference"` // second different from utc + 0
-		RecaptchaToken string `json:"recaptcha_token"` // not necessary
+		TimeDifference              int    `json:"time_difference"`               // second different from utc + 0
+		RecaptchaToken              string `json:"recaptcha_token"`               // not necessary
 	}
 	req := StartUpReq{}
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
 	type StartUpResp struct {
-		UserID int `json:"user_id"`
+		UserID           int    `json:"user_id"`
 		AuthorizationKey string `json:"authorization_key"`
 	}
 	respObj := StartUpResp{}

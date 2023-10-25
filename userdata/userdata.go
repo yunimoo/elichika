@@ -71,7 +71,7 @@ func InitTables(overwrite bool) {
 	InitTable("u_trigger_card_grade_up", model.TriggerCardGradeUp{}, overwrite)
 	InitTable("u_trigger_member_love_level_up", model.TriggerMemberLoveLevelUp{}, overwrite)
 	InitTable("u_resource", UserResource{}, overwrite)
-	
+
 	InitTable("u_trade_product", model.TradeProductUser{}, overwrite)
 }
 

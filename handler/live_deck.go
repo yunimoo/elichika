@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"elichika/config"
 	"elichika/enum"
+	"elichika/gamedata"
 	"elichika/klab"
 	"elichika/model"
 	"elichika/userdata"
 	"elichika/utils"
-	"elichika/gamedata"
 
 	"encoding/json"
 	"fmt"
@@ -255,7 +255,7 @@ func SaveDeck(ctx *gin.Context) {
 		})
 
 		partyInfo := gjson.Parse(partyJson)
-		
+
 		roles := []int{}
 		err = db.Table("m_card").
 			Where("id IN (?,?,?)", partyInfo.Get("card_master_id_1").Int(),
@@ -263,7 +263,7 @@ func SaveDeck(ctx *gin.Context) {
 				partyInfo.Get("card_master_id_3").Int()).
 			Cols("role").Find(&roles)
 		utils.CheckErr(err)
-		
+
 		partyIcon := gamedata.LiveParty.PartyInfoByRoleIDs[roles[0]][roles[1]][roles[2]].PartyIcon
 		partyName := gamedata.LiveParty.PartyInfoByRoleIDs[roles[0]][roles[1]][roles[2]].PartyName
 		partyJson, _ = sjson.Set(partyJson, "name.dot_under_text", partyName)

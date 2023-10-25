@@ -24,7 +24,7 @@ func FetchDataLinks(ctx *gin.Context) {
 	signBodyBytes, _ := json.Marshal(links)
 	signBody := string(signBodyBytes)
 	resp := SignResp(ctx, string(signBody), config.SessionKey)
-	fmt.Println(resp)
+	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

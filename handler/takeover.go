@@ -107,8 +107,6 @@ func CheckTakeOver(ctx *gin.Context) {
 		resp.LinkedData.TermsOfUseVersion = 4
 	}
 
-
-
 FINISH_RESPONSE:
 	respBody, _ := json.Marshal(resp)
 	signedResp := SignResp(ctx, string(respBody), ctx.MustGet("locale").(*locale.Locale).StartUpKey)
@@ -131,7 +129,7 @@ func SetTakeOver(ctx *gin.Context) {
 	linkedSession := userdata.GetSession(ctx, linkedUserID)
 	defer linkedSession.Close()
 	if linkedSession == nil { // new account
-		userdata.CreateNewAccount(ctx, linkedUserID, req.PassWord) 
+		userdata.CreateNewAccount(ctx, linkedUserID, req.PassWord)
 		linkedSession = userdata.GetSession(ctx, linkedUserID)
 		defer linkedSession.Close()
 	} else { // existing account, have to check password
@@ -170,7 +168,6 @@ func UpdatePassWord(ctx *gin.Context) {
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
-	
 
 	type UpdatePassWordResp struct {
 		TakeOverID string `json:"take_over_id"`

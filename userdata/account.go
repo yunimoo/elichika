@@ -7,8 +7,8 @@ import (
 	"elichika/utils"
 
 	// "encoding/json"
-	"math/rand"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/gin-gonic/gin"

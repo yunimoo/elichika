@@ -35,10 +35,9 @@ func (locale *Locale) Load() {
 }
 
 var (
-	Locales         map[string](*Locale)
+	Locales                map[string](*Locale)
 	sharedServerdataEngine *xorm.Engine
 )
-
 
 func addLocale(path, language, masterVersion, startUpKey string) {
 	locale := Locale{

@@ -35,7 +35,6 @@ func (session *Session) SetTradeProductUser(productID, newTradedCount int) {
 }
 
 func (session *Session) GetTrades(tradeType int) []model.Trade {
-	// TODO: the SQL used here isn't very elegant
 	trades := []model.Trade{}
 	for _, trade := range session.Gamedata.Trade.TradesByType[tradeType] {
 		for j, product := range trade.Products {

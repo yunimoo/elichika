@@ -20,9 +20,9 @@ var (
 
 	GlDatabasePath = "assets/db/gl/"
 	JpDatabasePath = "assets/db/jp/"
-	
+
 	ServerdataDbPath = "assets/db/serverdata.db"
-	UserdataDbPath = "assets/db/userdata.db"
+	UserdataDbPath   = "assets/db/userdata.db"
 
 	PresetDataPath = "assets/preset/"
 	UserDataPath   = "assets/userdata/"
@@ -34,8 +34,7 @@ var (
 	JpStartUpKey = "5f7IZY1QrAX0D49g"
 
 	ServerInitJsons = "server init jsons/"
-	Conf = &AppConfigs{}
-
+	Conf            = &AppConfigs{}
 )
 
 func readMasterdataManinest(path string) string {

@@ -2,8 +2,8 @@ package userdata
 
 import (
 	"elichika/model"
-	"elichika/utils"
 	"elichika/serverdata"
+	"elichika/utils"
 	// "fmt"
 )
 

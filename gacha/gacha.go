@@ -3,8 +3,8 @@ package gacha
 import (
 	"elichika/klab"
 	"elichika/model"
-	"elichika/userdata"
 	"elichika/serverdata"
+	"elichika/userdata"
 	"elichika/utils"
 
 	"math/rand"

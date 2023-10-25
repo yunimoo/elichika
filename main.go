@@ -9,25 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// func make(args []string) {
-// 	server := args[0]
-// 	if (server != "jp") && (server != "gl") {
-// 		fmt.Println("Server must be \"jp\" or \"gl\", not", server)
-// 	}
-// 	accountType := args[1]
-// 	if (accountType != "new") && (accountType != "json") {
-// 		fmt.Println("Account type must be \"new\" or \"gl\", json", accountType)
-// 	}
-
-// 	db.Init([]string{"overwrite"})
-// 	db.Account(args)
-// 	db.Gacha([]string{"init"})
-// 	db.Gacha([]string{"insert", "gacha_insert.json"})
-// }
 
 func cli() {
+	fmt.Println("Note: cli is not stable and should only be used for testing, use at your own risk!")
+	fmt.Println("Note: If you want to do modification that can't be done in game, use the webUI: <your_server>/webui")
 	switch os.Args[1] {
-	
+
 	// case "init":
 	// 	db.Init(os.Args[2:])
 	// case "account":
@@ -50,7 +37,6 @@ func cli() {
 func main() {
 
 	if len(os.Args) > 1 {
-		fmt.Println("Note: cli is not stable and should only be used for testing, use at your own risk!")
 		cli()
 		return
 	}
