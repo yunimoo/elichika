@@ -10,7 +10,6 @@ import (
 )
 
 func CorePlayableEnd(ctx *gin.Context) {
-	reqBody := ctx.GetString("reqBody")
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()

@@ -12,6 +12,7 @@ type RuntimeConfig struct {
 	ServerAddress *string `json:"server_address"`
 	TapBondGain   *int    `json:"tap_bond_gain"`
 	AutoJudgeType *int    `json:"auto_judge_type"`
+	Tutorial      *bool   `json:"tutorial"`
 }
 
 func defaultConfigs() *RuntimeConfig {
@@ -20,11 +21,13 @@ func defaultConfigs() *RuntimeConfig {
 		ServerAddress: new(string),
 		TapBondGain:   new(int),
 		AutoJudgeType: new(int),
+		Tutorial: new(bool),
 	}
 	*configs.CdnServer = "https://llsifas.catfolk.party/static/"
 	*configs.ServerAddress = "0.0.0.0:8080"
 	*configs.TapBondGain = 20
 	*configs.AutoJudgeType = enum.JudgeTypeGreat
+	*configs.Tutorial = true
 	return &configs
 }
 
@@ -53,6 +56,9 @@ func Load(p string) *RuntimeConfig {
 	}
 	if c.AutoJudgeType == nil {
 		c.AutoJudgeType = d.AutoJudgeType
+	}
+	if c.Tutorial == nil {
+		c.Tutorial = d.Tutorial
 	}
 
 	return &c
