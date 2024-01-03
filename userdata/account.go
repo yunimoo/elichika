@@ -57,8 +57,8 @@ func CreateNewAccount(ctx *gin.Context, userID int, passWord string) int {
 			LastLiveDifficultyID:                      10001101,
 			LpMagnification:                           1,
 			EmblemID:                                  10500521, // new player
-			TutorialPhase:                             99,
-			TutorialEndAt:                             1622217482,
+			TutorialPhase:                             1,
+			TutorialEndAt:                             0,
 			LoginDays:                                 1221,
 			NaviTapRecoverAt:                          1688137200,
 			MaxScoreLiveDifficultyMasterID:            10001101,
