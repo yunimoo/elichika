@@ -66,6 +66,8 @@ func Router(r *gin.Engine) {
 		api.POST("/liveMv/start", handler.LiveMvStart)
         
 		api.POST("/tutorial/corePlayableEnd", handler.CorePlayableEnd)
+		api.POST("/tutorial/phaseEnd", handler.PhaseEnd)
+		api.POST("/tutorial/tutorialSkip", handler.TutorialSkip)
 
 		api.POST("/login/login", handler.Login)
 		api.POST("/login/startup", handler.StartUp)

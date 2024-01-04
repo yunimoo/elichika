@@ -213,8 +213,7 @@ func SetFavoriteMember(ctx *gin.Context) {
 
 	session.UserStatus.FavoriteMemberID = req.MemberMasterID
 	if session.UserStatus.TutorialPhase != 99 {
-		session.UserStatus.TutorialPhase = 99
-		session.UserStatus.TutorialEndAt = int(time.Now().Unix())
+		session.UserStatus.TutorialPhase = 11
 	}
 
 	signBody := session.Finalize("{}", "user_model")
