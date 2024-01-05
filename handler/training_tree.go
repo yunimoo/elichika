@@ -9,7 +9,6 @@ import (
 
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -208,14 +207,13 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
 	unlockedCells := []model.TrainingTreeCell{}
-	timeStamp := time.Now().Unix()
 	for _, cellID := range req.CellMasterIDs {
 		unlockedCells = append(unlockedCells,
 			model.TrainingTreeCell{
 				UserID:       userID,
 				CardMasterID: req.CardMasterID,
 				CellID:       cellID,
-				ActivatedAt:  timeStamp})
+				ActivatedAt:  session.Time.Unix()})
 	}
 
 	session.InsertTrainingTreeCells(unlockedCells)

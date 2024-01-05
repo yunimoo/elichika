@@ -4,8 +4,6 @@ import (
 	"elichika/enum"
 	"elichika/model"
 	"elichika/utils"
-
-	"time"
 )
 
 func (session *Session) InsertMemberStory(storyMemberMasterID int) {
@@ -17,7 +15,7 @@ func (session *Session) InsertMemberStory(storyMemberMasterID int) {
 		UserID:              session.UserStatus.UserID,
 		StoryMemberMasterID: storyMemberMasterID,
 		IsNew:               true,
-		AcquiredAt:          time.Now().Unix(),
+		AcquiredAt:          session.Time.Unix(),
 	}
 	session.UserModel.UserStoryMemberByID.PushBack(userStoryMember)
 }
@@ -46,7 +44,7 @@ func (session *Session) FinishStoryMember(storyMemberMasterID int) bool {
 			UserID:              session.UserStatus.UserID,
 			StoryMemberMasterID: storyMemberMasterID,
 			IsNew:               false,
-			AcquiredAt:          time.Now().Unix(),
+			AcquiredAt:          session.Time.Unix(),
 		}
 		session.UserModel.UserStoryMemberByID.PushBack(userStoryMember)
 	}

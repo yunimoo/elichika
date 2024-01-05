@@ -8,7 +8,7 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	modernc.org/sqlite v1.23.1
-	xorm.io/xorm v1.3.2
+	xorm.io/xorm v1.3.6
 )
 
 require (

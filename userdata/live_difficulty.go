@@ -6,7 +6,6 @@ import (
 
 	"encoding/json"
 	"strings"
-	"time"
 
 	"github.com/tidwall/gjson"
 )
@@ -79,7 +78,7 @@ func (session *Session) BuildLastPlayLiveDifficultyDeck(deckID, liveDifficultyID
 		LiveDifficultyID: liveDifficultyID,
 		Voltage:          0,     // filled by handler
 		IsCleared:        false, // filled by handler
-		RecordedAt:       time.Now().Unix()}
+		RecordedAt:       session.Time.Unix()}
 	lastPlayDeck.CardWithSuitDict = make([]int, 18)
 	userLiveDeck := session.GetUserLiveDeck(deckID)
 	userLiveDeckJson, _ := json.Marshal(userLiveDeck)

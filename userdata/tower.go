@@ -4,8 +4,6 @@ import (
 	"elichika/model"
 	"elichika/protocol/response"
 	"elichika/utils"
-
-	"time"
 )
 
 func (session *Session) GetUserTowerCardUsed(towerID, cardMasterID int) model.UserTowerCardUsedCount {
@@ -61,15 +59,15 @@ func (session *Session) GetUserTower(towerID int) model.UserTower {
 			ClearedFloor:                0,
 			ReadFloor:                   0,
 			Voltage:                     0,
-			RecoveryPointFullAt:         int(time.Now().Unix() + 86400),
-			RecoveryPointLastConsumedAt: int(time.Now().Unix()),
+			RecoveryPointFullAt:         int(session.Time.Unix() + 86400),
+			RecoveryPointLastConsumedAt: int(session.Time.Unix()),
 		}
 	} else {
 
 		// this is to make sure user can always mass recover LP
 		// it's the only way to do this since these things are decided by the timestamps alone (+ plus the limit from the database)
-		tower.RecoveryPointFullAt = int(time.Now().Unix() + 86400)
-		tower.RecoveryPointLastConsumedAt = int(time.Now().Unix())
+		tower.RecoveryPointFullAt = int(session.Time.Unix() + 86400)
+		tower.RecoveryPointLastConsumedAt = int(session.Time.Unix())
 	}
 	return tower
 }

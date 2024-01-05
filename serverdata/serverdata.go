@@ -43,6 +43,9 @@ func InitTables(overwrite bool) {
 	InitTable("s_gacha_guarantee", model.GachaGuarantee{}, overwrite)
 	InitTable("s_trade", model.Trade{}, overwrite)
 	InitTable("s_trade_product", model.TradeProduct{}, overwrite)
+	InitTable("s_login_bonus", model.LoginBonus{}, overwrite)
+	InitTable("s_login_bonus_reward_day", model.LoginBonusRewardDay{}, overwrite)
+	InitTable("s_login_bonus_reward_content", model.LoginBonusRewardContent{}, overwrite)
 
 }
 
@@ -58,6 +61,7 @@ func AutoInsert() {
 	TradeCli(session, []string{"insert", config.ServerInitJsons + "trade.json"})
 	GachaCli(session, []string{"init"})
 	GachaCli(session, []string{"insert", config.ServerInitJsons + "gacha.json"})
+	InitialiseLoginBonus(session)
 	session.Commit()
 }
 

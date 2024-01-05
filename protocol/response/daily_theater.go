@@ -1,12 +1,16 @@
 package response
 
+import (
+	"elichika/model"
+)
+
 type DailyTheaterDetail struct {
-	DailyTheaterID int           `json:"daily_theater_id"`
-	Title          LocalizedText `json:"title"`
-	DetailText     LocalizedText `json:"detail_text"`
-	Year           int           `json:"year"`
-	Month          int           `json:"month"`
-	Day            int           `json:"day"`
+	DailyTheaterID int                 `json:"daily_theater_id"`
+	Title          model.LocalizedText `json:"title"`
+	DetailText     model.LocalizedText `json:"detail_text"`
+	Year           int                 `json:"year"`
+	Month          int                 `json:"month"`
+	Day            int                 `json:"day"`
 }
 type FetchDailyTheaterResponse struct {
 	DailyTheaterDetail DailyTheaterDetail `json:"daily_theater_detail"`

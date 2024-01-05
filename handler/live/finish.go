@@ -14,7 +14,6 @@ import (
 
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -255,7 +254,6 @@ func handleLiveTypeTower(ctx *gin.Context, req request.LiveFinishRequest, sessio
 	liveRecord := session.GetLiveDifficulty(session.UserStatus.LastLiveDifficultyID)
 	liveRecord.IsNew = false
 	liveRecord.IsAutoplay = live.IsAutoplay
-	timeStamp := time.Now().Unix()
 	liveResult := LiveFinishLiveResult{
 		LiveDifficultyMasterID: session.UserStatus.LastLiveDifficultyID,
 		LiveDeckID:             session.UserStatus.LatestLiveDeckID,
@@ -323,7 +321,7 @@ func handleLiveTypeTower(ctx *gin.Context, req request.LiveFinishRequest, sessio
 			liveFinishCard := req.LiveScore.CardStatDict.Objects[i]
 			cardUsedCount := session.GetUserTowerCardUsed(*live.TowerLive.TowerID, liveFinishCard.CardMasterID)
 			cardUsedCount.UsedCount++
-			cardUsedCount.LastUsedAt = timeStamp
+			cardUsedCount.LastUsedAt = session.Time.Unix()
 			session.UpdateUserTowerCardUsed(cardUsedCount)
 			liveResult.LiveResultTower.TowerCardUsedCounts = append(liveResult.LiveResultTower.TowerCardUsedCounts, cardUsedCount)
 		}

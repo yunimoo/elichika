@@ -85,6 +85,7 @@ type Gamedata struct {
 	MemberLovePanel                 map[int]*MemberLovePanel
 	MemberLovePanelCell             map[int]*MemberLovePanelCell
 	MemberLovePanelLevelAtLoveLevel []int
+	MemberByBirthday                map[int]([]*Member)
 
 	Live              map[int]*Live
 	LiveParty         LiveParty
@@ -115,6 +116,8 @@ type Gamedata struct {
 	Trade        map[int]*model.Trade // map from TradeID to Trade
 	TradesByType [3][]*model.Trade    // map from trade type to array of Trade
 	TradeProduct map[int]*model.TradeProduct
+
+	LoginBonus map[int]*LoginBonus
 }
 
 func (gamedata *Gamedata) Init(masterdata *xorm.Engine, serverdata *xorm.Engine, dictionary *dictionary.Dictionary) {

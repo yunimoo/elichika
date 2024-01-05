@@ -8,23 +8,29 @@ import (
 )
 
 type RuntimeConfig struct {
-	CdnServer     *string `json:"cdn_server"`
-	ServerAddress *string `json:"server_address"`
-	TapBondGain   *int    `json:"tap_bond_gain"`
-	AutoJudgeType *int    `json:"auto_judge_type"`
+	CdnServer        *string `json:"cdn_server"`
+	ServerAddress    *string `json:"server_address"`
+	TapBondGain      *int    `json:"tap_bond_gain"`
+	AutoJudgeType    *int    `json:"auto_judge_type"`
+	LoginBonusSecond *int    `json:"login_bonus_second"` // the second from mid-night till login bonus
+	TimeZone         *string `json:"timezone"`           // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 }
 
 func defaultConfigs() *RuntimeConfig {
 	configs := RuntimeConfig{
-		CdnServer:     new(string), // self-hosted
-		ServerAddress: new(string),
-		TapBondGain:   new(int),
-		AutoJudgeType: new(int),
+		CdnServer:        new(string), // self-hosted
+		ServerAddress:    new(string),
+		TapBondGain:      new(int),
+		AutoJudgeType:    new(int),
+		LoginBonusSecond: new(int),
+		TimeZone:         new(string),
 	}
 	*configs.CdnServer = "https://llsifas.catfolk.party/static/"
 	*configs.ServerAddress = "0.0.0.0:8080"
 	*configs.TapBondGain = 20
 	*configs.AutoJudgeType = enum.JudgeTypeGreat
+	*configs.LoginBonusSecond = enum.HourSecondCount * 4
+	*configs.TimeZone = "Asia/Tokyo"
 	return &configs
 }
 
@@ -41,7 +47,7 @@ func Load(p string) *RuntimeConfig {
 		panic("config file is wrong, change/delete it and try again")
 	}
 	d := defaultConfigs()
-
+	// TODO: rewrite this with reflect
 	if c.CdnServer == nil {
 		c.CdnServer = d.CdnServer
 	}
@@ -53,6 +59,12 @@ func Load(p string) *RuntimeConfig {
 	}
 	if c.AutoJudgeType == nil {
 		c.AutoJudgeType = d.AutoJudgeType
+	}
+	if c.LoginBonusSecond == nil {
+		c.LoginBonusSecond = d.LoginBonusSecond
+	}
+	if c.TimeZone == nil {
+		c.TimeZone = d.TimeZone
 	}
 
 	return &c

@@ -4,8 +4,6 @@ import (
 	"elichika/gamedata"
 	"elichika/model"
 	"elichika/utils"
-
-	"time"
 )
 
 // fetch a card, use the value in diff is present, otherwise fetch from db
@@ -32,7 +30,7 @@ func (session *Session) GetUserCard(cardMasterID int) model.UserCard {
 			PassiveSkillALevel:  1,
 			PassiveSkillBLevel:  1,
 			PassiveSkillCLevel:  1,
-			AcquiredAt:          time.Now().Unix(),
+			AcquiredAt:          session.Time.Unix(),
 			IsNew:               true,
 		}
 	}

@@ -3,8 +3,6 @@ package userdata
 import (
 	"elichika/model"
 	"elichika/utils"
-
-	"time"
 )
 
 func (session *Session) GetAllUserAccessories() []model.UserAccessory {
@@ -36,7 +34,7 @@ func (session *Session) GetUserAccessory(userAccessoryID int64) model.UserAccess
 			PassiveSkill1Level: 1,
 			PassiveSkill2Level: 1,
 			IsNew:              true,
-			AcquiredAt:         time.Now().Unix(),
+			AcquiredAt:         session.Time.Unix(),
 		}
 	}
 	return accessory

@@ -3,8 +3,6 @@ package userdata
 import (
 	"elichika/model"
 	"elichika/utils"
-
-	"time"
 )
 
 func (session *Session) InsertStorySide(storySideMasterID int) {
@@ -12,7 +10,7 @@ func (session *Session) InsertStorySide(storySideMasterID int) {
 		UserID:            session.UserStatus.UserID,
 		StorySideMasterID: storySideMasterID,
 		IsNew:             true,
-		AcquiredAt:        time.Now().Unix(),
+		AcquiredAt:        session.Time.Unix(),
 	}
 	session.UserModel.UserStorySideByID.PushBack(userStorySide)
 }
