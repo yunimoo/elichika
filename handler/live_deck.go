@@ -43,6 +43,10 @@ func SaveDeckAll(ctx *gin.Context) {
 			req.CardWithSuit[i*2+1] = gamedata.Card[req.CardWithSuit[i*2]].Member.MemberInit.SuitMasterID
 		}
 	}
+	
+	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseSuitChange
+	}
 
 	deckByte, _ := json.Marshal(deckInfo)
 	deckJson := string(deckByte)
@@ -136,6 +140,11 @@ func SaveSuit(ctx *gin.Context) {
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
+
+	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseGacha
+	}
+
 	deck := session.GetUserLiveDeck(req.DeckID)
 	deckJsonByte, err := json.Marshal(deck)
 	utils.CheckErr(err)

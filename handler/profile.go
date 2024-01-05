@@ -4,6 +4,7 @@ import (
 	"elichika/config"
 	"elichika/userdata"
 	"elichika/utils"
+	"elichika/enum"
 
 	"encoding/json"
 	"net/http"
@@ -72,8 +73,8 @@ func SetProfileBirthday(ctx *gin.Context) {
 	//session.UserStatus.BirthDate = year*10000 + month*100 + day
 	session.UserStatus.BirthDay = day
 	session.UserStatus.BirthMonth = month
-	if session.UserStatus.TutorialPhase == 1 {
-		session.UserStatus.TutorialPhase = 2
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseNameInput {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseStory1
 	}
 
 	signBody := session.Finalize("{}", "user_model")

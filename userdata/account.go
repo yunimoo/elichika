@@ -6,6 +6,7 @@ import (
 	"elichika/gamedata"
 	"elichika/model"
 	"elichika/utils"
+	"elichika/enum"
 
 	// "encoding/json"
 	"fmt"
@@ -31,7 +32,7 @@ func CreateNewAccount(ctx *gin.Context, userID int, passWord string) int {
 		tutorial_phase := 99
 		tutorial_end_at := int(time.Now().Unix())
 		if *config.Conf.Tutorial {
-			tutorial_phase = 1
+			tutorial_phase = enum.TutorialPhaseNameInput
 			tutorial_end_at = 0
 		}
 		status := model.UserStatus{

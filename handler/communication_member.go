@@ -212,8 +212,8 @@ func SetFavoriteMember(ctx *gin.Context) {
 	defer session.Close()
 
 	session.UserStatus.FavoriteMemberID = req.MemberMasterID
-	if session.UserStatus.TutorialPhase != 99 {
-		session.UserStatus.TutorialPhase = 11
+	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseLovePointUp
 	}
 
 	signBody := session.Finalize("{}", "user_model")
