@@ -61,6 +61,9 @@ type Member struct {
 
 	// from m_member_init
 	MemberInit MemberInit `xorm:"-"`
+
+	// from m_member_login_bonus_birthday
+	MemberLoginBonusBirthdays []MemberLoginBonusBirthday `xorm:"-"`
 }
 
 type MemberInit struct {
@@ -109,8 +112,11 @@ func loadMember(gamedata *Gamedata, masterdata_db, serverdata_db *xorm.Session, 
 	gamedata.Member = make(map[int]*Member)
 	err := masterdata_db.Table("m_member").Find(&gamedata.Member)
 	utils.CheckErr(err)
+	gamedata.MemberByBirthday = make(map[int]([]*Member))
 	for _, member := range gamedata.Member {
 		member.populate(gamedata, masterdata_db, serverdata_db, dictionary)
+		gamedata.MemberByBirthday[member.BirthMonth*100+member.BirthDay] =
+			append(gamedata.MemberByBirthday[member.BirthMonth*100+member.BirthDay], member)
 	}
 }
 

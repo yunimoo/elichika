@@ -8,8 +8,6 @@ import (
 
 	"encoding/json"
 	"net/http"
-	"time"
-	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/tidwall/gjson"
@@ -73,10 +71,10 @@ func FetchShopSubscription(ctx *gin.Context) {
 		model.UserSubscriptionStatus{
 			UserID:               userID,
 			SubscriptionMasterID: 13001,
-			StartDate:            int(time.Now().Unix()),
+			StartDate:            int(session.Time.Unix()),
 			ExpireDate:           1<<31 - 1,
 			PlatformExpireDate:   1<<31 - 1,
-			SubscriptionPassID:   time.Now().UnixNano(),
+			SubscriptionPassID:   session.Time.UnixNano(),
 			AttachID:             "miraizura",
 			IsAutoRenew:          true,
 			IsDoneTrial:          true,

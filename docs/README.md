@@ -79,6 +79,8 @@ TODO: Add specific docs for specific contents if necessary.
     - [x] Working user model.
     - [ ] Level up are not handled properly.
 
+<!--  TODO: mention DLP-->
+
 ## Importing/Exporting account
 You can import account from the login json or export account to json. This help with recovering your account, moving it, or update to a new server version that has a breaking change with the old database structure.
 

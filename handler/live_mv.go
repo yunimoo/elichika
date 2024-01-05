@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -22,7 +21,7 @@ func LiveMvStart(ctx *gin.Context) {
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	signBody := session.Finalize("{}", "user_model_diff")
-	signBody, _ = sjson.Set(signBody, "uniq_id", time.Now().UnixNano())
+	signBody, _ = sjson.Set(signBody, "uniq_id", session.Time.UnixNano())
 	resp := SignResp(ctx, signBody, config.SessionKey)
 
 	ctx.Header("Content-Type", "application/json")

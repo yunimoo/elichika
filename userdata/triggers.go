@@ -14,7 +14,7 @@ func (session *Session) UpdateTriggerCardGradeUp(trigger model.TriggerCardGradeU
 // Getting a new trigger also destroy old trigger, and we might have to update it
 func (session *Session) AddTriggerCardGradeUp(trigger model.TriggerCardGradeUp) {
 	if trigger.TriggerID == 0 {
-		trigger.TriggerID = session.TimeStamp + session.UniqueCount
+		trigger.TriggerID = session.Time.UnixNano() + session.UniqueCount
 		session.UniqueCount++
 	}
 	trigger.UserID = session.UserStatus.UserID
@@ -56,7 +56,7 @@ func (session *Session) UpdateTriggerBasic(trigger model.TriggerBasic) {
 
 func (session *Session) AddTriggerBasic(trigger model.TriggerBasic) {
 	if trigger.TriggerID == 0 {
-		trigger.TriggerID = session.TimeStamp + session.UniqueCount
+		trigger.TriggerID = session.Time.UnixNano() + session.UniqueCount
 		session.UniqueCount++
 	}
 	trigger.UserID = session.UserStatus.UserID
@@ -110,7 +110,7 @@ func (session *Session) UpdateTriggerMemberLoveLevelUp(trigger model.TriggerMemb
 
 func (session *Session) AddTriggerMemberLoveLevelUp(trigger model.TriggerMemberLoveLevelUp) {
 	if trigger.TriggerID == 0 {
-		trigger.TriggerID = session.TimeStamp + session.UniqueCount
+		trigger.TriggerID = session.Time.UnixNano() + session.UniqueCount
 		session.UniqueCount++
 	}
 	trigger.UserID = session.UserStatus.UserID

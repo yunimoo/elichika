@@ -3,8 +3,6 @@ package userdata
 import (
 	"elichika/model"
 	"elichika/utils"
-
-	"time"
 )
 
 func (session *Session) GetSubsriptionStatus() model.UserSubscriptionStatus {
@@ -16,10 +14,10 @@ func (session *Session) GetSubsriptionStatus() model.UserSubscriptionStatus {
 		status = model.UserSubscriptionStatus{
 			UserID:               session.UserStatus.UserID,
 			SubscriptionMasterID: 13001,
-			StartDate:            int(time.Now().Unix()),
+			StartDate:            int(session.Time.Unix()),
 			ExpireDate:           1<<31 - 1,
 			PlatformExpireDate:   1<<31 - 1,
-			SubscriptionPassID:   time.Now().UnixNano(),
+			SubscriptionPassID:   session.Time.UnixNano(),
 			AttachID:             "miraizura",
 			IsAutoRenew:          true,
 			IsDoneTrial:          true,

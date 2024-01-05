@@ -47,6 +47,7 @@ func Common(ctx *gin.Context) {
 	ctx.Set("user_id", userID)
 	ctx.Next()
 }
+
 func Birthday(ctx *gin.Context) {
 	if !ctx.MustGet("has_user_id").(bool) {
 		return
