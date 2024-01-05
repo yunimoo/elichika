@@ -64,6 +64,11 @@ func Router(r *gin.Engine) {
 
 		api.POST("/liveMv/saveDeck", handler.LiveMvSaveDeck)
 		api.POST("/liveMv/start", handler.LiveMvStart)
+        
+		api.POST("/tutorial/corePlayableEnd", handler.CorePlayableEnd)
+		api.POST("/tutorial/phaseEnd", handler.PhaseEnd)
+		api.POST("/tutorial/tutorialSkip", handler.TutorialSkip)
+		api.POST("/tutorial/timingAdjusterEnd", handler.TimingAdjusterEnd)
 
 		api.POST("/login/login", handler.Login)
 		api.POST("/login/startup", handler.StartUp)
@@ -112,6 +117,7 @@ func Router(r *gin.Engine) {
 
 		api.POST("/userProfile/fetchProfile", handler.FetchProfile)
 		api.POST("/userProfile/setProfile", handler.SetProfile)
+		api.POST("/userProfile/setProfileBirthday", handler.SetProfileBirthday)
 		api.POST("/userProfile/setRecommendCard", handler.SetRecommendCard)
 		api.POST("/userProfile/setScoreLive", handler.SetScoreOrComboLive)
 		api.POST("/userProfile/setCommboLive", handler.SetScoreOrComboLive) // setCommboLive is a typo in the client?
