@@ -2,6 +2,7 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
 	"elichika/login_bonus"
 	"elichika/model"
 	"elichika/protocol/request"
@@ -37,9 +38,12 @@ func GetBootstrapLoginBonus(ctx *gin.Context, session *userdata.Session) model.B
 		NextLoginBonsReceiveAt: login_bonus.NextLoginBonusTime(session.Time).Unix(),
 	}
 
-	for _, loginBonus := range session.Gamedata.LoginBonus {
-		handler := login_bonus.Handler[loginBonus.LoginBonusHandler]
-		handler(loginBonus.LoginBonusHandlerConfig, session, loginBonus, &res)
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseTutorialEnd {
+		// users in tutorial mode shouldn't get login bonus
+		for _, loginBonus := range session.Gamedata.LoginBonus {
+			handler := login_bonus.Handler[loginBonus.LoginBonusHandler]
+			handler(loginBonus.LoginBonusHandlerConfig, session, loginBonus, &res)
+		}
 	}
 
 	return res

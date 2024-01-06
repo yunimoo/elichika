@@ -362,11 +362,12 @@ func handleLiveTypeTower(ctx *gin.Context, req request.LiveFinishRequest, sessio
 func LiveFinish(ctx *gin.Context) {
 	// this is pretty different for different type of live
 	// for simplicity we just read the request and call different handlers, even though we might be able to save some extra work
-	userID := ctx.GetInt("user_id")
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	req := request.LiveFinishRequest{}
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
+
+	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	exist, live := session.LoadUserLive()

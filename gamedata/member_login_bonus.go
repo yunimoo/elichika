@@ -16,10 +16,6 @@ type MemberLoginBonusBirthday struct {
 	SuitMasterId int `xorm:"'suit_master_id'"`
 }
 
-func (this *MemberLoginBonusBirthday) populate(gamedata *Gamedata, masterdata_db, serverdata_db *xorm.Session, dictionary *dictionary.Dictionary) {
-
-}
-
 func loadMemberLoginBonusBirthday(gamedata *Gamedata, masterdata_db, serverdata_db *xorm.Session, dictionary *dictionary.Dictionary) {
 	fmt.Println("Loading MemberLoginBonusBirthday")
 	bonuses := []MemberLoginBonusBirthday{}

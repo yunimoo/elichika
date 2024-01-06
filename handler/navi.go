@@ -2,6 +2,7 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
 	"elichika/protocol/request"
 	"elichika/userdata"
 	"elichika/utils"
@@ -48,6 +49,9 @@ func TapLovePoint(ctx *gin.Context) {
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	session.AddLovePoint(req.MemberMasterID, *config.Conf.TapBondGain)
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseLovePointUp {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseTrainingLevelUp
+	}
 	signBody := session.Finalize("{}", "user_model")
 	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")

@@ -18,5 +18,4 @@ const (
 	TutorialPhaseCorePlayable         = 0x00000015
 	TutorialPhaseTimingAdjuster       = 0x00000016
 	TutorialPhaseTutorialEnd          = 0x00000063
-	TutorialFinished                  = 99
 )

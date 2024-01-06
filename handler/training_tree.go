@@ -2,11 +2,11 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
 	"elichika/gamedata"
 	"elichika/model"
 	"elichika/userdata"
 	"elichika/utils"
-	"elichika/enum"
 
 	"encoding/json"
 	"net/http"
@@ -42,8 +42,8 @@ func LevelUpCard(ctx *gin.Context) {
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
-	
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseTrainingLevelUp {
 		session.UserStatus.TutorialPhase = enum.TutorialPhaseTrainingActivateCell
 	}
 
@@ -130,8 +130,8 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
-	
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseTrainingActivateCell {
 		session.UserStatus.TutorialPhase = enum.TutorialPhaseDeckEdit
 	}
 

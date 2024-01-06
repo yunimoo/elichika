@@ -1,29 +1,13 @@
 package login_bonus
 
 import (
-	"elichika/config"
 	"elichika/enum"
 	"elichika/gamedata"
 	"elichika/model"
 	"elichika/userdata"
-
-	"time"
 )
 
-// the latest login bonus that can be claimed
-func latestLoginBonusTime(timePoint time.Time) time.Time {
-	year, month, day := timePoint.Date()
-	res := time.Date(year, month, day, 0, 0, *config.Conf.LoginBonusSecond, 0, timePoint.Location())
-	if res.After(timePoint) {
-		res = res.AddDate(0, 0, -1)
-	}
-	return res
-}
-func NextLoginBonusTime(timePoint time.Time) time.Time {
-	return latestLoginBonusTime(timePoint).AddDate(0, 0, 1)
-}
-
-func normalLoginBonusHandler(_ string, session *userdata.Session, loginBonus *gamedata.LoginBonus, target *model.BootstrapLoginBonus) {
+func beginnerLoginBonusHandler(_ string, session *userdata.Session, loginBonus *gamedata.LoginBonus, target *model.BootstrapLoginBonus) {
 	if loginBonus.LoginBonusType != enum.LoginBonusTypeNormal {
 		panic("wrong handler used")
 	}
@@ -35,8 +19,8 @@ func normalLoginBonusHandler(_ string, session *userdata.Session, loginBonus *ga
 
 	userLoginBonus.LastReceivedAt = session.Time.Unix()
 	userLoginBonus.LastReceivedReward++
-	if userLoginBonus.LastReceivedReward == len(loginBonus.LoginBonusRewards) {
-		userLoginBonus.LastReceivedReward = 0
+	if userLoginBonus.LastReceivedReward >= len(loginBonus.LoginBonusRewards) { // already received everything
+		return
 	}
 	naviLoginBonus := loginBonus.NaviLoginBonus()
 	for i := range naviLoginBonus.LoginBonusRewards {

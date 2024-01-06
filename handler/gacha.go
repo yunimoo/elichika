@@ -2,11 +2,11 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
 	"elichika/gacha"
 	"elichika/model"
 	"elichika/userdata"
 	"elichika/utils"
-	"elichika/enum"
 
 	"encoding/json"
 	"net/http"
@@ -37,11 +37,11 @@ func GachaDraw(ctx *gin.Context) {
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
-	
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseGacha {
 		session.UserStatus.TutorialPhase = enum.TutorialPhaseFinal
 	}
-	
+
 	ctx.Set("session", session)
 	gacha, resultCards := gacha.HandleGacha(ctx, req)
 	signBody := session.Finalize("{}", "user_model_diff")

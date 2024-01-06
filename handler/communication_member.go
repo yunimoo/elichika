@@ -4,6 +4,7 @@ import (
 	"elichika/config"
 	"elichika/enum"
 	"elichika/gamedata"
+	"elichika/model"
 	"elichika/protocol/request"
 	"elichika/userdata"
 	"elichika/utils"
@@ -210,10 +211,35 @@ func SetFavoriteMember(ctx *gin.Context) {
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
-
 	session.UserStatus.FavoriteMemberID = req.MemberMasterID
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseFavoriateMember {
 		session.UserStatus.TutorialPhase = enum.TutorialPhaseLovePointUp
+		// award the initial SR
+		// TODO(refactor): use the common method to add a card instead
+		card := session.GetUserCard(100002001 + req.MemberMasterID*10000)
+		session.UserStatus.RecommendCardMasterID = card.CardMasterID // this is for the pop up
+		cardRarity := 20
+		member := session.GetMember(req.MemberMasterID)
+		beforeLoveLevelLimit := session.Gamedata.LoveLevelFromLovePoint(member.LovePointLimit)
+		afterLoveLevelLimit := beforeLoveLevelLimit + cardRarity/10
+		if afterLoveLevelLimit > session.Gamedata.MemberLoveLevelCount {
+			afterLoveLevelLimit = session.Gamedata.MemberLoveLevelCount
+		}
+		member.LovePointLimit = session.Gamedata.MemberLoveLevelLovePoint[afterLoveLevelLimit]
+		card.Grade++ // new grade,
+		if card.Grade == 0 {
+			member.OwnedCardCount++
+		} else {
+			// add trigger card grade up so animation play when opening the card
+			session.AddTriggerCardGradeUp(model.TriggerCardGradeUp{
+				CardMasterID:         card.CardMasterID,
+				BeforeLoveLevelLimit: afterLoveLevelLimit, // this is correct
+				AfterLoveLevelLimit:  afterLoveLevelLimit,
+			})
+		}
+		// update the card and member
+		session.UpdateUserCard(card)
+		session.UpdateMember(member)
 	}
 
 	signBody := session.Finalize("{}", "user_model")

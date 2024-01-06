@@ -43,8 +43,8 @@ func SaveDeckAll(ctx *gin.Context) {
 			req.CardWithSuit[i*2+1] = gamedata.Card[req.CardWithSuit[i*2]].Member.MemberInit.SuitMasterID
 		}
 	}
-	
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseDeckEdit {
 		session.UserStatus.TutorialPhase = enum.TutorialPhaseSuitChange
 	}
 
@@ -141,7 +141,7 @@ func SaveSuit(ctx *gin.Context) {
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseSuitChange {
 		session.UserStatus.TutorialPhase = enum.TutorialPhaseGacha
 	}
 

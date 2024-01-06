@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"elichika/userdata"
 	"elichika/config"
 	"elichika/enum"
+	"elichika/userdata"
 
 	"net/http"
 	"time"
@@ -12,42 +12,54 @@ import (
 )
 
 func CorePlayableEnd(ctx *gin.Context) {
+	// there's no request body
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 
-	if session.UserStatus.TutorialPhase == enum.TutorialPhaseStory2 {
-		session.UserStatus.TutorialPhase = enum.TutorialPhaseStory3
-	} else if session.UserStatus.TutorialPhase == enum.TutorialPhaseStory4 {
-		session.UserStatus.TutorialPhase = enum.TutorialPhaseFavoriateMember
+	if session.UserStatus.TutorialPhase != enum.TutorialPhaseCorePlayable {
+		panic("Unexpected tutorial phase")
 	}
+	session.UserStatus.TutorialPhase = enum.TutorialPhaseTimingAdjuster
 
 	signBody := session.Finalize("{}", "user_model")
 	resp := SignResp(ctx, signBody, config.SessionKey)
-
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
 
-//uhh - what does this do?
 func TimingAdjusterEnd(ctx *gin.Context) {
-	CorePlayableEnd(ctx)
-}
-
-func PhaseEnd(ctx *gin.Context) {
+	// there's no request body
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 
-	if session.UserStatus.TutorialPhase == enum.TutorialPhaseFinal {
-		// I think it ends here? Not 100% sure
-		session.UserStatus.TutorialPhase = enum.TutorialFinished
-		session.UserStatus.TutorialEndAt = int(time.Now().Unix())
+	if session.UserStatus.TutorialPhase != enum.TutorialPhaseTimingAdjuster {
+		panic("Unexpected tutorial phase")
 	}
+	session.UserStatus.TutorialPhase = enum.TutorialPhaseFavoriateMember
 
 	signBody := session.Finalize("{}", "user_model")
 	resp := SignResp(ctx, signBody, config.SessionKey)
+	ctx.Header("Content-Type", "application/json")
+	ctx.String(http.StatusOK, resp)
 
+}
+
+func PhaseEnd(ctx *gin.Context) {
+	// there's no request body
+	userID := ctx.GetInt("user_id")
+	session := userdata.GetSession(ctx, userID)
+	defer session.Close()
+
+	if session.UserStatus.TutorialPhase != enum.TutorialPhaseFinal {
+		panic("Unexpected tutorial phase")
+	}
+	session.UserStatus.TutorialPhase = enum.TutorialPhaseTutorialEnd
+	session.UserStatus.TutorialEndAt = int(session.Time.Unix())
+
+	signBody := session.Finalize("{}", "user_model")
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }
@@ -57,8 +69,8 @@ func TutorialSkip(ctx *gin.Context) {
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
-		session.UserStatus.TutorialPhase = enum.TutorialFinished
+	if session.UserStatus.TutorialPhase != enum.TutorialPhaseTutorialEnd {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseTutorialEnd
 		session.UserStatus.TutorialEndAt = int(time.Now().Unix())
 	}
 

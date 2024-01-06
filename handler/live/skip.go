@@ -12,7 +12,6 @@ import (
 	"elichika/utils"
 
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -96,7 +95,6 @@ func LiveSkip(ctx *gin.Context) {
 		if isCenter[i] {
 			addedLove += rewardCenterLovePoint
 		}
-		fmt.Println(addedLove)
 		memberMasterID := gamedata.Card[cardMasterID].Member.ID
 
 		pos, exist := bondCardPosition[memberMasterID]

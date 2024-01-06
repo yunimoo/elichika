@@ -87,7 +87,6 @@ func FetchBootstrap(ctx *gin.Context) {
 		ShowChallengeBeginnerButton:   false,
 		ChallengeBeginnerCompletedIds: []int{1, 2, 3, 4, 5, 6},
 	}
-
 	for _, fetchType := range req.BootstrapFetchTypes {
 		switch fetchType {
 		case enum.BootstrapFetchTypeBanner:
@@ -112,15 +111,10 @@ func FetchBootstrap(ctx *gin.Context) {
 	}
 
 	session.UserModel.UserSubscriptionStatusByID.PushBack(session.GetSubsriptionStatus())
-	// signBody := session.Finalize(GetData("fetchBootstrap.json"), "user_model_diff")
-	// resp := SignResp(ctx, signBody, config.SessionKey)
-	// ctx.Header("Content-Type", "application/json")
-	// ctx.String(http.StatusOK, resp)
 	session.Finalize("{}", "dummy")
 
 	respBytes, _ := json.Marshal(respObj)
 	resp := SignResp(ctx, string(respBytes), config.SessionKey)
-	// fmt.Println(resp)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

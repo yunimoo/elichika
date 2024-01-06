@@ -126,7 +126,7 @@ func LiveStart(ctx *gin.Context) {
 		IsAutoplay:      req.IsAutoPlay,
 	}
 	live.LiveStage = masterLiveDifficulty.LiveStage.Copy()
-	
+
 	if req.LiveTowerStatus != nil {
 		// is tower live, fetch this tower
 		// TODO: fetch from database instead
@@ -157,12 +157,6 @@ func LiveStart(ctx *gin.Context) {
 	}
 
 	liveStartResp := session.Finalize("{}", "user_model_diff")
-	
-	if session.UserStatus.TutorialPhase != enum.TutorialFinished {
-		//This should be set when doing a tutorial live, but should NOT be saved to the database
-		liveStartResp, _ = sjson.Set(liveStartResp, "user_model_diff.user_status.tutorial_phase", enum.TutorialPhaseCorePlayable)
-	}
-	
 	liveStartResp, _ = sjson.Set(liveStartResp, "live", live)
 	session.SaveUserLive(live)
 	resp := handler.SignResp(ctx, liveStartResp, config.SessionKey)

@@ -14,6 +14,14 @@ type Content struct {
 	ContentAmount int64 `xorm:"'content_amount'" json:"content_amount"`
 }
 
+func (c *Content) Amount(amount int64) Content {
+	return Content{
+		ContentType:   c.ContentType,
+		ContentID:     c.ContentID,
+		ContentAmount: amount,
+	}
+}
+
 type RewardDrop struct { // unused
 	DropColor int     `json:"drop_color"`
 	Content   Content `json:"content"`
