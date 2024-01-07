@@ -27,6 +27,11 @@ func FinishStoryMain(ctx *gin.Context) {
 	defer session.Close()
 
 	session.UserStatus.IsAutoMode = req.IsAutoMode
+	// if session.UserStatus.TutorialPhase == enum.TutorialPhaseStory1 {
+	// 	session.UserStatus.TutorialPhase = enum.TutorialPhaseStory2
+	// } else if session.UserStatus.TutorialPhase == enum.TutorialPhaseStory3 {
+	// 	session.UserStatus.TutorialPhase = enum.TutorialPhaseStory4
+	// }
 	firstClearReward := []model.Content{}
 	if session.InsertUserStoryMain(req.CellID) { // newly inserted story, award some gem
 		firstClearReward = append(firstClearReward, model.Content{

@@ -2,11 +2,15 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
+	"elichika/model"
+	"elichika/protocol/request"
+	"elichika/protocol/response"
 	"elichika/userdata"
+	"elichika/utils"
 
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -14,24 +18,103 @@ import (
 
 func FetchBootstrap(ctx *gin.Context) {
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
-	type BootstrapReq struct {
-		BootstrapFetchTypes []int  `json:"bootstrap_fetch_types"`
-		DeviceToken         string `json:"device_token"`
-		DeviceName          string `json:"device_name"`
-	}
-	req := BootstrapReq{}
-	if err := json.Unmarshal([]byte(reqBody), &req); err != nil {
-		panic(err)
-	}
+	req := request.FetchBootstrapRequest{}
+	err := json.Unmarshal([]byte(reqBody), &req)
+	utils.CheckErr(err)
 
 	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
-	session.UserStatus.BootstrapSifidCheckAt = time.Now().UnixMilli()
+	session.UserStatus.BootstrapSifidCheckAt = session.Time.UnixMilli()
 	session.UserStatus.DeviceToken = req.DeviceToken
+
+	respObj := response.FetchBootstrapResponse{
+		UserModelDiff: &session.UserModel,
+		UserInfoTrigger: response.UserInfoTrigger{
+			UserInfoTriggerGachaPointExchangeRows:           []any{},
+			UserInfoTriggerExpiredGiftBoxRows:               []any{},
+			UserInfoTriggerEventMarathonShowResultRows:      []any{},
+			UserInfoTriggerEventMiningShowResultRows:        []any{},
+			UserInfoTriggerEventCoopShowResultRows:          []any{},
+			UserInfoTriggerSubscriptionTrialEndRows:         []any{},
+			UserInfoTriggerSubscriptionEndRows:              []any{},
+			UserInfoTriggerMemberGuildRankingShowResultRows: []any{},
+		},
+		BillingStateInfo: response.BillingStateInfo{
+			Age:                        42,
+			CurrentMonthPurcharsePrice: 0,
+		},
+		FetchBootstrapBannerResponse: response.BootstrapBanner{
+			Banners: []response.Banner{},
+		},
+		FetchBootstrapNewBadgeResponse: response.BootstrapNewBadge{
+			IsNewMainStory:                     false,
+			UnreceivedPresentBox:               0,
+			IsUnreceivedPresentBoxSubscription: false,
+			NoticeNewArrivalsIds:               []int{},
+			IsUpdateFriend:                     false,
+			UnreceivedMission:                  0,
+			UnreceivedChallengeBeginner:        0,
+			DailyTheaterTodayId:                1001243,
+		},
+		FetchBootstrapPickupInfoResponse: response.BootstrapPickupInfo{
+			ActiveEvent: nil,
+			LiveCampaignInfo: response.LiveCampaignInfo{
+				LiveCampaignEndAt:          nil,
+				LiveDailyCampaignEndAt:     nil,
+				LiveExtraCampaignEndAt:     nil,
+				LiveChallengeCampaignEndAt: nil,
+			},
+			IsLessonCampaign: false,
+			AppealGachas:     []model.TextureStruktur{},
+			IsShopSale:       false,
+			IsSnsCoinSale:    false,
+		},
+		FetchBootstrapExpiredItemResponse: response.BootstrapExpiredItem{
+			ExpiredItems: []model.Content{},
+		},
+		FetchBootstrapLoginBonusResponse: model.BootstrapLoginBonus{},
+		FetchBootstrapNoticeResponse: response.BootstrapNotice{
+			SuperNotices:        []any{},
+			FetchedAt:           1688014785,
+			ReviewSuperNoticeAt: 2019600000,
+			ForceViewNoticeIds:  []any{},
+		},
+		FetchBootstrapSubscriptionResponse: response.BootstrapSubscription{
+			ContinueRewards: []any{},
+		},
+		MissionBeginnerMasterId:       nil,
+		ShowChallengeBeginnerButton:   false,
+		ChallengeBeginnerCompletedIds: []int{1, 2, 3, 4, 5, 6},
+	}
+	for _, fetchType := range req.BootstrapFetchTypes {
+		switch fetchType {
+		case enum.BootstrapFetchTypeBanner:
+			continue
+		case enum.BootstrapFetchTypeNewBadge:
+			continue
+		case enum.BootstrapFetchTypePickupInfo:
+			continue
+		case enum.BootstrapFetchTypeExpiredItem:
+			continue
+		case enum.BootstrapFetchTypeGachaPointExchange:
+			continue
+		case enum.BootstrapFetchTypeLoginBonus:
+			respObj.FetchBootstrapLoginBonusResponse = GetBootstrapLoginBonus(ctx, session)
+		case enum.BootstrapFetchTypeNotice:
+			continue
+		case enum.BootstrapFetchTypeSchoolIdolFestivalIdReward:
+			continue
+		default:
+			panic("unexpected type")
+		}
+	}
+
 	session.UserModel.UserSubscriptionStatusByID.PushBack(session.GetSubsriptionStatus())
-	signBody := session.Finalize(GetData("fetchBootstrap.json"), "user_model_diff")
-	resp := SignResp(ctx, signBody, config.SessionKey)
+	session.Finalize("{}", "dummy")
+
+	respBytes, _ := json.Marshal(respObj)
+	resp := SignResp(ctx, string(respBytes), config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

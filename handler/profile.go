@@ -2,6 +2,8 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
+	"elichika/protocol/request"
 	"elichika/userdata"
 	"elichika/utils"
 
@@ -10,7 +12,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
-	// "github.com/tidwall/sjson"
 )
 
 func FetchProfile(ctx *gin.Context) {
@@ -55,6 +56,30 @@ func SetProfile(ctx *gin.Context) {
 	signBody := session.Finalize("{}", "user_model")
 	resp := SignResp(ctx, signBody, config.SessionKey)
 
+	ctx.Header("Content-Type", "application/json")
+	ctx.String(http.StatusOK, resp)
+}
+func SetProfileBirthday(ctx *gin.Context) {
+	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+	req := request.SetProfileBirthdayRequest{}
+	err := json.Unmarshal([]byte(reqBody), &req)
+	utils.CheckErr(err)
+
+	userID := ctx.GetInt("user_id")
+	session := userdata.GetSession(ctx, userID)
+	defer session.Close()
+
+	// birthdate is probably calculated using gplay or apple id
+	session.UserStatus.BirthDay = req.Day
+	session.UserStatus.BirthMonth = req.Month
+
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseNameInput {
+		// session.UserStatus.TutorialPhase = enum.TutorialPhaseStory1
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseCorePlayable
+	}
+
+	signBody := session.Finalize("{}", "user_model")
+	resp := SignResp(ctx, signBody, config.SessionKey)
 	ctx.Header("Content-Type", "application/json")
 	ctx.String(http.StatusOK, resp)
 }

@@ -14,7 +14,6 @@ import (
 
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -255,7 +254,6 @@ func handleLiveTypeTower(ctx *gin.Context, req request.LiveFinishRequest, sessio
 	liveRecord := session.GetLiveDifficulty(session.UserStatus.LastLiveDifficultyID)
 	liveRecord.IsNew = false
 	liveRecord.IsAutoplay = live.IsAutoplay
-	timeStamp := time.Now().Unix()
 	liveResult := LiveFinishLiveResult{
 		LiveDifficultyMasterID: session.UserStatus.LastLiveDifficultyID,
 		LiveDeckID:             session.UserStatus.LatestLiveDeckID,
@@ -323,7 +321,7 @@ func handleLiveTypeTower(ctx *gin.Context, req request.LiveFinishRequest, sessio
 			liveFinishCard := req.LiveScore.CardStatDict.Objects[i]
 			cardUsedCount := session.GetUserTowerCardUsed(*live.TowerLive.TowerID, liveFinishCard.CardMasterID)
 			cardUsedCount.UsedCount++
-			cardUsedCount.LastUsedAt = timeStamp
+			cardUsedCount.LastUsedAt = session.Time.Unix()
 			session.UpdateUserTowerCardUsed(cardUsedCount)
 			liveResult.LiveResultTower.TowerCardUsedCounts = append(liveResult.LiveResultTower.TowerCardUsedCounts, cardUsedCount)
 		}
@@ -364,11 +362,12 @@ func handleLiveTypeTower(ctx *gin.Context, req request.LiveFinishRequest, sessio
 func LiveFinish(ctx *gin.Context) {
 	// this is pretty different for different type of live
 	// for simplicity we just read the request and call different handlers, even though we might be able to save some extra work
-	userID := ctx.GetInt("user_id")
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
 	req := request.LiveFinishRequest{}
 	err := json.Unmarshal([]byte(reqBody), &req)
 	utils.CheckErr(err)
+
+	userID := ctx.GetInt("user_id")
 	session := userdata.GetSession(ctx, userID)
 	defer session.Close()
 	exist, live := session.LoadUserLive()

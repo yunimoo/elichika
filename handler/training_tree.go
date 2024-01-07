@@ -2,6 +2,7 @@ package handler
 
 import (
 	"elichika/config"
+	"elichika/enum"
 	"elichika/gamedata"
 	"elichika/model"
 	"elichika/userdata"
@@ -9,7 +10,6 @@ import (
 
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -42,6 +42,10 @@ func LevelUpCard(ctx *gin.Context) {
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 
 	reqBody := gjson.Parse(ctx.GetString("reqBody")).Array()[0].String()
+
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseTrainingLevelUp {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseTrainingActivateCell
+	}
 
 	type LevelUpCardReq struct {
 		CardMasterID    int `json:"card_master_id"`
@@ -127,6 +131,10 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 	defer session.Close()
 	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 
+	if session.UserStatus.TutorialPhase == enum.TutorialPhaseTrainingActivateCell {
+		session.UserStatus.TutorialPhase = enum.TutorialPhaseDeckEdit
+	}
+
 	card := session.GetUserCard(req.CardMasterID)
 	masterCard := gamedata.Card[req.CardMasterID]
 	trainingTree := masterCard.TrainingTree
@@ -208,14 +216,13 @@ func ActivateTrainingTreeCell(ctx *gin.Context) {
 
 	// set "user_card_training_tree_cell_list" to the cell unlocked and insert the cell to db
 	unlockedCells := []model.TrainingTreeCell{}
-	timeStamp := time.Now().Unix()
 	for _, cellID := range req.CellMasterIDs {
 		unlockedCells = append(unlockedCells,
 			model.TrainingTreeCell{
 				UserID:       userID,
 				CardMasterID: req.CardMasterID,
 				CellID:       cellID,
-				ActivatedAt:  timeStamp})
+				ActivatedAt:  session.Time.Unix()})
 	}
 
 	session.InsertTrainingTreeCells(unlockedCells)

@@ -2,7 +2,7 @@ package router
 
 import (
 	"elichika/handler"
-	handler_live "elichika/handler/live"
+	"elichika/handler/live"
 	"elichika/middleware"
 	"elichika/webui"
 
@@ -52,21 +52,28 @@ func Router(r *gin.Engine) {
 		api.POST("/liveDeck/saveDeckAll", handler.SaveDeckAll)
 		api.POST("/liveDeck/saveDeck", handler.SaveDeck)
 		api.POST("/liveDeck/saveSuit", handler.SaveSuit)
-		api.POST("/livePartners/fetch", handler_live.FetchLivePartners)
+		api.POST("/livePartners/fetch", live.FetchLivePartners)
 		api.POST("/livePartners/setLivePartner", handler.SetLivePartner)
 
-		api.POST("/live/fetchLiveMusicSelect", handler_live.FetchLiveMusicSelect)
-		api.POST("/live/start", handler_live.LiveStart)
-		api.POST("/live/finish", handler_live.LiveFinish)
-		api.POST("/live/skip", handler_live.LiveSkip)
-		api.POST("/live/updatePlayList", handler_live.LiveUpdatePlayList)
-		api.POST("/live/finishTutorial", handler_live.LiveFinish) // this works
+		api.POST("/live/fetchLiveMusicSelect", live.FetchLiveMusicSelect)
+		api.POST("/live/start", live.LiveStart)
+		api.POST("/live/finish", live.LiveFinish)
+		api.POST("/live/skip", live.LiveSkip)
+		api.POST("/live/updatePlayList", live.LiveUpdatePlayList)
+		api.POST("/live/finishTutorial", live.LiveFinish) // this works
 
 		api.POST("/liveMv/saveDeck", handler.LiveMvSaveDeck)
 		api.POST("/liveMv/start", handler.LiveMvStart)
 
+		api.POST("/tutorial/corePlayableEnd", handler.CorePlayableEnd)
+		api.POST("/tutorial/phaseEnd", handler.PhaseEnd)
+		api.POST("/tutorial/tutorialSkip", handler.TutorialSkip)
+		api.POST("/tutorial/timingAdjusterEnd", handler.TimingAdjusterEnd)
+
 		api.POST("/login/login", handler.Login)
 		api.POST("/login/startup", handler.StartUp)
+
+		api.POST("/loginBonus/readLoginBonus", handler.ReadLoginBonus)
 
 		api.POST("/mission/clearMissionBadge", handler.ClearMissionBadge)
 		api.POST("/mission/fetchMission", handler.FetchMission)
@@ -110,6 +117,7 @@ func Router(r *gin.Engine) {
 
 		api.POST("/userProfile/fetchProfile", handler.FetchProfile)
 		api.POST("/userProfile/setProfile", handler.SetProfile)
+		api.POST("/userProfile/setProfileBirthday", handler.SetProfileBirthday)
 		api.POST("/userProfile/setRecommendCard", handler.SetRecommendCard)
 		api.POST("/userProfile/setScoreLive", handler.SetScoreOrComboLive)
 		api.POST("/userProfile/setCommboLive", handler.SetScoreOrComboLive) // setCommboLive is a typo in the client?

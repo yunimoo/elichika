@@ -1,7 +1,9 @@
 package userdata
 
 import (
+	"elichika/config"
 	"elichika/dictionary"
+	"elichika/enum"
 	"elichika/gamedata"
 	"elichika/model"
 	"elichika/utils"
@@ -26,6 +28,12 @@ func CreateNewAccount(ctx *gin.Context, userID int, passWord string) int {
 		isRandomID := (userID == -1)
 		if isRandomID {
 			userID = rand.Intn(1000000000)
+		}
+		tutorialPhase := 99
+		tutorialEndAt := int(time.Now().Unix())
+		if *config.Conf.Tutorial {
+			tutorialPhase = enum.TutorialPhaseNameInput
+			tutorialEndAt = 0
 		}
 		status := model.UserStatus{
 			UserID:                                  userID,
@@ -57,8 +65,8 @@ func CreateNewAccount(ctx *gin.Context, userID int, passWord string) int {
 			LastLiveDifficultyID:                      10001101,
 			LpMagnification:                           1,
 			EmblemID:                                  10500521, // new player
-			TutorialPhase:                             99,
-			TutorialEndAt:                             1622217482,
+			TutorialPhase:                             tutorialPhase,
+			TutorialEndAt:                             tutorialEndAt,
 			LoginDays:                                 1221,
 			NaviTapRecoverAt:                          1688137200,
 			MaxScoreLiveDifficultyMasterID:            10001101,

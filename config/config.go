@@ -1,7 +1,10 @@
 package config
 
 import (
+	"elichika/utils"
+
 	"os"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -48,4 +51,7 @@ var (
 func init() {
 	os.MkdirAll(UserDataBackupPath, 0755)
 	Conf = Load("./config.json")
+	loc, err := time.LoadLocation(*Conf.TimeZone)
+	utils.CheckErr(err)
+	time.Local = loc
 }

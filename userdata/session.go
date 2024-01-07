@@ -23,6 +23,7 @@ const SessionTypeLogin = 1
 const SessionTypeImportAccount = 2
 
 type Session struct {
+	Time                                      time.Time
 	Db                                        *xorm.Session
 	Ctx                                       *gin.Context
 	Gamedata                                  *gamedata.Gamedata
@@ -50,9 +51,6 @@ type Session struct {
 	SessionType int
 	UserModel   response.UserModel
 
-	// unix nano timestamps, mixed with counting up trigger id
-	// maybe expands to other things too
-	TimeStamp   int64
 	UniqueCount int64
 }
 
@@ -109,6 +107,7 @@ func init() {
 
 func GetSession(ctx *gin.Context, userID int) *Session {
 	s := Session{}
+	s.Time = time.Now()
 	s.Ctx = ctx
 	s.Gamedata = ctx.MustGet("gamedata").(*gamedata.Gamedata)
 	s.Db = Engine.NewSession()
@@ -125,12 +124,12 @@ func GetSession(ctx *gin.Context, userID int) *Session {
 	s.UserResourceDiffs = make(map[int](map[int]UserResource))
 
 	s.UserMemberLovePanelDiffs = make(map[int]model.UserMemberLovePanel)
-	s.TimeStamp = time.Now().UnixNano()
 	return &s
 }
 
 func SessionFromImportedLoginData(ctx *gin.Context, loginData *response.Login) *Session {
 	s := Session{}
+	s.Time = time.Now()
 	s.SessionType = SessionTypeImportAccount
 	s.Ctx = ctx
 	s.Gamedata = ctx.MustGet("gamedata").(*gamedata.Gamedata)
@@ -142,7 +141,6 @@ func SessionFromImportedLoginData(ctx *gin.Context, loginData *response.Login) *
 	s.UserResourceDiffs = make(map[int](map[int]UserResource))
 
 	s.UserMemberLovePanels = loginData.MemberLovePanels
-	s.TimeStamp = time.Now().UnixNano()
 	_, err = s.Db.Table("u_login").Insert(loginData)
 	utils.CheckErr(err)
 	return &s

@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -240,7 +239,7 @@ func AccessoryRarityUp(ctx *gin.Context) {
 		userAccessory.PassiveSkill2ID = new(int)
 		*userAccessory.PassiveSkill2ID = *masterAfterAccessory.Grade[0].PassiveSkill2MasterID
 	}
-	userAccessory.AcquiredAt = time.Now().Unix()
+	userAccessory.AcquiredAt = session.Time.Unix()
 	session.UpdateUserAccessory(userAccessory)
 	// remove resource used
 	session.RemoveResource(masterAccessory.RarityUp.RarityUpGroup.Resource)
