@@ -199,19 +199,20 @@ func liveTypeManualHandler(session *userdata.Session, req request.FinishLiveRequ
 
 	memberRepresentativeCard := make(map[int32]int32)
 	memberLoveGained := make(map[int32]int32)
-	for i := range req.LiveScore.CardStatDict.Map {
-		liveFinishCard := req.LiveScore.CardStatDict.Map[i]
+	if lastPlayDeck.IsCleared {
+		for i := range req.LiveScore.CardStatDict.Map {
+			liveFinishCard := req.LiveScore.CardStatDict.Map[i]
+			// calculate mvp
+			if liveFinishCard.GotVoltage > resp.LiveResult.Mvp.Value.GetVoltage {
+				resp.LiveResult.Mvp = generic.NewNullable(client.LiveResultMvp{
+					CardMasterId:        liveFinishCard.CardMasterId,
+					GetVoltage:          liveFinishCard.GotVoltage,
+					SkillTriggeredCount: liveFinishCard.SkillTriggeredCount,
+					AppealCount:         liveFinishCard.AppealCount,
+				})
+			}
 
-		// calculate mvp
-		if liveFinishCard.GotVoltage > resp.LiveResult.Mvp.GetVoltage {
-			resp.LiveResult.Mvp.GetVoltage = liveFinishCard.GotVoltage
-			resp.LiveResult.Mvp.CardMasterId = liveFinishCard.CardMasterId
-			resp.LiveResult.Mvp.SkillTriggeredCount = liveFinishCard.SkillTriggeredCount
-			resp.LiveResult.Mvp.AppealCount = liveFinishCard.AppealCount
-		}
-
-		// update card stat and member bond if cleared
-		if lastPlayDeck.IsCleared {
+			// update card stat and member bond if cleared
 
 			addedLove := liveDifficulty.RewardBaseLovePoint
 			if isCenter[i] {
@@ -232,19 +233,19 @@ func liveTypeManualHandler(session *userdata.Session, req request.FinishLiveRequ
 			}
 			memberLoveGained[memberMasterId] += int32(addedLove)
 		}
-	}
-	// it's normal to show +0 on the bond screen if the person is already maxed
-	// this is checked against (video) recording
-	for _, i := range req.LiveScore.CardStatDict.OrderedKey {
-		liveFinishCard := req.LiveScore.CardStatDict.Map[i]
-		memberMasterId := gamedata.Card[liveFinishCard.CardMasterId].Member.Id
-		if memberRepresentativeCard[memberMasterId] != i {
-			continue
+		// it's normal to show +0 on the bond screen if the person is already maxed
+		// this is checked against (video) recording
+		for _, i := range req.LiveScore.CardStatDict.OrderedKey {
+			liveFinishCard := req.LiveScore.CardStatDict.Map[i]
+			memberMasterId := gamedata.Card[liveFinishCard.CardMasterId].Member.Id
+			if memberRepresentativeCard[memberMasterId] != i {
+				continue
+			}
+			addedLove := user_member.AddMemberLovePoint(session, memberMasterId, memberLoveGained[memberMasterId])
+			resp.LiveResult.MemberLoveStatuses.Set(liveFinishCard.CardMasterId, client.LiveResultMemberLoveStatus{
+				RewardLovePoint: addedLove,
+			})
 		}
-		addedLove := user_member.AddMemberLovePoint(session, memberMasterId, memberLoveGained[memberMasterId])
-		resp.LiveResult.MemberLoveStatuses.Set(liveFinishCard.CardMasterId, client.LiveResultMemberLoveStatus{
-			RewardLovePoint: addedLove,
-		})
 	}
 
 	resp.LiveResult.LiveResultAchievementStatus.ClearCount = userLiveDifficulty.ClearCount

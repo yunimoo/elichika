@@ -42,11 +42,14 @@ func liveTypeTowerHandler(session *userdata.Session, req request.FinishLiveReque
 
 	for _, liveFinishCard := range req.LiveScore.CardStatDict.Map {
 		// calculate mvp
-		if liveFinishCard.GotVoltage > resp.LiveResult.Mvp.GetVoltage {
-			resp.LiveResult.Mvp.GetVoltage = liveFinishCard.GotVoltage
-			resp.LiveResult.Mvp.CardMasterId = liveFinishCard.CardMasterId
-			resp.LiveResult.Mvp.SkillTriggeredCount = liveFinishCard.SkillTriggeredCount
-			resp.LiveResult.Mvp.AppealCount = liveFinishCard.AppealCount
+		if liveFinishCard.GotVoltage > resp.LiveResult.Mvp.Value.GetVoltage {
+
+			resp.LiveResult.Mvp = generic.NewNullable(client.LiveResultMvp{
+				CardMasterId:        liveFinishCard.CardMasterId,
+				GetVoltage:          liveFinishCard.GotVoltage,
+				SkillTriggeredCount: liveFinishCard.SkillTriggeredCount,
+				AppealCount:         liveFinishCard.AppealCount,
+			})
 		}
 	}
 

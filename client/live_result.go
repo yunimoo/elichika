@@ -11,7 +11,7 @@ type LiveResult struct {
 	AdditionalDrops               generic.Array[LiveDropContent]                        `json:"additional_drops"`
 	GimmickDrops                  generic.Array[LiveDropContent]                        `json:"gimmick_drops"`
 	MemberLoveStatuses            generic.Dictionary[int32, LiveResultMemberLoveStatus] `json:"member_love_statuses"`
-	Mvp                           LiveResultMvp                                         `json:"mvp"`
+	Mvp                           generic.Nullable[LiveResultMvp]                       `json:"mvp"`
 	Partner                       generic.Nullable[OtherUser]                           `json:"partner"` // pointer
 	LiveResultAchievements        generic.Dictionary[int32, LiveResultAchievement]      `json:"live_result_achievements"`
 	LiveResultAchievementStatus   LiveResultAchievementStatus                           `json:"live_result_achievement_status"`
