@@ -13,6 +13,14 @@ func populateMissions(session *userdata.Session) {
 
 		userMission := getUserMission(session, mission.Id)
 		if userMission.MissionMId != 0 { // valid mission that we can have
+			// if not cleared and the mission type has an initializer, call that intialiser again
+			// this is correct but it might be slow, so maybe some other check is necessary
+			if (!userMission.IsNew) && (!userMission.IsCleared) {
+				initializer, exist := missionInitializers[mission.MissionClearConditionType]
+				if exist {
+					userMission = initializer(session, userMission)
+				}
+			}
 			session.UserModel.UserMissionByMissionId.Set(mission.Id, userMission)
 		}
 	}
