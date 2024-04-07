@@ -5,7 +5,6 @@ import (
 	"elichika/client/request"
 	"elichika/client/response"
 	"elichika/enum"
-	"elichika/gamedata"
 	"elichika/generic"
 	"elichika/handler/common"
 	"elichika/router"
@@ -27,13 +26,12 @@ func finishUserStoryMember(ctx *gin.Context) {
 	utils.CheckErr(err)
 
 	session := ctx.MustGet("session").(*userdata.Session)
-	gamedata := ctx.MustGet("gamedata").(*gamedata.Gamedata)
 
 	if req.IsAutoMode.HasValue {
 		session.UserStatus.IsAutoMode = req.IsAutoMode.Value
 	}
+	storyMemberMaster := session.Gamedata.StoryMember[req.StoryMemberMasterId]
 	if user_story_member.FinishStoryMember(session, req.StoryMemberMasterId) {
-		storyMemberMaster := gamedata.StoryMember[req.StoryMemberMasterId]
 		if storyMemberMaster.Reward != nil {
 			user_present.AddPresent(session, client.PresentItem{
 				Content:          *storyMemberMaster.Reward,
@@ -45,9 +43,10 @@ func finishUserStoryMember(ctx *gin.Context) {
 				ParamInt:        generic.NewNullable(req.StoryMemberMasterId),
 			})
 		}
-		if storyMemberMaster.UnlockLiveId != nil {
-			user_live_difficulty.UnlockLive(session, *storyMemberMaster.UnlockLiveId)
-		}
+	}
+	// always try to unlock the live
+	if storyMemberMaster.UnlockLiveId != nil {
+		user_live_difficulty.UnlockLive(session, *storyMemberMaster.UnlockLiveId)
 	}
 
 	common.JsonResponse(ctx, response.UserModelResponse{

@@ -28,7 +28,7 @@ If the user Id is new, then a new account will be created.
 - The password entered will be the login password.
 - User can user the datalink function to change the password as long as they have access to the account.
 
-Special behavior when user_id
+Special behavior when user_id is -1 for when someone want to recover account without trashing the db with a random user id
 */
 func checkTakeOver(ctx *gin.Context) {
 	req := request.CheckTakeOverRequest{}

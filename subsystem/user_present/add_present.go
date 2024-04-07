@@ -9,13 +9,14 @@ import (
 )
 
 func AddPresent(session *userdata.Session, present client.PresentItem) {
-	switch present.Content.ContentType {
-	case enum.ContentTypeStorySide:
-		fallthrough
-	case enum.ContentTypeStoryMember:
-		// for story just add it
+	if session.Gamedata.ContentType[present.Content.ContentType].IsUnique &&
+		(present.Content.ContentType != enum.ContentTypeEmblem) {
+		// unique reward are added directly instead of going to present box
+		// basically costumes, stories, backgrounds
+		// titles are unique but not sure if they are added directly or not
+		// for now they go to the present box
 		user_content.AddContent(session, present.Content)
-	default: // for items add to present box
+	} else {
 		stat := UserPresentStat{}
 		exist, err := session.Db.Table("u_present_stat").Where("user_id = ?", session.UserId).Get(&stat)
 		utils.CheckErr(err)

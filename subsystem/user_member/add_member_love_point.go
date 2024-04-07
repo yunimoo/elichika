@@ -39,6 +39,21 @@ func AddMemberLovePoint(session *userdata.Session, memberId, point int32) int32 
 			BeforeLoveLevel: member.LoveLevel - 1})
 
 		UnlockNewLovePanel(session, memberId, oldLoveLevel, member.LoveLevel)
+
+		// also award previous reward if we missed any
+		// TODO(final): this is only necessary for updating users, and should be removed once the server is "finalized"
+		for loveLevel := int32(1); loveLevel <= oldLoveLevel; loveLevel++ {
+			for _, reward := range masterMember.LoveLevelRewards[loveLevel] {
+				if session.Gamedata.ContentType[reward.ContentType].IsUnique {
+					user_present.AddPresent(session, client.PresentItem{
+						Content:          reward,
+						PresentRouteType: enum.PresentRouteTypeLoveLevelUp,
+						PresentRouteId:   generic.NewNullable(masterMember.LoveLevelRewardIds[loveLevel]),
+						ParamClient:      generic.NewNullable(fmt.Sprint(member.MemberMasterId)),
+					})
+				}
+			}
+		}
 	}
 	UpdateMember(session, member)
 	return point

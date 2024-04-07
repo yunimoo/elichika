@@ -119,6 +119,7 @@ type Gamedata struct {
 	CardByMemberId map[int32][]*Card
 
 	ContentRarity *ContentRarity
+	ContentType   map[int32]*ContentType
 
 	Suit map[int32]*Suit
 
