@@ -5,6 +5,7 @@ import (
 	"elichika/utils"
 
 	"fmt"
+	"strings"
 
 	"xorm.io/xorm"
 )
@@ -95,7 +96,7 @@ func (root *NgWordNode) GetString() string {
 	}
 }
 func (root *NgWordNode) HasMatch(s string) bool {
-	fmt.Println(s)
+	s = strings.ToLower(s)
 	matched := root
 	for _, r := range s {
 		if isSkipedRune[r] {
