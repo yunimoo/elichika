@@ -5,7 +5,7 @@ name: Build docker images
 on:
   push:
     tags: ["v*"]
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 permissions:
@@ -57,7 +57,7 @@ jobs:
           flavor: |
             latest=false
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=pep440,pattern={{raw}}
 
       - name: Build and push all platforms
